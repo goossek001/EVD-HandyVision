@@ -8,7 +8,7 @@
 #include <Windows.h>
 
 int main(int argc, char** argb) {
-	cv::Mat src, src_YCrCb, binair, edge;
+	cv::Mat src, src_YCrCb, gray, binair, edge, canny;
 	int kernel_size = 3;
 	int scale = 1;
 	int delta = 0;
@@ -16,17 +16,23 @@ int main(int argc, char** argb) {
 	char* window_name = "Laplace Demo";
 
 	//open image
-	src = cv::imread("img.jpg");
+	src = cv::imread("img2.jpg");
 	if (!src.data)
 		return -1;
 
+	//HSV skin color filter
 	cv::cvtColor(src, src_YCrCb, CV_RGB2YCrCb);
 	YCbCrSkinColorFilter(&src_YCrCb, &binair);
 
+	//Detect contour
 	DetectAndDrawContour(&binair, &edge, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
+	//Apply canny filter
+	cv::cvtColor(src, gray, CV_RGB2GRAY);
+	cv::Canny(gray, canny, 120, 255);
+
 	//Display the result
-	cv::imshow(window_name, edge);
+	cv::imshow(window_name, canny);
 
 	//Wait until a key is pressed to kill the program
 	cv::waitKey(0);
