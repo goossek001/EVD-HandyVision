@@ -125,9 +125,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="HandyVision.cpp" />
+    <ClCompile Include="HandReconisionTools.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="OpenCVExtentions.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="HandReconisionTools.h" />
     <ClInclude Include="OpenCVExtentions.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

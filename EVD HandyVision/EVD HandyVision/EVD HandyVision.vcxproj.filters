@@ -15,12 +15,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="HandyVision.cpp">
+    <ClCompile Include="OpenCVExtentions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HandReconisionTools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OpenCVExtentions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HandReconisionTools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
