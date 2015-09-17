@@ -2,6 +2,6 @@
 
 #include <opencv2/opencv.hpp>
 
-using namespace::cv;
+using cv::Mat;
 
 void YCbCrSkinColorFilter(const Mat* src, Mat* dst);

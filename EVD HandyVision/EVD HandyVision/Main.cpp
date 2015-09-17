@@ -5,10 +5,10 @@
 #include "OpenCVExtentions.h"
 #include "HandReconisionTools.h"
 
-using namespace cv;
+#include <Windows.h>
 
 int main(int argc, char** argb) {
-	Mat src, src_YCrCb, src_binair;
+	cv::Mat src, src_YCrCb, binair, edge;
 	int kernel_size = 3;
 	int scale = 1;
 	int delta = 0;
@@ -16,18 +16,20 @@ int main(int argc, char** argb) {
 	char* window_name = "Laplace Demo";
 
 	//open image
-	src = imread("img.jpg");
+	src = cv::imread("img.jpg");
 	if (!src.data)
 		return -1;
 
-	cvtColor(src, src_YCrCb, CV_RGB2YCrCb);
-	YCbCrSkinColorFilter(&src_YCrCb, &src_binair);
+	cv::cvtColor(src, src_YCrCb, CV_RGB2YCrCb);
+	YCbCrSkinColorFilter(&src_YCrCb, &binair);
+
+	DetectAndDrawContour(&binair, &edge, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
 	//Display the result
-	imshow(window_name, src_binair);
+	cv::imshow(window_name, edge);
 
 	//Wait until a key is pressed to kill the program
-	waitKey(0);
+	cv::waitKey(0);
 
 	return 0;
 }

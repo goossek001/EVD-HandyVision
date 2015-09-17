@@ -23,4 +23,15 @@ namespace cv {
 		channels[1].copyTo(*dst, *dst);
 		channels[2].copyTo(*dst, *dst);
 	}
+
+	void DetectAndDrawContour(const Mat* src, Mat* dst, int mode, int method) {
+		std::vector<cv::Vec4i> hierarchy;
+		std::vector<std::vector<cv::Point> > contours;
+
+		cv::findContours(*src, contours, hierarchy, mode, method);
+
+		dst->create(src->size(), CV_8UC1);
+		dst->setTo(cv::Scalar(0));
+		cv::drawContours(*dst, contours, -1, cv::Scalar(255), 3);
+	}
 }
