@@ -32,7 +32,7 @@ int main(int argc, char** argb) {
 	cv::Canny(gray, canny, 120, 255);
 
 	//Display the result
-	cv::imshow(window_name, canny);
+	cv::imshow(window_name, edge);
 
 	//Wait until a key is pressed to kill the program
 	cv::waitKey(0);

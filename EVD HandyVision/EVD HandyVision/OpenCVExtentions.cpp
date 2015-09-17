@@ -24,7 +24,7 @@ namespace cv {
 		channels[2].copyTo(*dst, *dst);
 	}
 
-	void DetectAndDrawContour(const Mat* src, Mat* dst, int mode, int method) {
+	void DetectAndDrawContour(const Mat* src, Mat* dst, int mode, int method, int minAreaThreshold) {
 		std::vector<cv::Vec4i> hierarchy;
 		std::vector<std::vector<cv::Point> > contours;
 
@@ -32,6 +32,9 @@ namespace cv {
 
 		dst->create(src->size(), CV_8UC1);
 		dst->setTo(cv::Scalar(0));
-		cv::drawContours(*dst, contours, -1, cv::Scalar(255), 3);
+
+		for (size_t i = 0; i<contours.size(); ++i) 
+			if (contourArea(contours[i]) >= minAreaThreshold)
+				drawContours(*dst, contours, i, cv::Scalar(255), 3);
 	}
 }
