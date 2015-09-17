@@ -8,7 +8,7 @@
 #include <Windows.h>
 
 int main(int argc, char** argb) {
-	cv::Mat src, src_YCrCb, gray, binair, edge, canny;
+	cv::Mat src, src_YCrCb, gray, binair, outerEdge, canny, edge;
 	int kernel_size = 3;
 	int scale = 1;
 	int delta = 0;
@@ -25,11 +25,14 @@ int main(int argc, char** argb) {
 	YCbCrSkinColorFilter(&src_YCrCb, &binair);
 
 	//Detect contour
-	DetectAndDrawContour(&binair, &edge, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+	DetectAndDrawContour(&binair, &outerEdge, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
 	//Apply canny filter
 	cv::cvtColor(src, gray, CV_RGB2GRAY);
 	cv::Canny(gray, canny, 120, 255);
+
+	//Combine the outercontour with the canny edge
+	cv::bitwise_or(canny, outerEdge, edge);
 
 	//Display the result
 	cv::imshow(window_name, edge);
