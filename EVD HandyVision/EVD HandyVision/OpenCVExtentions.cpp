@@ -28,13 +28,16 @@ namespace cv {
 		std::vector<cv::Vec4i> hierarchy;
 		std::vector<std::vector<cv::Point> > contours;
 
-		cv::findContours(*src, contours, hierarchy, mode, method);
+		Mat src_copy;
+		src->copyTo(src_copy);
+
+		cv::findContours(src_copy, contours, hierarchy, mode, method);
 
 		dst->create(src->size(), CV_8UC1);
 		dst->setTo(cv::Scalar(0));
 
 		for (size_t i = 0; i<contours.size(); ++i) 
 			if (contourArea(contours[i]) >= minAreaThreshold)
-				drawContours(*dst, contours, i, cv::Scalar(255), 3);
+				drawContours(*dst, contours, i, cv::Scalar(255), 1);
 	}
 }

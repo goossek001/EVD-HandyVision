@@ -8,7 +8,7 @@
 #include <Windows.h>
 
 int main(int argc, char** argb) {
-	cv::Mat src, src_YCrCb, gray, binair, outerEdge, canny, edge;
+	cv::Mat srcRGB, srcYCrCb, srcGray, srcBinair, srcOuterEdge, srcCannyEdge, srcFullEdge;
 	int kernel_size = 3;
 	int scale = 1;
 	int delta = 0;
@@ -16,26 +16,26 @@ int main(int argc, char** argb) {
 	char* window_name = "Laplace Demo";
 
 	//open image
-	src = cv::imread("img2.jpg");
-	if (!src.data)
+	srcRGB = cv::imread("img2.jpg");
+	if (!srcRGB.data)
 		return -1;
 
 	//HSV skin color filter
-	cv::cvtColor(src, src_YCrCb, CV_RGB2YCrCb);
-	YCbCrSkinColorFilter(&src_YCrCb, &binair);
+	cv::cvtColor(srcRGB, srcYCrCb, CV_RGB2YCrCb);
+	YCbCrSkinColorFilter(&srcYCrCb, &srcBinair);
 
-	//Detect contour
-	DetectAndDrawContour(&binair, &outerEdge, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+	//Detect outer contour
+	DetectAndDrawContour(&srcBinair, &srcOuterEdge, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
 	//Apply canny filter
-	cv::cvtColor(src, gray, CV_RGB2GRAY);
-	cv::Canny(gray, canny, 120, 255);
+	cv::cvtColor(srcRGB, srcGray, CV_RGB2GRAY);
+	cv::Canny(srcGray, srcCannyEdge, 120, 255);
 
 	//Combine the outercontour with the canny edge
-	cv::bitwise_or(canny, outerEdge, edge);
+	cv::bitwise_or(srcOuterEdge, srcCannyEdge, srcFullEdge);
 
 	//Display the result
-	cv::imshow(window_name, edge);
+	cv::imshow(window_name, srcFullEdge);
 
 	//Wait until a key is pressed to kill the program
 	cv::waitKey(0);
