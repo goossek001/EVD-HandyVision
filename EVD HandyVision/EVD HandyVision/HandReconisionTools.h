@@ -5,3 +5,4 @@
 using cv::Mat;
 
 void YCbCrSkinColorFilter(const Mat* src, Mat* dst);
+void findFingers(const Mat* src, Mat* dst, float fingerThickness);

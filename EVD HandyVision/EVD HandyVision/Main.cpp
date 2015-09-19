@@ -8,7 +8,7 @@
 #include <Windows.h>
 
 int main(int argc, char** argb) {
-	cv::Mat srcRGB, srcYCrCb, srcGray, srcBinair, srcOuterEdge, srcCannyEdge, srcFullEdge;
+	cv::Mat srcRGB, srcYCrCb, srcGray, srcBinair, srcOuterEdge, srcCannyEdge, srcFullEdge, srcFingers;
 	int kernel_size = 3;
 	int scale = 1;
 	int delta = 0;
@@ -16,7 +16,7 @@ int main(int argc, char** argb) {
 	char* window_name = "Laplace Demo";
 
 	//open image
-	srcRGB = cv::imread("img2.jpg");
+	srcRGB = cv::imread("img1.jpg");
 	if (!srcRGB.data)
 		return -1;
 
@@ -24,8 +24,11 @@ int main(int argc, char** argb) {
 	cv::cvtColor(srcRGB, srcYCrCb, CV_RGB2YCrCb);
 	YCbCrSkinColorFilter(&srcYCrCb, &srcBinair);
 
+	//TODO: remove big skin areas that arent hands
+	//TODO: clip the img
+
 	//Detect outer contour
-	DetectAndDrawContour(&srcBinair, &srcOuterEdge, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+	detectAndDrawContour(&srcBinair, &srcOuterEdge, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
 	//Apply canny filter
 	cv::cvtColor(srcRGB, srcGray, CV_RGB2GRAY);
@@ -34,8 +37,13 @@ int main(int argc, char** argb) {
 	//Combine the outercontour with the canny edge
 	cv::bitwise_or(srcOuterEdge, srcCannyEdge, srcFullEdge);
 
+	//TODO: estimate finger size
+	float fingerThickness = 8;
+
+	findFingers(&srcFullEdge, &srcFingers, fingerThickness);
+
 	//Display the result
-	cv::imshow(window_name, srcFullEdge);
+	cv::imshow(window_name, srcFingers);
 
 	//Wait until a key is pressed to kill the program
 	cv::waitKey(0);
