@@ -23,7 +23,7 @@ bool sortBlobs(std::vector<cv::Point> first, std::vector<cv::Point> second) {
 	@param src: hand edges stored in a 8 bit binair image
 	@param dst: a 8 bit binair image. Finger areas will have value 1 and non-fingers value 0
 */
-void findFingers(const Mat* src, Mat* dst, float fingerThickness) {
+void findFingers(const Mat* src, Mat* dst, const Mat* mask, float fingerThickness) {
 	int N = (int)round(fingerThickness / 4);
 
 	//Create the kernel
@@ -49,13 +49,16 @@ void findFingers(const Mat* src, Mat* dst, float fingerThickness) {
 	int ddepth = -1;
 	Mat tmp;
 	filter2D(*src, tmp, ddepth, kernel, cv::Point(-1, -1), 0, cv::BORDER_ISOLATED);
-	float thresh = 5*sqrtf(10*N);
+	float thresh = 5*sqrtf((float)(10*N));
 	cv::threshold(&tmp, &tmp, thresh, 2 * thresh);
 
+	//Apply mask
+	cv::bitwise_and(tmp, *mask, tmp);
+
 	//Close seperated parts of a finger
-	Mat dilationKernel = Mat::ones(3, 3, CV_8UC1);
-	dilationKernel.col(1).row(1) = 0;
-	cv::morphologyEx(tmp, tmp, cv::MORPH_CLOSE, dilationKernel);
+	Mat closingKernel = Mat::ones(3, 3, CV_8UC1);
+	closingKernel.col(1).row(1) = 0;
+	cv::morphologyEx(tmp, tmp, cv::MORPH_CLOSE, closingKernel);
 
 	//Detect blobs
 	std::vector<cv::Vec4i> hierarchy;

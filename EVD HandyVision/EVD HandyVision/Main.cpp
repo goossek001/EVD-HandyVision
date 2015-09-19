@@ -40,7 +40,7 @@ int main(int argc, char** argb) {
 	//TODO: estimate finger size
 	float fingerThickness = 8;
 
-	findFingers(&srcFullEdge, &srcFingers, fingerThickness);
+	findFingers(&srcFullEdge, &srcFingers, &srcBinair, fingerThickness);
 
 	//Display the result
 	cv::imshow(window_name, srcFingers);

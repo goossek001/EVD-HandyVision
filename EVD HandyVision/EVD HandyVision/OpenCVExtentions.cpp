@@ -29,9 +29,7 @@ namespace cv {
 		threshold(&channels[2], &channels[2], Cr_min, Cr_max);
 
 		//Combine threshold images
-		channels[0].copyTo(*dst, channels[1]);
-		channels[1].copyTo(*dst, *dst);
-		channels[2].copyTo(*dst, *dst);
+		cv::bitwise_and(channels[0], channels[1], *dst, channels[2]);
 	}
 
 	/**
