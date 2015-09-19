@@ -9,4 +9,5 @@ namespace cv {
 		double Cb_min, double Cb_max,
 		double Cr_min, double Cr_max);
 	void detectAndDrawContour(const Mat* src, Mat* dst, int mode, int method, int minAreaThreshold = 16);
+	Point getCenterOfMass(const Mat* src);
 }

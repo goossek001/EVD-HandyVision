@@ -55,4 +55,9 @@ namespace cv {
 			if (contourArea(contours[i]) >= minAreaThreshold)
 				drawContours(*dst, contours, i, cv::Scalar(255), 1);
 	}
+
+	Point getCenterOfMass(const Mat* src) {
+		Moments moments = cv::moments(*src);
+		return Point(moments.m10 / moments.m00, moments.m01 / moments.m00);
+	}
 }

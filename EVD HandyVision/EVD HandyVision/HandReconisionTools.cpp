@@ -33,13 +33,13 @@ void findFingers(const Mat* src, Mat* dst, const Mat* mask, float fingerThicknes
 		for (int j = 0; j < kernel.rows; ++j) {
 			int distance = (int)sqrt(pow(i - N*3, 2) + pow(j - N*3, 2));
 			if (distance > 3 * N) {
-				kernel.col(i).row(j) = 0;
+				kernel.at<float>(cv::Point(i,j)) = 0;
 			} else if (distance > N * 2) {
-				kernel.col(i).row(j) = 1;
+				kernel.at<float>(cv::Point(i, j)) = 1;
 			} else if (distance > N) {
-				kernel.col(i).row(j) = 0;
+				kernel.at<float>(cv::Point(i, j)) = 0;
 			} else {
-				kernel.col(i).row(j) = -1;
+				kernel.at<float>(cv::Point(i, j)) = -1;
 			}
 		}
 	}
@@ -47,55 +47,42 @@ void findFingers(const Mat* src, Mat* dst, const Mat* mask, float fingerThicknes
 
 	//Apply kernel in a convolution operation
 	int ddepth = -1;
-	Mat tmp;
-	filter2D(*src, tmp, ddepth, kernel, cv::Point(-1, -1), 0, cv::BORDER_ISOLATED);
+	filter2D(*src, *dst, ddepth, kernel, cv::Point(-1, -1), 0, cv::BORDER_ISOLATED);
 	float thresh = 5*sqrtf((float)(10*N));
-	cv::threshold(&tmp, &tmp, thresh, 2 * thresh);
+	cv::threshold(dst, dst, thresh, 2 * thresh);
 
 	//Apply mask
-	cv::bitwise_and(tmp, *mask, tmp);
+	cv::bitwise_and(*dst, *mask, *dst);
 
 	//Close seperated parts of a finger
-	Mat closingKernel = Mat::ones(3, 3, CV_8UC1);
-	closingKernel.col(1).row(1) = 0;
-	cv::morphologyEx(tmp, tmp, cv::MORPH_CLOSE, closingKernel);
-
-	//Detect blobs
-	std::vector<cv::Vec4i> hierarchy;
-	std::vector<std::vector<cv::Point> > contours;
-	cv::findContours(tmp, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
-
-	//Keep the 5 blobs with the biggest perimeter
-	std::sort(contours.begin(), contours.end(), sortBlobs);
-	contours.resize(std::min(5, (int)contours.size()));
-
-	//Draw the 5 blobs to the destination image
-	dst->create(tmp.size(), CV_8UC1);
-	dst->setTo(cv::Scalar(0));
-	for (size_t i = 0; i<contours.size(); ++i)
-		drawContours(*dst, contours, (int)i, cv::Scalar(255), -1);
+	Mat dilatingKernel = Mat::ones(3, 3, CV_8UC1);
+	dilatingKernel.at<uchar>(cv::Point(1, 1)) = 0;
+	cv::morphologyEx(*dst, *dst, cv::MORPH_DILATE, dilatingKernel);
 }
 
-void clipOfArm(const Mat* src, Mat* dst, cv::Point fingerCenterOfMass, float fingerThickness) {
-	//Crop image
+void removeArm(const Mat* src, Mat* dst, cv::Point fingerCenterOfMass, float fingerThickness) {
 	float cropRadius = 10 * fingerThickness;
-	cv::Point topLeft(std::max(0.0f, fingerCenterOfMass.x - cropRadius), std::max(0.0f, fingerCenterOfMass.y - cropRadius));
-	cv::Point bottomRight(std::min((float)src->cols, fingerCenterOfMass.x + cropRadius), std::min((float)src->cols, fingerCenterOfMass.y + cropRadius));
-	cv::Rect myROI(topLeft.x, topLeft.y, bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
-	cv::Mat croppedRef(*src, myROI);
-	fingerCenterOfMass.x += myROI.x;
-	fingerCenterOfMass.y += myROI.y;
-
-	//Remove arm
-	cv::Mat mask = cv::Mat::zeros(croppedRef.rows, croppedRef.cols, CV_8UC1);
+	cv::Mat mask = cv::Mat::zeros(src->rows, src->cols, CV_8UC1);
 	cv::circle(mask, fingerCenterOfMass, cropRadius, cv::Scalar(255), -1, 8, 0);
-	cv::bitwise_and(croppedRef, mask, *dst);
+	cv::bitwise_and(*src, mask, *dst);
 }
 
 cv::Point getHandCenter(const Mat* src) {
-	cv::Mat copy(*src);
-	cv::detectAndDrawContour(&copy, &copy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
-	
-	cv::Moments fingerMoments = cv::moments(copy, false);
-	return cv::Point(fingerMoments.m10 / fingerMoments.m00, fingerMoments.m01 / fingerMoments.m00);
+	Mat dst(*src);
+	cv::distanceTransform(*src, dst, CV_DIST_L2, 3);
+	normalize(dst, dst, 0.0, 1.0, cv::NORM_MINMAX);
+
+	int count = 0;
+	long xtotal = 0;
+	long ytotal = 0;
+	for (int x = 0; x < src->cols; ++x) {
+		for (int y = 0; y < src->rows; ++y) {
+			if (src->at<uchar>(cv::Point(x, y)) == 255) {
+				count++;
+				xtotal += x;
+				ytotal += y;
+			}
+		}
+	}
+	return cv::Point(xtotal / count, ytotal / count);
 }
