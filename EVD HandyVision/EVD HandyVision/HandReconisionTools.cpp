@@ -69,6 +69,9 @@ void removeArm(const Mat* src, Mat* dst, cv::Point fingerCenterOfMass, float fin
 
 cv::Point getHandCenter(const Mat* src) {
 	Mat dst(*src);
+	cv::detectAndDrawContour(&dst, &dst, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+	return cv::getCenterOfMass(&dst);
+	/*Mat dst(*src);
 	cv::distanceTransform(*src, dst, CV_DIST_L2, 3);
 	normalize(dst, dst, 0.0, 1.0, cv::NORM_MINMAX);
 
@@ -84,5 +87,5 @@ cv::Point getHandCenter(const Mat* src) {
 			}
 		}
 	}
-	return cv::Point(xtotal / count, ytotal / count);
+	return cv::Point(xtotal / count, ytotal / count);*/
 }

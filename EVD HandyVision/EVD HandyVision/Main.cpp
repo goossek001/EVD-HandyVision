@@ -106,7 +106,10 @@ int main(int argc, char** argb) {
 	cv::imshow("img", histogram);
 
 	//Display the result
-	cv::imshow(window_name, srcCroppedFingers);
+	srcCroppedBinair.at<uchar>(cv::Point(handCenter.x, handCenter.y)) = 0;
+	srcCroppedBinair.at<uchar>(cv::Point(wristPosition.x, wristPosition.y)) = 0;
+	srcCroppedBinair.at<uchar>(cv::Point(fingerCenterOfMass.x, fingerCenterOfMass.y)) = 0;
+	cv::imshow(window_name, srcCroppedBinair);
 
 	//Wait until a key is pressed to kill the program
 	cv::waitKey(0);
