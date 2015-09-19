@@ -75,3 +75,27 @@ void findFingers(const Mat* src, Mat* dst, const Mat* mask, float fingerThicknes
 	for (size_t i = 0; i<contours.size(); ++i)
 		drawContours(*dst, contours, (int)i, cv::Scalar(255), -1);
 }
+
+void clipOfArm(const Mat* src, Mat* dst, cv::Point fingerCenterOfMass, float fingerThickness) {
+	//Crop image
+	float cropRadius = 10 * fingerThickness;
+	cv::Point topLeft(std::max(0.0f, fingerCenterOfMass.x - cropRadius), std::max(0.0f, fingerCenterOfMass.y - cropRadius));
+	cv::Point bottomRight(std::min((float)src->cols, fingerCenterOfMass.x + cropRadius), std::min((float)src->cols, fingerCenterOfMass.y + cropRadius));
+	cv::Rect myROI(topLeft.x, topLeft.y, bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
+	cv::Mat croppedRef(*src, myROI);
+	fingerCenterOfMass.x += myROI.x;
+	fingerCenterOfMass.y += myROI.y;
+
+	//Remove arm
+	cv::Mat mask = cv::Mat::zeros(croppedRef.rows, croppedRef.cols, CV_8UC1);
+	cv::circle(mask, fingerCenterOfMass, cropRadius, cv::Scalar(255), -1, 8, 0);
+	cv::bitwise_and(croppedRef, mask, *dst);
+}
+
+cv::Point getHandCenter(const Mat* src) {
+	cv::Mat copy(*src);
+	cv::detectAndDrawContour(&copy, &copy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+	
+	cv::Moments fingerMoments = cv::moments(copy, false);
+	return cv::Point(fingerMoments.m10 / fingerMoments.m00, fingerMoments.m01 / fingerMoments.m00);
+}

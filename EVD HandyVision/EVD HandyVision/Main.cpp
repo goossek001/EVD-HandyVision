@@ -40,10 +40,23 @@ int main(int argc, char** argb) {
 	//TODO: estimate finger size
 	float fingerThickness = 8;
 
+	//Find fingers
 	findFingers(&srcFullEdge, &srcFingers, &srcBinair, fingerThickness);
 
+	//Find the center of mass of the fingers
+	cv::Moments fingerMoments = cv::moments(srcFingers, false);
+	cv::Point fingerCenterOfMass(fingerMoments.m10 / fingerMoments.m00, fingerMoments.m01 / fingerMoments.m00);
+
+	cv::Mat srcCroppedArm;
+
+	//Clip of the arm
+	clipOfArm(&srcBinair, &srcCroppedArm, fingerCenterOfMass, fingerThickness);
+
+	//Find hand center
+	cv::Point handCenter = getHandCenter(&srcCroppedArm);
+
 	//Display the result
-	cv::imshow(window_name, srcFingers);
+	cv::imshow(window_name, srcCroppedArm);
 
 	//Wait until a key is pressed to kill the program
 	cv::waitKey(0);
