@@ -8,7 +8,7 @@
 #define PI 3.14159265359
 
 int main(int argc, char** argb) {
-	cv::Mat srcRGB, srcYCrCb, srcGray, srcBinair, srcOuterEdge, srcCannyEdge, srcFullEdge, srcFingers;
+	cv::Mat srcBGR, srcYCrCb, srcGray, srcBinair, srcOuterEdge, srcCannyEdge, srcFullEdge, srcFingers;
 	int kernel_size = 3;
 	int scale = 1;
 	int delta = 0;
@@ -16,12 +16,12 @@ int main(int argc, char** argb) {
 	char* window_name = "Laplace Demo";
 
 	//open image
-	srcRGB = cv::imread("img1.jpg");
-	if (!srcRGB.data)
+	srcBGR = cv::imread("img1.jpg");
+	if (!srcBGR.data)
 		return -1;
 
 	//HSV skin color filter
-	cv::cvtColor(srcRGB, srcYCrCb, CV_RGB2YCrCb);
+	cv::cvtColor(srcBGR, srcYCrCb, CV_RGB2YCrCb);
 	YCbCrSkinColorFilter(&srcYCrCb, &srcBinair);
 
 	//TODO: remove big skin areas that arent hands
@@ -31,7 +31,7 @@ int main(int argc, char** argb) {
 	detectAndDrawContour(&srcBinair, &srcOuterEdge, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
 	//Apply canny filter
-	cv::cvtColor(srcRGB, srcGray, CV_RGB2GRAY);
+	cv::cvtColor(srcBGR, srcGray, CV_RGB2GRAY);
 	cv::Canny(srcGray, srcCannyEdge, 120, 255);
 
 	//Combine the outercontour with the canny edge
@@ -54,6 +54,8 @@ int main(int argc, char** argb) {
 
 	Mat srcCroppedBinair = srcBinair(ROI);
 	Mat srcCroppedFingers = srcFingers(ROI);
+	Mat srcCroppedEdge = srcOuterEdge(ROI);
+	Mat srcCroppedBGR = srcBGR(ROI);
 
 	cv::Mat srcBinairWithoutArm;
 
@@ -99,6 +101,52 @@ int main(int argc, char** argb) {
 
 	std::vector<int> peaks = cv::getHighestPeaks(pixelCounts, numberOfRays, 5);
 
+	std::vector<cv::Point> fingerTips(peaks.size());
+	for (int i = 0; i < fingerTips.size(); ++i) {
+		float rotation = handRotation + (peaks[i] * deltaAngle - 90) / 180.0f * PI;
+		cv::Point2f direction = cv::Point2f(std::cos(rotation), std::sin(rotation));
+		float dx;
+		float dy;
+		if (std::abs(direction.x) >= std::abs(direction.y)) {
+			dx = direction.x > 0 ? 1 : -1;
+			dy = direction.y / std::abs(direction.x);
+		} else {
+			dx = direction.x / std::abs(direction.y);
+			dy = direction.y > 0 ? 1 : -1;
+		}
+
+		float x = wristPosition.x;
+		float y = wristPosition.y;
+		
+		while (x >= 0 && x < srcCroppedFingers.cols && y >= 0 && y < srcCroppedFingers.rows) {
+			if (srcCroppedEdge.at<uchar>(cv::Point(x, y))
+					|| x - 1 >= 0 && srcCroppedEdge.at<uchar>(cv::Point(x - 1, y))
+					|| x + 1 < srcCroppedFingers.cols && srcCroppedEdge.at<uchar>(cv::Point(x + 1, y))) 
+			{
+				fingerTips[i] = cv::Point(x, y);
+			}
+
+			x += dx;
+			y += dy;
+		}
+	}
+
+	for (int x = 0; x < srcCroppedBGR.cols; ++x) {
+		for (int y = 0; y < srcCroppedBGR.rows; ++y){
+			for (int i = 0; i < fingerTips.size(); ++i) {
+				cv::Point distance = fingerTips[i] - cv::Point(x, y);
+				float length = pow(distance.x*distance.x + distance.y*distance.y, 0.5f);
+				float drawRadius = 6;
+				if (length < drawRadius && srcCroppedBinair.at<uchar>(cv::Point(x, y))) {
+					cv::Vec3b drawColor(255, 0, 0);
+					srcCroppedBGR.at<cv::Vec3b>(cv::Point(x, y)) = drawColor;
+					break;
+				}
+			}
+		}
+	}
+
+
 	//Generate histogram for pixel density in a circle around the wrist
 	cv::Mat histogram(200, numberOfRays, CV_8UC1);
 	for (int i = 0; i < histogram.cols; ++i) {
@@ -112,13 +160,7 @@ int main(int argc, char** argb) {
 			histogramFinal.at<uchar>(cv::Point(peaks[i], j)) = (histogramFinal.rows - j < pixelCounts[peaks[i]] * 5 ? 255 : 0);
 		}
 	}
-
-	cv::imshow("histogram", histogram);
-
-	cv::imshow("histogramAdj", histogramFinal);
-
-	//Display the result
-	cv::imshow(window_name, srcCroppedFingers);
+	cv::imshow("finger reconision", srcCroppedBGR);
 
 	//Wait until a key is pressed to kill the program
 	cv::waitKey(0);

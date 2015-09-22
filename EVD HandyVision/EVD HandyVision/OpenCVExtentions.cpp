@@ -91,13 +91,13 @@ namespace cv {
 		peaks.push_back(last);
 
 		int threshold = 1;
-		while (peaks.size() > nrPeaks * 2 + 2) {
+		while (peaks.size() > nrPeaks * 2 + 1) {
 			int smallestPeak = std::numeric_limits<int>().max();
-			for (int i = 2; i < peaks.size(); ++i) {
+			for (int i = 1; i < peaks.size(); ++i) {
 				int height = abs(histogram[peaks[i]] - histogram[peaks[i - 1]]);
 				if (height <= threshold) {
-					peaks.erase(peaks.begin() + i - 1, peaks.begin() + i);
-					i -= 2;
+					peaks.erase(peaks.begin() + i - 1);
+					--i;
 				} else if (height < smallestPeak) {
 					smallestPeak = height;
 				}
@@ -109,8 +109,7 @@ namespace cv {
 			int index;
 			int height;
 		};
-
-		//sort
+		
 		std::vector<Peak> heights;
 		for (int i = 0; i < peaks.size(); ++i) {
 			int height;
