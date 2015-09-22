@@ -96,6 +96,9 @@ int main(int argc, char** argb) {
 			y += dy;
 		}
 	}
+
+	std::vector<int> peaks = cv::getHighestPeaks(pixelCounts, numberOfRays, 5);
+
 	//Generate histogram for pixel density in a circle around the wrist
 	cv::Mat histogram(200, numberOfRays, CV_8UC1);
 	for (int i = 0; i < histogram.cols; ++i) {
@@ -103,13 +106,19 @@ int main(int argc, char** argb) {
 			histogram.at<uchar>(cv::Point(i, j)) = (histogram.rows - j < pixelCounts[i] * 5 ? 255 : 0);
 		}
 	}
-	cv::imshow("img", histogram);
+	cv::Mat histogramFinal = Mat::zeros(200, numberOfRays, CV_8UC1);
+	for (int i = 0; i < peaks.size(); ++i) {
+		for (int j = 0; j < histogramFinal.rows; ++j) {
+			histogramFinal.at<uchar>(cv::Point(peaks[i], j)) = (histogramFinal.rows - j < pixelCounts[peaks[i]] * 5 ? 255 : 0);
+		}
+	}
+
+	cv::imshow("histogram", histogram);
+
+	cv::imshow("histogramAdj", histogramFinal);
 
 	//Display the result
-	srcCroppedBinair.at<uchar>(cv::Point(handCenter.x, handCenter.y)) = 0;
-	srcCroppedBinair.at<uchar>(cv::Point(wristPosition.x, wristPosition.y)) = 0;
-	srcCroppedBinair.at<uchar>(cv::Point(fingerCenterOfMass.x, fingerCenterOfMass.y)) = 0;
-	cv::imshow(window_name, srcCroppedBinair);
+	cv::imshow(window_name, srcCroppedFingers);
 
 	//Wait until a key is pressed to kill the program
 	cv::waitKey(0);
