@@ -9,3 +9,4 @@ void findFingers(const Mat& src, Mat& dst, const Mat& mask, float fingerThicknes
 void getPalmCenter(const Mat& src, cv::Point& palmCenter, float& palmRadius);
 void getPalmMask(const Mat& src, Mat& dst, cv::Point palmCenter, float palmRadius);
 void findWrist(const Mat& src, cv::Point& wristLeft, cv::Point& wristRight, cv::Point palmCenter, float palmRadius);
+void getFingerMask(const Mat& src, Mat& dst, Mat& palmMask, cv::Point wristCenter, cv::Point handOrientation);

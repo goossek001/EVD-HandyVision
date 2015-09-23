@@ -154,9 +154,28 @@ void findWrist(const Mat& src, cv::Point& wristLeft, cv::Point& wristRight, cv::
 
 void getPalmMask(const Mat& src, Mat& dst, cv::Point palmCenter, float palmRadius) {
 	cv::Mat circleMask = cv::Mat::zeros(src.rows, src.cols, src.type());
-	circle(circleMask, palmCenter, 1.2f * palmRadius, cv::Scalar(255), -1, 8, 0);
+	circle(circleMask, palmCenter, 1.6f * palmRadius, cv::Scalar(255), -1, 8, 0);
 
 	dst.create(src.size(), src.type());
 	dst.setTo(cv::Scalar(0));
 	src.copyTo(dst, circleMask);
+}
+
+void getFingerMask(const Mat& src, Mat& dst, Mat& palmMask, cv::Point wristCenter, cv::Point handOrientation) {
+	cv::Point2f rSize(src.rows + src.cols, src.rows + src.cols);
+	cv::Point2f rCenter = wristCenter + 0.5f*rSize.x * handOrientation;
+	float rAngle = std::atan2(handOrientation.y, handOrientation.x);
+
+	Mat rectMask(src.size(), src.type(), cv::Scalar(0));
+	cv::RotatedRect rRect = cv::RotatedRect(rCenter, rSize, rAngle);
+	cv::Point2f vertices2f[4];
+	rRect.points(vertices2f);
+	cv::Point vertices[4];
+	for (int i = 0; i < 4; ++i){
+		vertices[i] = vertices2f[i];
+	}
+	cv::fillConvexPoly(rectMask, vertices, 4, cv::Scalar(255));
+
+	cv::bitwise_xor(src, palmMask, dst);
+	cv::bitwise_and(dst, rectMask, dst);
 }
