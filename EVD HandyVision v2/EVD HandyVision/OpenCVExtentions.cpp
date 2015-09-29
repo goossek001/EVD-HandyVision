@@ -110,40 +110,6 @@ namespace cv {
 		return out;
 	}
 
-	void lineObjectIntersection(const Mat& src, cv::Point lineStart, cv::Point lineEnd, std::vector<cv::Point>& intersections) {
-		cv::Point direction = lineEnd - lineStart;
-		direction /= pow(direction.x*direction.x + direction.y*direction.y, 0.5f);
-		float dx;
-		float dy;
-		if (std::abs(direction.x) >= std::abs(direction.y)) {
-			dx = direction.x > 0 ? 1 : -1;
-			dy = direction.y / std::abs(direction.x);
-		} else {
-			dx = direction.x / std::abs(direction.y);
-			dy = direction.y > 0 ? 1 : -1;
-		}
-
-		float x = lineStart.x;
-		float y = lineStart.y;
-
-		int previousVal = 0;
-		while (x >= 0 && x < src.cols && y >= 0 && y < src.rows && sign(x - lineStart.x) == sign(lineEnd.x - lineStart.x)) {
-			if (src.at<uchar>(cv::Point(x, y)) != previousVal) {
-				if (previousVal = 0)
-					intersections.push_back(cv::Point(x, y));
-				else
-					intersections.push_back(cv::Point(x-dx, y-dy));
-
-				previousVal = src.at<uchar>(cv::Point(x, y));
-			}
-
-			x += dx;
-			y += dy;
-		}
-		if (intersections.size() % 2) 
-			intersections.push_back(lineEnd);
-	}
-
 	void rotate(const cv::Mat& src, cv::Mat& dst, float angle) {
 		int len = std::max(src.cols, src.rows);
 		cv::Point2f pt(len / 2., len / 2.);
@@ -162,5 +128,29 @@ namespace cv {
 		temp += pt;
 
 		dstPoint = (cv::Point) temp;
+	}
+
+	float cross(cv::Point v1, cv::Point v2) {
+		return (v1.x*v2.y) - (v1.y*v2.x);
+	}
+
+	cv::Point lineLineIntersection(cv::Point line1Point, cv::Point line1Direction, cv::Point line2Point, cv::Point line2Direction) {
+		float u = cross(line2Point - line1Point, line1Direction) / cross(line1Direction, line2Direction);
+		return line2Point + u * line2Direction;
+	}
+
+	float length(const cv::Point& point) {
+		return pow(point.x*point.x + point.y*point.y, 0.5f);
+	}
+
+	void rectMask(const cv::Mat& src, cv::Mat& dst, RotatedRect boundingRect) {
+		Mat rectMask = Mat::zeros(src.size(), src.type());
+		Point2f vertices[4];
+		boundingRect.points(vertices);
+		for (int i = 0; i < 4; i++)
+			line(rectMask, vertices[i], vertices[(i + 1) % 4], Scalar(255));
+		fill(rectMask, rectMask);
+
+		src.copyTo(dst, rectMask);
 	}
 }

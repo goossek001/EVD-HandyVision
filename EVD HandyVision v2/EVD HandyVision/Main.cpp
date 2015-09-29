@@ -37,10 +37,44 @@ int main(int argc, char** argb) {
 	//TODO: filter out small fingers
 
 	std::vector<cv::RotatedRect> boundingBoxesFingers = getBoundingBoxes(fingerMask);
-	int thumbIndex = getFindThumb(boundingBoxesFingers, palmCenter, handAngle, Right);
+	ThumbDirection thumbDirection = Right;
+	int thumbIndex = getFindThumb(boundingBoxesFingers, palmCenter, handAngle, thumbDirection);
 
 	cv::Point palmLineStart, palmLineEnd;
 	getPalmLine(srcBinair, palmLineStart, palmLineEnd, wristLeft, wristRight, handOrientation, thumbIndex >= 0);
+	if (thumbDirection == Right) {
+		cv::Point temp = palmLineStart;
+		palmLineStart = palmLineEnd;
+		palmLineEnd = temp;
+	}
+
+
+	int indexFingerIndex = -1;
+	int middleFingerIndex = -1;
+	int ringFingerIndex = -1;
+	int pinkyIndex = -1;
+	float palmWidth = cv::length(palmLineEnd - palmLineStart);
+	for (int i = 0; i < boundingBoxesFingers.size(); ++i) {
+		if (i != thumbIndex) {
+			cv::Point fingerPosition = (cv::Point)(boundingBoxesFingers[i].center - handOrientation * std::max(boundingBoxesFingers[i].size.width, boundingBoxesFingers[i].size.height));
+			cv::Point intersect = cv::lineLineIntersection(fingerPosition, -handOrientation, palmLineStart, palmLineEnd - palmLineStart);
+			int finger = 1 + cv::length(intersect - palmLineStart) / palmWidth*4;
+			switch (finger) {
+			case 1:
+				indexFingerIndex = i;
+				break;
+			case 2:
+				middleFingerIndex = i;
+				break;
+			case 3:
+				ringFingerIndex = i;
+				break;
+			case 4:
+				pinkyIndex = i;
+				break;
+			}
+		}
+	}
 
 
 	//TODO: generate a bounding box for each finger
@@ -51,8 +85,19 @@ int main(int argc, char** argb) {
 	//TODO: determen definition of the sign 
 	//TODO: display the image with the translation of the sign
 
-	//imshow("original", srcBGR);
-	//imshow("fingers", fingerMask);
+	imshow("fingers", fingerMask);
+
+	Mat thumb, indexFinger, middleFinger, ringFinger, pinky;
+	cv::rectMask(fingerMask, thumb, boundingBoxesFingers[thumbIndex]);
+	imshow("thumb", thumb);
+	cv::rectMask(fingerMask, indexFinger, boundingBoxesFingers[indexFingerIndex]);
+	imshow("indexFinger", indexFinger);
+	cv::rectMask(fingerMask, middleFinger, boundingBoxesFingers[middleFingerIndex]);
+	imshow("middleFinger", middleFinger);
+	cv::rectMask(fingerMask, ringFinger, boundingBoxesFingers[ringFingerIndex]);
+	imshow("ringFinger", ringFinger);
+	cv::rectMask(fingerMask, pinky, boundingBoxesFingers[pinkyIndex]);
+	imshow("pinky", pinky);
 
 	//Wait until a key is pressed to kill the program
 	cv::waitKey(0);
