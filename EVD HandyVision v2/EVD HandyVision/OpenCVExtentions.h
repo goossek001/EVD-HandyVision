@@ -11,4 +11,9 @@ namespace cv {
 	Point getCenterOfMass(const Mat& src);
 	void detectAndDrawContour(const Mat& src, Mat& dst, int mode, int method, int lineWidth = 1, int minAreaThreshold = 16);
 	void fill(const Mat& src, Mat& dst);
+	std::vector<cv::RotatedRect> getBoundingBoxes(const Mat& src);
+	std::vector<cv::Point> lineObjectIntersection(const Mat& src, float height, const std::vector<cv::Point>& intersections);
+	void lineObjectIntersection(const Mat& src, cv::Point lineStart, cv::Point lineEnd, std::vector<cv::Point>& intersections);
+	void rotate(const cv::Mat& src, cv::Mat& dst, float angle);
+	void rotatePoint(const cv::Mat& src, const cv::Point& srcPoint, cv::Point& dstPoint, float angle);
 }

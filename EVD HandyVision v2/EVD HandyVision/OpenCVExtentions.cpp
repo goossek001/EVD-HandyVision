@@ -1,6 +1,8 @@
 #include "OpenCVExtentions.h"
 #include <limits>
 
+#define PI 3.14159265359
+
 namespace cv {
 	/**
 		Apply a threshold with a lower- and upperbound
@@ -58,5 +60,107 @@ namespace cv {
 
 	void fill(const Mat& src, Mat& dst) {
 		detectAndDrawContour(src, dst, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, -1);
+	}
+
+	std::vector<cv::RotatedRect> getBoundingBoxes(const Mat& src) {
+		std::vector<cv::Vec4i> hierarchy;
+		std::vector<std::vector<cv::Point> > contours;
+
+		Mat srcCopy;
+		src.copyTo(srcCopy);
+
+		std::vector<cv::RotatedRect> boundingBoxes;
+		cv::findContours(srcCopy, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+		for (int i = 0; i < contours.size(); ++i)
+			boundingBoxes.push_back(cv::minAreaRect(contours[i]));
+
+		return boundingBoxes;
+	}
+
+	int sign(int val) {
+		if (val > 0) {
+			return 1;
+		} else if (val < 0) {
+			return -1;
+		} else {
+			return 0;
+		}
+	}
+
+	std::vector<cv::Point> lineObjectIntersection(const Mat& src, float height, const std::vector<cv::Point>& intersections) {
+		std::vector<cv::Point> out(intersections);
+		int x = 0;
+
+		int previousVal = 0;
+		while (x < src.cols) {
+			if ((src.at<uchar>(cv::Point(x, height)) == 0) != (previousVal == 0)) {
+
+				if (previousVal == 0)
+					out.push_back(cv::Point(x, height));
+				else
+					out.push_back(cv::Point(x - 1, height));
+
+				previousVal = src.at<uchar>(cv::Point(x, height));
+			}
+
+			++x;
+		}
+		if (intersections.size() % 2)
+			out.push_back(cv::Point(src.cols-1, height));
+		return out;
+	}
+
+	void lineObjectIntersection(const Mat& src, cv::Point lineStart, cv::Point lineEnd, std::vector<cv::Point>& intersections) {
+		cv::Point direction = lineEnd - lineStart;
+		direction /= pow(direction.x*direction.x + direction.y*direction.y, 0.5f);
+		float dx;
+		float dy;
+		if (std::abs(direction.x) >= std::abs(direction.y)) {
+			dx = direction.x > 0 ? 1 : -1;
+			dy = direction.y / std::abs(direction.x);
+		} else {
+			dx = direction.x / std::abs(direction.y);
+			dy = direction.y > 0 ? 1 : -1;
+		}
+
+		float x = lineStart.x;
+		float y = lineStart.y;
+
+		int previousVal = 0;
+		while (x >= 0 && x < src.cols && y >= 0 && y < src.rows && sign(x - lineStart.x) == sign(lineEnd.x - lineStart.x)) {
+			if (src.at<uchar>(cv::Point(x, y)) != previousVal) {
+				if (previousVal = 0)
+					intersections.push_back(cv::Point(x, y));
+				else
+					intersections.push_back(cv::Point(x-dx, y-dy));
+
+				previousVal = src.at<uchar>(cv::Point(x, y));
+			}
+
+			x += dx;
+			y += dy;
+		}
+		if (intersections.size() % 2) 
+			intersections.push_back(lineEnd);
+	}
+
+	void rotate(const cv::Mat& src, cv::Mat& dst, float angle) {
+		int len = std::max(src.cols, src.rows);
+		cv::Point2f pt(len / 2., len / 2.);
+		cv::Mat r = cv::getRotationMatrix2D(pt, angle*180/PI, 1.0);
+
+		cv::warpAffine(src, dst, r, cv::Size(len, len));
+	}
+
+	void rotatePoint(const cv::Mat& src, const cv::Point& srcPoint, cv::Point& dstPoint, float angle) {
+		int len = std::max(src.cols, src.rows);
+		cv::Point2f pt(len / 2., len / 2.);
+
+		cv::Point2f temp = (cv::Point2f) srcPoint - pt;
+		temp.x = std::cos(angle)*temp.x - std::sin(angle)*temp.y;
+		temp.y = std::sin(angle)*temp.x + std::cos(angle)*temp.y;
+		temp += pt;
+
+		dstPoint = (cv::Point) temp;
 	}
 }

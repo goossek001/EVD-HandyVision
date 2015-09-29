@@ -161,9 +161,9 @@ void getPalmMask(const Mat& src, Mat& dst, cv::Point palmCenter, float palmRadiu
 	src.copyTo(dst, circleMask);
 }
 
-void getFingerMask(const Mat& src, Mat& dst, Mat& palmMask, cv::Point wristCenter, cv::Point handOrientation) {
+void getFingerMask(const Mat& src, Mat& dst, Mat& palmMask, cv::Point wristCenter, cv::Point2f handOrientation) {
 	cv::Point2f rSize(src.rows + src.cols, src.rows + src.cols);
-	cv::Point2f rCenter = wristCenter + 0.5f*rSize.x * handOrientation;
+	cv::Point2f rCenter = (cv::Point2f)wristCenter + 0.5f*rSize.x * handOrientation;
 	float rAngle = std::atan2(handOrientation.y, handOrientation.x);
 
 	Mat rectMask(src.size(), src.type(), cv::Scalar(0));
@@ -178,4 +178,70 @@ void getFingerMask(const Mat& src, Mat& dst, Mat& palmMask, cv::Point wristCente
 
 	cv::bitwise_xor(src, palmMask, dst);
 	cv::bitwise_and(dst, rectMask, dst);
+}
+
+int getFindThumb(const std::vector<cv::RotatedRect>& boundingBoxesFingers, cv::Point palmCenter, float handAngle, ThumbDirection thumbDirection) {
+	float rotationMatrix[2][2] = {
+		{ cos(handAngle), -sin(handAngle) },
+		{ sin(handAngle), cos(handAngle) }
+	};
+	
+	bool containsThumb = false;
+	for (int i = 0; i < boundingBoxesFingers.size(); ++i) {
+		cv::Point direction = boundingBoxesFingers[i].center - (cv::Point2f)palmCenter;
+		direction = cv::Point(
+			direction.x * rotationMatrix[0][0] + direction.y * rotationMatrix[1][0],
+			direction.x * rotationMatrix[0][1] + direction.y * rotationMatrix[1][1]
+			);
+		float rotation = atan2(direction.y, direction.x);
+		if (rotation >= 40 * thumbDirection) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+void getPalmLine(const Mat& srcBinair, cv::Point& palmLineStart, cv::Point& palmLineEnd, cv::Point wristLeft, cv::Point wristRight, cv::Point2f handOrientation, bool isThumbVisible) {
+	Mat srcRotated;
+	float angle = atan2(handOrientation.y, handOrientation.x) + 0.5*PI;
+	cv::Point temp;
+	cv::rotate(srcBinair, srcRotated, angle);
+	cv::rotatePoint(srcBinair, wristLeft, temp, angle);
+
+	int height = temp.y;
+	int previousHoleCount = 0;
+	int maxHoles = isThumbVisible ? 2: 1;
+	while (true) {
+		std::vector<cv::Point> intersections;
+		intersections = cv::lineObjectIntersection(srcRotated, height, intersections);
+		int holes = intersections.size() / 2-1;
+
+		if (holes >= maxHoles) {
+			height++;
+			intersections.clear();
+			intersections = cv::lineObjectIntersection(srcRotated, height, intersections);
+			int index = -1;
+			int largestWidth = -1;
+
+			for (int i = 0; i < holes*2; i+=2) {
+				int width = intersections[i].x - intersections[i].x;
+				if (width > largestWidth) {
+					index = i;
+					largestWidth = width;
+				}
+			}
+
+			palmLineStart.x = intersections[index].x;
+			palmLineStart.y = intersections[index].y;
+			palmLineEnd.x = intersections[index + 1].x;
+			palmLineEnd.y = intersections[index + 1].y;
+			cv::rotatePoint(srcBinair, palmLineStart, palmLineStart, angle);
+			cv::rotatePoint(srcBinair, palmLineEnd, palmLineEnd, angle);
+			break;
+		} else if (previousHoleCount > holes){
+			maxHoles = 1;
+		}
+		--height;
+		previousHoleCount = holes;
+	}
 }
