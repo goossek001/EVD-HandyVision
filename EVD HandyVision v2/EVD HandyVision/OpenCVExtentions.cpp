@@ -63,6 +63,7 @@ namespace cv {
 	}
 
 	std::vector<cv::RotatedRect> getBoundingBoxes(const Mat& src) {
+		int minAreaThreshold = 16;
 		std::vector<cv::Vec4i> hierarchy;
 		std::vector<std::vector<cv::Point> > contours;
 
@@ -72,7 +73,8 @@ namespace cv {
 		std::vector<cv::RotatedRect> boundingBoxes;
 		cv::findContours(srcCopy, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 		for (int i = 0; i < contours.size(); ++i)
-			boundingBoxes.push_back(cv::minAreaRect(contours[i]));
+			if (contourArea(contours[i]) >= minAreaThreshold)
+				boundingBoxes.push_back(cv::minAreaRect(contours[i]));
 
 		return boundingBoxes;
 	}

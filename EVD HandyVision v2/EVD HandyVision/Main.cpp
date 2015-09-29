@@ -56,23 +56,29 @@ int main(int argc, char** argb) {
 	float palmWidth = cv::length(palmLineEnd - palmLineStart);
 	for (int i = 0; i < boundingBoxesFingers.size(); ++i) {
 		if (i != thumbIndex) {
-			cv::Point fingerPosition = (cv::Point)(boundingBoxesFingers[i].center - handOrientation * std::max(boundingBoxesFingers[i].size.width, boundingBoxesFingers[i].size.height));
+			float cloasestDistance = 9999;
+			cv::Point fingerPosition;
+			cv::Point2f vertices[4];
+			boundingBoxesFingers[i].points(vertices);
+			for (int j = 0; j <= 4; ++j) {
+				cv::Point point = (cv::Point)(vertices[j] + vertices[(j + 1) % 4]) / 2;
+				float distance = length(point - wristCenter);
+				if (distance < cloasestDistance) {
+					fingerPosition = point;
+					cloasestDistance = distance;
+				}
+			}
+
 			cv::Point intersect = cv::lineLineIntersection(fingerPosition, -handOrientation, palmLineStart, palmLineEnd - palmLineStart);
 			int finger = 1 + cv::length(intersect - palmLineStart) / palmWidth*4;
-			switch (finger) {
-			case 1:
+			if (finger <= 1)
 				indexFingerIndex = i;
-				break;
-			case 2:
+			else if (finger == 2)
 				middleFingerIndex = i;
-				break;
-			case 3:
+			else if (finger == 3)
 				ringFingerIndex = i;
-				break;
-			case 4:
+			else 
 				pinkyIndex = i;
-				break;
-			}
 		}
 	}
 
@@ -85,6 +91,7 @@ int main(int argc, char** argb) {
 	//TODO: determen definition of the sign 
 	//TODO: display the image with the translation of the sign
 
+	imshow("binair", srcBinair);
 	imshow("fingers", fingerMask);
 
 	Mat thumb, indexFinger, middleFinger, ringFinger, pinky;
