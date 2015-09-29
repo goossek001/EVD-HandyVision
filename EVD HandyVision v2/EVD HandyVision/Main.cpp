@@ -4,14 +4,13 @@
 
 #include "OpenCVExtentions.h"
 #include "HandReconisionTools.h"
-
-#define PI 3.14159265359
+#include "Math.h"
 
 int main(int argc, char** argb) {
 	cv::Mat srcBGR, srcYCrCb, srcBinair, palmMask, fingerMask;
 
 	//open image
-	srcBGR = cv::imread("img1.jpg");
+	srcBGR = cv::imread("img3.jpg");
 	if (!srcBGR.data)
 		return -1;
 
@@ -53,7 +52,7 @@ int main(int argc, char** argb) {
 	int middleFingerIndex = -1;
 	int ringFingerIndex = -1;
 	int pinkyIndex = -1;
-	float palmWidth = cv::length(palmLineEnd - palmLineStart);
+	float palmWidth = math::length(palmLineEnd - palmLineStart);
 	for (int i = 0; i < boundingBoxesFingers.size(); ++i) {
 		if (i != thumbIndex) {
 			float cloasestDistance = 9999;
@@ -62,15 +61,15 @@ int main(int argc, char** argb) {
 			boundingBoxesFingers[i].points(vertices);
 			for (int j = 0; j <= 4; ++j) {
 				cv::Point point = (cv::Point)(vertices[j] + vertices[(j + 1) % 4]) / 2;
-				float distance = length(point - wristCenter);
+				float distance = math::length(point - wristCenter);
 				if (distance < cloasestDistance) {
 					fingerPosition = point;
 					cloasestDistance = distance;
 				}
 			}
 
-			cv::Point intersect = cv::lineLineIntersection(fingerPosition, -handOrientation, palmLineStart, palmLineEnd - palmLineStart);
-			int finger = 1 + cv::length(intersect - palmLineStart) / palmWidth*4;
+			cv::Point intersect = math::lineLineIntersection(cv::Line(fingerPosition, -handOrientation), cv::Line(palmLineStart, palmLineEnd - palmLineStart));
+			int finger = 1 + math::length(intersect - palmLineStart) / palmWidth * 4;
 			if (finger <= 1)
 				indexFingerIndex = i;
 			else if (finger == 2)
@@ -91,19 +90,20 @@ int main(int argc, char** argb) {
 	//TODO: determen definition of the sign 
 	//TODO: display the image with the translation of the sign
 
+	imshow("original", srcBGR);
 	imshow("binair", srcBinair);
 	imshow("fingers", fingerMask);
 
 	Mat thumb, indexFinger, middleFinger, ringFinger, pinky;
-	cv::rectMask(fingerMask, thumb, boundingBoxesFingers[thumbIndex]);
+	cv::applyRectangleMask(fingerMask, thumb, boundingBoxesFingers[thumbIndex]);
 	imshow("thumb", thumb);
-	cv::rectMask(fingerMask, indexFinger, boundingBoxesFingers[indexFingerIndex]);
+	cv::applyRectangleMask(fingerMask, indexFinger, boundingBoxesFingers[indexFingerIndex]);
 	imshow("indexFinger", indexFinger);
-	cv::rectMask(fingerMask, middleFinger, boundingBoxesFingers[middleFingerIndex]);
+	cv::applyRectangleMask(fingerMask, middleFinger, boundingBoxesFingers[middleFingerIndex]);
 	imshow("middleFinger", middleFinger);
-	cv::rectMask(fingerMask, ringFinger, boundingBoxesFingers[ringFingerIndex]);
+	cv::applyRectangleMask(fingerMask, ringFinger, boundingBoxesFingers[ringFingerIndex]);
 	imshow("ringFinger", ringFinger);
-	cv::rectMask(fingerMask, pinky, boundingBoxesFingers[pinkyIndex]);
+	cv::applyRectangleMask(fingerMask, pinky, boundingBoxesFingers[pinkyIndex]);
 	imshow("pinky", pinky);
 
 	//Wait until a key is pressed to kill the program

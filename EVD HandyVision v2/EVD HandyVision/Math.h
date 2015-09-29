@@ -1,0 +1,25 @@
+//***************************************************************************************
+// A collection of mathmaticly constants and functions
+// Autors:	Kay Goossen
+// Date:	28 September 2015
+// Version: 1.0
+//***************************************************************************************
+
+#include "Line.h"
+
+#define PI 3.14159265359
+
+namespace math {
+	using cv::Mat;
+	using cv::Point;
+	using cv::Line;
+
+	int sign(int val);
+
+	float length(const Point& vector);
+	float cross(cv::Point v1, cv::Point v2);
+
+	void rotatePoint(const Mat& src, const Point& srcPoint, Point& dstPoint, float angle);
+	std::vector<Point> horizontalLineObjectIntersection(const Mat& src, int height);
+	Point lineLineIntersection(Line l1, Line l2);
+}

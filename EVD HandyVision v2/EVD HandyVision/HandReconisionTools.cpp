@@ -1,8 +1,7 @@
 #include "HandReconisionTools.h"
 
 #include "OpenCVExtentions.h"
-
-#define PI 3.14159265359
+#include "Math.h"
 
 /**
 	A filter create a binair image that has seperated skin and background
@@ -205,21 +204,20 @@ void getPalmLine(const Mat& srcBinair, cv::Point& palmLineStart, cv::Point& palm
 	Mat srcRotated;
 	float angle = atan2(handOrientation.y, handOrientation.x) + 0.5*PI;
 	cv::Point temp;
-	cv::rotate(srcBinair, srcRotated, angle);
-	cv::rotatePoint(srcBinair, wristLeft, temp, angle);
+	cv::rotateImage(srcBinair, srcRotated, angle);
+	math::rotatePoint(srcBinair, wristLeft, temp, angle);
 
 	int height = temp.y;
 	int previousHoleCount = 0;
 	int maxHoles = isThumbVisible ? 2: 1;
 	while (true) {
-		std::vector<cv::Point> intersections;
-		intersections = cv::lineObjectIntersection(srcRotated, height, intersections);
+		std::vector<cv::Point> intersections = math::horizontalLineObjectIntersection(srcRotated, height);
 		int holes = intersections.size() / 2-1;
 
 		if (holes >= maxHoles) {
 			height++;
 			intersections.clear();
-			intersections = cv::lineObjectIntersection(srcRotated, height, intersections);
+			intersections = math::horizontalLineObjectIntersection(srcRotated, height);
 			int index = -1;
 			int largestWidth = -1;
 
@@ -235,8 +233,8 @@ void getPalmLine(const Mat& srcBinair, cv::Point& palmLineStart, cv::Point& palm
 			palmLineStart.y = intersections[index].y;
 			palmLineEnd.x = intersections[index + 1].x;
 			palmLineEnd.y = intersections[index + 1].y;
-			cv::rotatePoint(srcBinair, palmLineStart, palmLineStart, angle);
-			cv::rotatePoint(srcBinair, palmLineEnd, palmLineEnd, angle);
+			math::rotatePoint(srcBinair, palmLineStart, palmLineStart, angle);
+			math::rotatePoint(srcBinair, palmLineEnd, palmLineEnd, angle);
 			break;
 		} else if (previousHoleCount > holes){
 			maxHoles = 1;

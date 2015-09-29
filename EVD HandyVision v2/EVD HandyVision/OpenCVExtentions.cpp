@@ -1,7 +1,6 @@
 #include "OpenCVExtentions.h"
+#include "Math.h"
 #include <limits>
-
-#define PI 3.14159265359
 
 namespace cv {
 	/**
@@ -17,7 +16,7 @@ namespace cv {
 		Apply a threshold on a YCbCr image
 		@param src: a 3 channel YCbCr image
 		@param dst: a 8 bit binair image
-		*/
+	*/
 	void cvYCbCrThreshold(const Mat& src, Mat& dst,
 		double Y_min, double Y_max,
 		double Cb_min, double Cb_max,
@@ -79,40 +78,13 @@ namespace cv {
 		return boundingBoxes;
 	}
 
-	int sign(int val) {
-		if (val > 0) {
-			return 1;
-		} else if (val < 0) {
-			return -1;
-		} else {
-			return 0;
-		}
-	}
-
-	std::vector<cv::Point> lineObjectIntersection(const Mat& src, float height, const std::vector<cv::Point>& intersections) {
-		std::vector<cv::Point> out(intersections);
-		int x = 0;
-
-		int previousVal = 0;
-		while (x < src.cols) {
-			if ((src.at<uchar>(cv::Point(x, height)) == 0) != (previousVal == 0)) {
-
-				if (previousVal == 0)
-					out.push_back(cv::Point(x, height));
-				else
-					out.push_back(cv::Point(x - 1, height));
-
-				previousVal = src.at<uchar>(cv::Point(x, height));
-			}
-
-			++x;
-		}
-		if (intersections.size() % 2)
-			out.push_back(cv::Point(src.cols-1, height));
-		return out;
-	}
-
-	void rotate(const cv::Mat& src, cv::Mat& dst, float angle) {
+	/**
+		Rotate a image around its center 
+		@param src:			A image with no type restrictions
+		@param dst			The output channel for the rotated image. This image will have the same type and parent as the param 'src'
+		@param angle:		The rotation of the image in radians
+	*/
+	void rotateImage(const cv::Mat& src, cv::Mat& dst, float angle) {
 		int len = std::max(src.cols, src.rows);
 		cv::Point2f pt(len / 2., len / 2.);
 		cv::Mat r = cv::getRotationMatrix2D(pt, angle*180/PI, 1.0);
@@ -120,32 +92,7 @@ namespace cv {
 		cv::warpAffine(src, dst, r, cv::Size(len, len));
 	}
 
-	void rotatePoint(const cv::Mat& src, const cv::Point& srcPoint, cv::Point& dstPoint, float angle) {
-		int len = std::max(src.cols, src.rows);
-		cv::Point2f pt(len / 2., len / 2.);
-
-		cv::Point2f temp = (cv::Point2f) srcPoint - pt;
-		temp.x = std::cos(angle)*temp.x - std::sin(angle)*temp.y;
-		temp.y = std::sin(angle)*temp.x + std::cos(angle)*temp.y;
-		temp += pt;
-
-		dstPoint = (cv::Point) temp;
-	}
-
-	float cross(cv::Point v1, cv::Point v2) {
-		return (v1.x*v2.y) - (v1.y*v2.x);
-	}
-
-	cv::Point lineLineIntersection(cv::Point line1Point, cv::Point line1Direction, cv::Point line2Point, cv::Point line2Direction) {
-		float u = cross(line2Point - line1Point, line1Direction) / cross(line1Direction, line2Direction);
-		return line2Point + u * line2Direction;
-	}
-
-	float length(const cv::Point& point) {
-		return pow(point.x*point.x + point.y*point.y, 0.5f);
-	}
-
-	void rectMask(const cv::Mat& src, cv::Mat& dst, RotatedRect boundingRect) {
+	void applyRectangleMask(const cv::Mat& src, cv::Mat& dst, RotatedRect boundingRect) {
 		Mat rectMask = Mat::zeros(src.size(), src.type());
 		Point2f vertices[4];
 		boundingRect.points(vertices);
