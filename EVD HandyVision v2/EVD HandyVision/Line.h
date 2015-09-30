@@ -1,8 +1,8 @@
 //***************************************************************************************
 // Line.h, a class that is used to represent line geometry 
 // Autors:	Kay Goossen
-// Date:	28 September 2015
-// Version: 1.0
+// Date:	29 September 2015
+// Version: 1.01
 //***************************************************************************************
 
 #pragma once

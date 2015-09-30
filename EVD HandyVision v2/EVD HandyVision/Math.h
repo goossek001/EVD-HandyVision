@@ -1,13 +1,14 @@
 //***************************************************************************************
 // A collection of mathmaticly constants and functions
 // Autors:	Kay Goossen
-// Date:	28 September 2015
-// Version: 1.0
+// Date:	29 September 2015
+// Version: 1.01
 //***************************************************************************************
 
 #include "Line.h"
 
 #define PI 3.14159265359
+#define Infinity 9999999
 
 namespace math {
 	using cv::Mat;

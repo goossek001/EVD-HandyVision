@@ -1,8 +1,8 @@
 //***************************************************************************************
 // A collection of mathmaticly functions
 // Autors:	Kay Goossen
-// Date:	28 September 2015
-// Version: 1.0
+// Date:	29 September 2015
+// Version: 1.01
 //***************************************************************************************
 
 #include "Math.h"

@@ -1,3 +1,10 @@
+//***************************************************************************************
+// Load a image and find all visible fingers in this image
+// Autors:	Kay Goossen
+// Date:	29 September 2015
+// Version: 1.00
+//***************************************************************************************
+
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
@@ -25,7 +32,7 @@ int main(int argc, char** argb) {
 	cv::Point palmCenter;
 	float palmRadius;
 	getPalmCenter(srcBinair, palmCenter, palmRadius);
-	getPalmMask(srcBinair, palmMask, palmCenter, palmRadius);
+	createPalmMask(srcBinair, palmMask, palmCenter, palmRadius);
 
 	// find wrist
 	cv::Line wristLine;
@@ -38,7 +45,7 @@ int main(int argc, char** argb) {
 	float handAngle = std::atan2(handOrientation.y, handOrientation.x);
 
 	// find the fingers
-	getFingerMask(srcBinair, fingerMask, palmMask, wristCenter, handOrientation);
+	createFingerMask(srcBinair, fingerMask, palmMask, wristCenter, handOrientation);
 	std::vector<cv::RotatedRect> boundingBoxesFingers = getBoundingBoxes(fingerMask);
 
 	//TODO: determen the direction of the thumb
@@ -57,7 +64,7 @@ int main(int argc, char** argb) {
 	}
 
 	// find the 4 other fingers
-	findFingers(wristCenter, handOrientation, palmLine, boundingBoxesFingers, thumbIndex, indexFingerIndex
+	labelFingers(boundingBoxesFingers, wristCenter, handOrientation, palmLine, thumbIndex, indexFingerIndex
 		, middleFingerIndex, ringFingerIndex, pinkyIndex);
 
 

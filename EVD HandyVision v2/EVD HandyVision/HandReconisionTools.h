@@ -1,3 +1,10 @@
+//***************************************************************************************
+// Functions are specificly used for reconision skin and hands
+// Autors:	Kay Goossen
+// Date:	29 September 2015
+// Version: 1.00
+//***************************************************************************************
+
 #pragma once
 
 #include <opencv2/opencv.hpp>
@@ -11,13 +18,11 @@ enum ThumbDirection {
 };
 
 void YCbCrSkinColorFilter(const Mat& src, Mat& dst);
-void findFingers(const Mat& src, Mat& dst, const Mat& mask, float fingerThickness);
 void getPalmCenter(const Mat& src, cv::Point& palmCenter, float& palmRadius);
-void getPalmMask(const Mat& src, Mat& dst, cv::Point palmCenter, float palmRadius);
+void createPalmMask(const Mat& src, Mat& dst, cv::Point palmCenter, float palmRadius);
 void findWrist(const Mat& src, cv::Line& wristOut, cv::Point palmCenter, float palmRadius);
-void getFingerMask(const Mat& src, Mat& dst, Mat& palmMask, cv::Point wristCenter, cv::Point2f handOrientation);
+void createFingerMask(const Mat& src, Mat& dst, Mat& palmMask, cv::Point wristCenter, cv::Point2f handOrientation);
 int getFindThumb(const std::vector<cv::RotatedRect>& fingers, cv::Point palmCenter, float handAngle, ThumbDirection thumbDirection);
 void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, cv::Line wristLine, cv::Point2f handOrientation, bool isThumbVisible);
-void findFingers(const cv::Point& wristCenter, const cv::Point& handOrientation, cv::Line palmLine
-	, const std::vector<cv::RotatedRect>& boundingBoxesFingers, int thumbIndex, int& indexFingerIndex
-	, int& middleFingerIndex, int& ringFingerIndex, int& pinkyIndex);
+void labelFingers(const std::vector<cv::RotatedRect>& boundingBoxesFingers, const cv::Point& wristCenter, const cv::Point& handOrientation
+	, cv::Line palmLine, int thumbIndex, int& indexFingerIndexOut, int& middleFingerIndexOut, int& ringFingerIndexOut, int& pinkyIndexOut);

@@ -1,3 +1,10 @@
+//***************************************************************************************
+// Functions are specificly used for reconision skin and hands
+// Autors:	Kay Goossen
+// Date:	29 September 2015
+// Version: 1.00
+//***************************************************************************************
+
 #include "HandReconisionTools.h"
 
 #include "OpenCVExtentions.h"
@@ -5,8 +12,8 @@
 
 /**
 	A filter create a binair image that has seperated skin and background
-	@param src: a YCbCr image
-	@param dst: a 8 bit binair image. Skin will have value 1 and non-skin value 0
+	@param src:		A YCbCr image
+	@param dst:		Output as a 8 bit binair image. Skin will have value 1 and non-skin value 0
 */
 void YCbCrSkinColorFilter(const Mat& src, Mat& dst) {
 	cv::cvYCbCrThreshold(src, dst, 0, 255, 77, 127, 133, 173);
@@ -14,64 +21,25 @@ void YCbCrSkinColorFilter(const Mat& src, Mat& dst) {
 
 /**
 	Sort two blobs on contour area
+	@param blob1:
+	@param blob2:
 */
-bool sortBlobs(std::vector<cv::Point> first, std::vector<cv::Point> second) {
-	return contourArea(first) > contourArea(second);
+bool sortBlobs(std::vector<cv::Point> blob1, std::vector<cv::Point> blob2) {
+	return contourArea(blob1) > contourArea(blob2);
 }
 
 /**
-	Find fingers by looking for parralel lines that are distance 'fingerThickness' appart
-	@param src: hand edges stored in a 8 bit binair image
-	@param dst: a 8 bit binair image. Finger areas will have value 1 and non-fingers value 0
+	Uses a distance trasformation to find the palm center and palm radius
+	@param src:			binary image of a hand
+	@param palmCenter:
+	@param palmRadius:	
 */
-void findFingers(const Mat& src, Mat& dst, const Mat& mask, float fingerThickness) {
-	int N = (int)round(fingerThickness / 4);
-
-	//Create the kernel
-	Mat kernel;
-	kernel.create(N * 6 + 1, N * 6 + 1, CV_32F);
-	for (int i = 0; i < kernel.cols; ++i) {
-		for (int j = 0; j < kernel.rows; ++j) {
-			int distance = (int)sqrt(pow(i - N*3, 2) + pow(j - N*3, 2));
-			if (distance > 3 * N) {
-				kernel.at<float>(cv::Point(i,j)) = 0;
-			} else if (distance > N * 2) {
-				kernel.at<float>(cv::Point(i, j)) = 1;
-			} else if (distance > N) {
-				kernel.at<float>(cv::Point(i, j)) = 0;
-			} else {
-				kernel.at<float>(cv::Point(i, j)) = -1;
-			}
-		}
-	}
-	kernel /= (float)(kernel.cols * kernel.rows);
-
-	//Apply kernel in a convolution operation
-	int ddepth = -1;
-	filter2D(src, dst, ddepth, kernel, cv::Point(-1, -1), 0, cv::BORDER_ISOLATED);
-	float thresh = 5*sqrtf((float)(10*N));
-	cv::threshold(dst, dst, thresh, 2 * thresh);
-
-	//Apply mask
-	cv::bitwise_and(dst, mask, dst);
-
-	//Close seperated parts of a finger
-	Mat dilatingKernel = Mat::ones(3, 3, CV_8UC1);
-	dilatingKernel.at<uchar>(cv::Point(1, 1)) = 0;
-	cv::morphologyEx(dst, dst, cv::MORPH_DILATE, dilatingKernel);
-}
-
-void removeArm(const Mat& src, Mat& dst, cv::Point fingerCenterOfMass, float fingerThickness) {
-	float cropRadius = 10 * fingerThickness;
-	cv::Mat mask = cv::Mat::zeros(src.rows, src.cols, CV_8UC1);
-	cv::circle(mask, fingerCenterOfMass, cropRadius, cv::Scalar(255), -1, 8, 0);
-	cv::bitwise_and(src, mask, dst);
-}
-
 void getPalmCenter(const Mat& src, cv::Point& palmCenter, float& palmRadius) {
+	//Create a distance transform
 	Mat dst, dstNormalized;
 	cv::distanceTransform(src, dst, CV_DIST_L2, 3, CV_32F);
 
+	//Loop through all pixels in the distance transform to find the pixels with the highest values (= largestance to edge of the objecct)
 	float highestValue = 0;
 	int count = 0;
 	long xtotal = 0;
@@ -93,19 +61,26 @@ void getPalmCenter(const Mat& src, cv::Point& palmCenter, float& palmRadius) {
 		}
 	}
 
+	//Take the avarage position of all high values as the palmcenter
 	palmCenter.x = xtotal / count;
 	palmCenter.y = ytotal / count;
 	palmRadius = dst.at<float>(palmCenter);
 }
 
-bool hasLotsOfFriends(const Mat& src, cv::Point pos) {
-	bool lotsOfFriends = true;
+/**
+	Look in 4 directions around a pixel and check if all its surrounding pixels are not 0
+	@param src:		A binary image of a hand
+	@param pos:		The index of the pixel
+	@return:		True if all the 4 surrounding pixels are not null
+*/
+bool isSurrounded(const Mat& src, cv::Point pos) {
+	bool isSurrounded = true;
 	for (int x = -1; x <= 1; x += 2) {
 		for (int y = -1; y <= 1; y += 2) {
-			cv::Point friendPos(pos.x + x, pos.y + y);
-			if (friendPos.x >= 0 && friendPos.x < src.cols &&
-				friendPos.y >= 1 && friendPos.y < src.rows &&
-				!src.at<uchar>(friendPos)) 
+			cv::Point neighbour(pos.x + x, pos.y + y);
+			if (neighbour.x >= 0 && neighbour.x < src.cols &&
+				neighbour.y >= 1 && neighbour.y < src.rows &&
+				!src.at<uchar>(neighbour)) 
 			{
 				return false;
 			}
@@ -114,20 +89,31 @@ bool hasLotsOfFriends(const Mat& src, cv::Point pos) {
 	return true;
 }
 
+/**
+	Find the largest pie without holes inside a circle 
+	@param src:			A binary image of a hand
+	@param out:			The edge of the pie that lays on the edge of the circle
+	@param center:		The center of the circle
+	@param maxRadius:	The radius of the circle
+	@param angleStart:	The start angle of the area that the algoritm will be eximinated by the algoritm
+	@param angleEnd:	The end angle of the area that the algoritm will be eximinated by the algoritm
+*/
 void findLargestGap(const Mat& src, cv::Line& out, cv::Point center, float maxRadius, float angleStart, float angleEnd) {
-	float largestGap = -1;
-
 	cv::Point previousPoint;
 	float previousAngle;
-
+	float largestGap = -1;
 	float deltaAngle = PI / 180.0f;
+	//Loop to look around all direction around the center
 	for (float angle = angleStart; angle < angleEnd; angle += deltaAngle) {
+		//Loop through all pixels in a line from center to the circle edge 
 		for (int radius = 0; radius < maxRadius; ++radius) {
 			cv::Point pixelPos = center + cv::Point(cos(angle) * radius, sin(angle) * radius);
-			if (!hasLotsOfFriends(src, pixelPos)) {
+			//Check if the pixel is at the edge of the object
+			if (!isSurrounded(src, pixelPos)) {
 				if (largestGap == -1) {
 					largestGap = 0;
 				} else if (std::abs(previousAngle - angle) / deltaAngle - 1 > largestGap) {
+					//Found a area that has no holes
 					largestGap = std::abs(previousAngle - angle) / deltaAngle - 1;
 					out.position = previousPoint;
 					out.direction = pixelPos - previousPoint;
@@ -135,36 +121,62 @@ void findLargestGap(const Mat& src, cv::Line& out, cv::Point center, float maxRa
 				previousPoint = pixelPos;
 				previousAngle = angle;
 
-				break;
+				break;	//Continue to look to pixels in a other direction
 			}
 		}
 	}
 }
 
-
+/**
+	Find the position of the wrist
+	@param src:			A binary image of a hand
+	@param wristOut:	A line that is start at one side of the wrist and end at the other side of the wrist
+	@param palmCenter:	The center position of the palm
+	@param palmRadius:	The radius of the palm in pixels
+*/
 void findWrist(const Mat& src, cv::Line& wristOut, cv::Point palmCenter, float palmRadius) {
+	//Look for the rough direction of the wrist by using a large radius. This is done to prefent part of the palm to be miss-inprentended as wrist
 	findLargestGap(src, wristOut, palmCenter, 1.75*palmRadius, 0, 3.0f*PI);
 
-	float asdf = 0.5f * PI;
-	float minAngle = std::atan2(wristOut.position.y - palmCenter.y, wristOut.position.x - palmCenter.x) - asdf;
-	float maxAngle = std::atan2(wristOut.lineEnd().y - palmCenter.y, wristOut.lineEnd().x - palmCenter.x) + asdf;
+	//Look for a better estimation of the wirst position
+	float nintyDegrees = 0.5f * PI;
+	float minAngle = std::atan2(wristOut.position.y - palmCenter.y, wristOut.position.x - palmCenter.x) - nintyDegrees;
+	float maxAngle = std::atan2(wristOut.lineEnd().y - palmCenter.y, wristOut.lineEnd().x - palmCenter.x) + nintyDegrees;
 	findLargestGap(src, wristOut, palmCenter, 1.2*palmRadius, minAngle, maxAngle);
 }
 
-void getPalmMask(const Mat& src, Mat& dst, cv::Point palmCenter, float palmRadius) {
+/**
+	Create a mask that will cover only the palm of a hand
+	@param src:			A binary image of a hand
+	@param dst:			A output image that contains the mask of the palm with same image type as src
+	@param palmCenter:	The center position of the palm
+	@param palmRadius:	The radius of the palm in pixels
+*/
+void createPalmMask(const Mat& src, Mat& dst, cv::Point palmCenter, float palmRadius) {
+	//Create a circle that will cover the palm
 	cv::Mat circleMask = cv::Mat::zeros(src.rows, src.cols, src.type());
 	circle(circleMask, palmCenter, 1.6f * palmRadius, cv::Scalar(255), -1, 8, 0);
 
+	//Create a palm mask, by preforming a binary and on the circlemask and the image of the hand
 	dst.create(src.size(), src.type());
 	dst.setTo(cv::Scalar(0));
 	src.copyTo(dst, circleMask);
 }
 
-void getFingerMask(const Mat& src, Mat& dst, Mat& palmMask, cv::Point wristCenter, cv::Point2f handOrientation) {
+/**
+	Create a mask that will cover all fingers of the hand
+	@param src:				A binary image of a hand
+	@param dst:				A output image that contains the mask of the fingers with same image type as src
+	@param palmMask:		A mask that covers the palm
+	@param wristCenter:		The center position of the wrist
+	@param handOrientation:	The direction from wrist to fingers
+*/
+void createFingerMask(const Mat& src, Mat& dst, Mat& palmMask, cv::Point wristCenter, cv::Point2f handOrientation) {
 	cv::Point2f rSize(src.rows + src.cols, src.rows + src.cols);
 	cv::Point2f rCenter = (cv::Point2f)wristCenter + 0.5f*rSize.x * handOrientation;
 	float rAngle = std::atan2(handOrientation.y, handOrientation.x);
 
+	//Create a finger mask, using the bounding boxes of the fingers
 	Mat rectMask(src.size(), src.type(), cv::Scalar(0));
 	cv::RotatedRect rRect = cv::RotatedRect(rCenter, rSize, rAngle);
 	cv::Point2f vertices2f[4];
@@ -175,32 +187,54 @@ void getFingerMask(const Mat& src, Mat& dst, Mat& palmMask, cv::Point wristCente
 	}
 	cv::fillConvexPoly(rectMask, vertices, 4, cv::Scalar(255));
 
+	//Remove the palm
 	cv::bitwise_xor(src, palmMask, dst);
+	//Apply the finger mask that was made, using the bounding boxes of the fingers
 	cv::bitwise_and(dst, rectMask, dst);
 }
 
+/**
+	Find the thumb in a list of finger bounding boxes
+	@param boundingBoxesFingers:	A list of the bounding boxes of the fingers
+	@param palmCenter:				The center position of the palm
+	@param handAngle:				The rotation of the hand
+	@param thumbDirection:			The direction the thumb points, relative to the hand
+	@return:						The index of the thumb in the list boundingBoxesFingers. Return -1 when the is no thumb in the list
+*/
 int getFindThumb(const std::vector<cv::RotatedRect>& boundingBoxesFingers, cv::Point palmCenter, float handAngle, ThumbDirection thumbDirection) {
+	//Create a rotation matrix
 	float rotationMatrix[2][2] = {
 		{ cos(handAngle), -sin(handAngle) },
 		{ sin(handAngle), cos(handAngle) }
 	};
 	
+	//Loop through all fingers and determen if the finger is a thumb by look at its position the palm 
 	bool containsThumb = false;
 	for (int i = 0; i < boundingBoxesFingers.size(); ++i) {
 		cv::Point direction = boundingBoxesFingers[i].center - (cv::Point2f)palmCenter;
 		direction = cv::Point(
 			direction.x * rotationMatrix[0][0] + direction.y * rotationMatrix[1][0],
 			direction.x * rotationMatrix[0][1] + direction.y * rotationMatrix[1][1]
-			);
+		);
 		float rotation = atan2(direction.y, direction.x);
 		if (rotation >= 40 * thumbDirection) {
 			return i;
 		}
 	}
+
+	//The list doesm't contains a thumb
 	return -1;
 }
 
+/**
+	Create a line that lays below the 4 fingers, indexfinger till pink
+	@param srcBinair:		A binair image of a hand
+	@param palmLineOut:		A output variable where the palmline will be saved in (line below the 4 fingers, indexfinger till pink)
+	@param handAngle:		The rotation of the hand
+	@param thumbDirection:	The direction the thumb is pointing relative to the hand			
+*/
 void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, cv::Line wristLine, cv::Point2f handOrientation, bool isThumbVisible) {
+	//Rotate the image, making the handOrientation (0, -1) 
 	Mat srcRotated;
 	float angle = atan2(handOrientation.y, handOrientation.x) + 0.5*PI;
 	cv::Point temp;
@@ -209,8 +243,9 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, cv::Line wristLin
 
 	int height = temp.y;
 	int previousHoleCount = 0;
-	int maxHoles = isThumbVisible ? 2: 1;
-	while (true) {
+	int maxHoles = isThumbVisible ? 2 : 1;
+	//Look in horizontal lines to find the palm line, by counting the edges
+	while (height >= 0) {
 		std::vector<cv::Point> intersections = math::horizontalLineObjectIntersection(srcRotated, height);
 		int holes = intersections.size() / 2-1;
 
@@ -243,17 +278,31 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, cv::Line wristLin
 	}
 }
 
-void findFingers(const cv::Point& wristCenter, const cv::Point& handOrientation, cv::Line palmLine
-	, const std::vector<cv::RotatedRect>& boundingBoxesFingers, int thumbIndex, int& indexFingerIndex
-	, int& middleFingerIndex, int& ringFingerIndex, int& pinkyIndex) {
-	indexFingerIndex = -1;
-	middleFingerIndex = -1;
-	ringFingerIndex = -1;
-	pinkyIndex = -1;
+/**
+	Label the 4 fingers, indexfinger till pink
+	@param boundingBoxesFingers:			A list with bounding boxes of each finger
+	@param wristCenter:						The center position of the wrist
+	@param handOrientation:					The direction from wrist to fingers
+	@param palmLine:						A line ust below the 4 fingers, indexfinger till pink
+	@param thumbIndex:						The index of the thumb in the list boundingBoxesFingers
+	@param thumbIndexindexFingerIndexOut:	The index of the index finger in the list boundingBoxesFingers
+	@param middleFingerIndexOut:			The index of the middle finger in the list boundingBoxesFingers
+	@param ringFingerIndexOut:				The index of the ring finger in the list boundingBoxesFingers
+	@param pinkyIndexOut:					The index of the pink in the list boundingBoxesFingers
+*/
+void labelFingers(const std::vector<cv::RotatedRect>& boundingBoxesFingers, const cv::Point& wristCenter, const cv::Point& handOrientation
+	, cv::Line palmLine, int thumbIndex, int& indexFingerIndexOut , int& middleFingerIndexOut, int& ringFingerIndexOut, int& pinkyIndexOut) {
+	indexFingerIndexOut = -1;
+	middleFingerIndexOut = -1;
+	ringFingerIndexOut = -1;
+	pinkyIndexOut = -1;
+
 	float palmWidth = math::length(palmLine.direction);
+	//Loop through all fingers in 'boundingBoxesFingers' and label them
 	for (int i = 0; i < boundingBoxesFingers.size(); ++i) {
 		if (i != thumbIndex) {
-			float cloasestDistance = 9999;
+			//Find the edge , in the bounding box, that lays closest to the wrist
+			float cloasestDistance = Infinity;
 			cv::Point fingerPosition;
 			cv::Point2f vertices[4];
 			boundingBoxesFingers[i].points(vertices);
@@ -266,16 +315,17 @@ void findFingers(const cv::Point& wristCenter, const cv::Point& handOrientation,
 				}
 			}
 
+			//Determen the finger label by its distance on the palmline
 			cv::Point intersect = math::lineLineIntersection(cv::Line(fingerPosition, -handOrientation), palmLine);
 			int finger = 1 + math::length(intersect - palmLine.position) / palmWidth * 4;
 			if (finger <= 1)
-				indexFingerIndex = i;
+				indexFingerIndexOut = i;
 			else if (finger == 2)
-				middleFingerIndex = i;
+				middleFingerIndexOut = i;
 			else if (finger == 3)
-				ringFingerIndex = i;
+				ringFingerIndexOut = i;
 			else
-				pinkyIndex = i;
+				pinkyIndexOut = i;
 		}
 	}
 }

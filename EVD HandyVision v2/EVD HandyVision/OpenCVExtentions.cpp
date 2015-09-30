@@ -1,3 +1,10 @@
+//***************************************************************************************
+// Functions that manipulate images
+// Autors:	Kay Goossen
+// Date:	29 September 2015
+// Version: 1.00
+//***************************************************************************************
+
 #include "OpenCVExtentions.h"
 #include "Math.h"
 #include <limits>
@@ -6,7 +13,7 @@ namespace cv {
 	/**
 		Apply a threshold with a lower- and upperbound
 		@param src: a 1 channel 8 bit image
-		@param dst: a 8 bit binair image
+		@param dst: output as a 8 bit binair image
 		*/
 	void threshold(const Mat& src, const Mat& dst, double lowerbound, double upperbound) {
 		inRange(src, lowerbound, upperbound, dst);
@@ -15,7 +22,7 @@ namespace cv {
 	/**
 		Apply a threshold on a YCbCr image
 		@param src: a 3 channel YCbCr image
-		@param dst: a 8 bit binair image
+		@param dst: output as a 8 bit binair image
 	*/
 	void cvYCbCrThreshold(const Mat& src, Mat& dst,
 		double Y_min, double Y_max,
@@ -33,34 +40,42 @@ namespace cv {
 		//Combine threshold images
 		cv::bitwise_and(channels[0], channels[1], dst, channels[2]);
 	}
-	/**
-	Detect and the contour of objects
-	@param src: a 8 bit binair image
-	@param dst: a 8 bit binair image
-	*/
-	void detectAndDrawContour(const Mat& src, Mat& dst, int mode, int method, int lineWidth , int minAreaThreshold) {
-		std::vector<cv::Vec4i> hierarchy;
-		std::vector<std::vector<cv::Point> > contours;
 
+	/**
+		Detect and the contour of objects
+		@param src: a 8 bit binair image
+		@param dst: output as a 8 bit binair image 
+	*/
+	void detectAndDrawContour(const Mat& src, Mat& dst, int mode, int method, int lineWidth, int minAreaThreshold) {
 		Mat srcCopy;
 		src.copyTo(srcCopy);
 
+		//Detect contours
+		std::vector<cv::Vec4i> hierarchy;
+		std::vector<std::vector<cv::Point> > contours;
 		cv::findContours(srcCopy, contours, hierarchy, mode, method);
 
+		//Draw contours
 		dst.create(src.size(), CV_8UC1);
 		dst.setTo(cv::Scalar(0));
-
 		for (size_t i = 0; i<contours.size(); ++i)
-			//TODO: the filter should be placed in this function or rename the function
-			//TODO: remove big skin areas that arent hands
-		if (contourArea(contours[i]) >= minAreaThreshold)
-			drawContours(dst, contours, i, cv::Scalar(255), lineWidth);
+			if (contourArea(contours[i]) >= minAreaThreshold)
+				drawContours(dst, contours, i, cv::Scalar(255), lineWidth);
 	}
 
+	/**
+		Fill the holes inside the blobs
+		@param src: a 8 bit binair image
+		@param dst: output as a 8 bit binair image without holes
+	*/
 	void fillHoles(const Mat& src, Mat& dst) {
 		detectAndDrawContour(src, dst, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, -1);
 	}
 
+	/**
+		Find a rotated bounding boxes for each blob
+		@param src: a 8 bit binair image
+	*/
 	std::vector<cv::RotatedRect> getBoundingBoxes(const Mat& src) {
 		int minAreaThreshold = 16;
 		std::vector<cv::Vec4i> hierarchy;
@@ -92,13 +107,22 @@ namespace cv {
 		cv::warpAffine(src, dst, r, cv::Size(len, len));
 	}
 
+	/**
+		Only keep the pixels of a image that lay inside a bounding rect
+		@param src:			A image with no type restrictions
+		@param dst			The src image after applying the mask
+		@param boundingRect: The shape of the mask
+	*/
 	void applyRectangleMask(const cv::Mat& src, cv::Mat& dst, RotatedRect boundingRect) {
-		Mat rectMask = Mat::zeros(src.size(), src.type());
-		Point2f vertices[4];
-		boundingRect.points(vertices);
-		for (int i = 0; i < 4; i++)
-			line(rectMask, vertices[i], vertices[(i + 1) % 4], Scalar(255));
-		fillHoles(rectMask, rectMask);
+		Mat rectMask = Mat::zeros(src.size(), CV_8UC1);
+		Point2f vertices2f[4];
+		Point vertices[4];
+		boundingRect.points(vertices2f);
+		for (int i = 0; i < 4; i++) {
+			vertices[i] = vertices2f[i];
+			line(rectMask, vertices2f[i], vertices2f[(i + 1) % 4], Scalar(255));
+		}
+		cv::fillConvexPoly(rectMask, vertices, 4, cv::Scalar(255));
 
 		src.copyTo(dst, rectMask);
 	}
