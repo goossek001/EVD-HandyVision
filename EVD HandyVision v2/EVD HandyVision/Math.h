@@ -20,6 +20,7 @@ namespace math {
 	float cross(cv::Point v1, cv::Point v2);
 
 	void rotatePoint(const Mat& src, const Point& srcPoint, Point& dstPoint, float angle);
+	void rotateLine(const Mat& src, const Line& srcLine, Line& dstLine, float angle);
 	std::vector<Point> horizontalLineObjectIntersection(const Mat& src, int height);
 	Point lineLineIntersection(Line l1, Line l2);
 }

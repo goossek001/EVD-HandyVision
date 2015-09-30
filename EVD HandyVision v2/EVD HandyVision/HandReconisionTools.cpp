@@ -114,7 +114,7 @@ bool hasLotsOfFriends(const Mat& src, cv::Point pos) {
 	return true;
 }
 
-void findLargestGap(const Mat& src, cv::Point& pos1, cv::Point& pos2, cv::Point center, float maxRadius, float angleStart, float angleEnd) {
+void findLargestGap(const Mat& src, cv::Line& out, cv::Point center, float maxRadius, float angleStart, float angleEnd) {
 	float largestGap = -1;
 
 	cv::Point previousPoint;
@@ -129,8 +129,8 @@ void findLargestGap(const Mat& src, cv::Point& pos1, cv::Point& pos2, cv::Point 
 					largestGap = 0;
 				} else if (std::abs(previousAngle - angle) / deltaAngle - 1 > largestGap) {
 					largestGap = std::abs(previousAngle - angle) / deltaAngle - 1;
-					pos1 = previousPoint;
-					pos2 = pixelPos;
+					out.position = previousPoint;
+					out.direction = pixelPos - previousPoint;
 				}
 				previousPoint = pixelPos;
 				previousAngle = angle;
@@ -142,13 +142,13 @@ void findLargestGap(const Mat& src, cv::Point& pos1, cv::Point& pos2, cv::Point 
 }
 
 
-void findWrist(const Mat& src, cv::Point& wristLeft, cv::Point& wristRight, cv::Point palmCenter, float palmRadius) {
-	findLargestGap(src, wristLeft, wristRight, palmCenter, 1.75*palmRadius, 0, 3.0f*PI);
+void findWrist(const Mat& src, cv::Line& wristOut, cv::Point palmCenter, float palmRadius) {
+	findLargestGap(src, wristOut, palmCenter, 1.75*palmRadius, 0, 3.0f*PI);
 
 	float asdf = 0.5f * PI;
-	float minAngle = std::atan2(wristLeft.y - palmCenter.y, wristRight.x - palmCenter.x) - asdf;
-	float maxAngle = std::atan2(wristRight.y - palmCenter.y, wristRight.x - palmCenter.x) + asdf;
-	findLargestGap(src, wristLeft, wristRight, palmCenter, 1.2*palmRadius, minAngle, maxAngle);
+	float minAngle = std::atan2(wristOut.position.y - palmCenter.y, wristOut.position.x - palmCenter.x) - asdf;
+	float maxAngle = std::atan2(wristOut.lineEnd().y - palmCenter.y, wristOut.lineEnd().x - palmCenter.x) + asdf;
+	findLargestGap(src, wristOut, palmCenter, 1.2*palmRadius, minAngle, maxAngle);
 }
 
 void getPalmMask(const Mat& src, Mat& dst, cv::Point palmCenter, float palmRadius) {
@@ -200,12 +200,12 @@ int getFindThumb(const std::vector<cv::RotatedRect>& boundingBoxesFingers, cv::P
 	return -1;
 }
 
-void getPalmLine(const Mat& srcBinair, cv::Point& palmLineStart, cv::Point& palmLineEnd, cv::Point wristLeft, cv::Point wristRight, cv::Point2f handOrientation, bool isThumbVisible) {
+void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, cv::Line wristLine, cv::Point2f handOrientation, bool isThumbVisible) {
 	Mat srcRotated;
 	float angle = atan2(handOrientation.y, handOrientation.x) + 0.5*PI;
 	cv::Point temp;
 	cv::rotateImage(srcBinair, srcRotated, angle);
-	math::rotatePoint(srcBinair, wristLeft, temp, angle);
+	math::rotatePoint(srcBinair, wristLine.position, temp, angle);
 
 	int height = temp.y;
 	int previousHoleCount = 0;
@@ -229,17 +229,53 @@ void getPalmLine(const Mat& srcBinair, cv::Point& palmLineStart, cv::Point& palm
 				}
 			}
 
-			palmLineStart.x = intersections[index].x;
-			palmLineStart.y = intersections[index].y;
-			palmLineEnd.x = intersections[index + 1].x;
-			palmLineEnd.y = intersections[index + 1].y;
-			math::rotatePoint(srcBinair, palmLineStart, palmLineStart, angle);
-			math::rotatePoint(srcBinair, palmLineEnd, palmLineEnd, angle);
+			palmLineOut.position.x = intersections[index].x;
+			palmLineOut.position.y = intersections[index].y;
+			palmLineOut.direction.x = intersections[index + 1].x - intersections[index].x;
+			palmLineOut.direction.y = intersections[index + 1].y - intersections[index].y;
+			math::rotateLine(srcBinair, palmLineOut, palmLineOut, angle);
 			break;
 		} else if (previousHoleCount > holes){
 			maxHoles = 1;
 		}
 		--height;
 		previousHoleCount = holes;
+	}
+}
+
+void findFingers(const cv::Point& wristCenter, const cv::Point& handOrientation, cv::Line palmLine
+	, const std::vector<cv::RotatedRect>& boundingBoxesFingers, int thumbIndex, int& indexFingerIndex
+	, int& middleFingerIndex, int& ringFingerIndex, int& pinkyIndex) {
+	indexFingerIndex = -1;
+	middleFingerIndex = -1;
+	ringFingerIndex = -1;
+	pinkyIndex = -1;
+	float palmWidth = math::length(palmLine.direction);
+	for (int i = 0; i < boundingBoxesFingers.size(); ++i) {
+		if (i != thumbIndex) {
+			float cloasestDistance = 9999;
+			cv::Point fingerPosition;
+			cv::Point2f vertices[4];
+			boundingBoxesFingers[i].points(vertices);
+			for (int j = 0; j <= 4; ++j) {
+				cv::Point point = (cv::Point)(vertices[j] + vertices[(j + 1) % 4]) / 2;
+				float distance = math::length(point - wristCenter);
+				if (distance < cloasestDistance) {
+					fingerPosition = point;
+					cloasestDistance = distance;
+				}
+			}
+
+			cv::Point intersect = math::lineLineIntersection(cv::Line(fingerPosition, -handOrientation), palmLine);
+			int finger = 1 + math::length(intersect - palmLine.position) / palmWidth * 4;
+			if (finger <= 1)
+				indexFingerIndex = i;
+			else if (finger == 2)
+				middleFingerIndex = i;
+			else if (finger == 3)
+				ringFingerIndex = i;
+			else
+				pinkyIndex = i;
+		}
 	}
 }

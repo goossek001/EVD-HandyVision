@@ -10,7 +10,7 @@ namespace cv {
 		double Cr_min, double Cr_max);
 	Point getCenterOfMass(const Mat& src);
 	void detectAndDrawContour(const Mat& src, Mat& dst, int mode, int method, int lineWidth = 1, int minAreaThreshold = 16);
-	void fill(const Mat& src, Mat& dst);
+	void fillHoles(const Mat& src, Mat& dst);
 	std::vector<cv::RotatedRect> getBoundingBoxes(const Mat& src);
 	void rotateImage(const cv::Mat& src, cv::Mat& dst, float angle);
 	void applyRectangleMask(const cv::Mat& src, cv::Mat& dst, RotatedRect boundingRect);

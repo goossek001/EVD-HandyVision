@@ -9,9 +9,9 @@
 
 namespace math {
 	/**
-		The signature of a integer
-		@param val:	
-		@return:		-1 for negative values and 1 for all other values
+	The signature of a integer
+	@param val:
+	@return:		-1 for negative values and 1 for all other values
 	*/
 	int sign(int val) {
 		if (val >= 0) {
@@ -22,9 +22,9 @@ namespace math {
 	}
 
 	/**
-		Calculates the length of a vector, using Pythagorean theorem
-		@param vector:	
-		@return:		The length of vector
+	Calculates the length of a vector, using Pythagorean theorem
+	@param vector:
+	@return:		The length of vector
 	*/
 	float length(const Point& vector) {
 		return pow(vector.x*vector.x + vector.y*vector.y, 0.5f);
@@ -32,21 +32,21 @@ namespace math {
 
 
 	/**
-		Calculates the crossproduct of two vectors
-		@param v1:
-		@param v2:	
-		@return:		the crossproduct 'v1 X v2'
+	Calculates the crossproduct of two vectors
+	@param v1:
+	@param v2:
+	@return:		the crossproduct 'v1 X v2'
 	*/
 	float cross(cv::Point v1, cv::Point v2) {
 		return (v1.x*v2.y) - (v1.y*v2.x);
 	}
 
 	/**
-		Rotate a point around the center of the image
-		@param src:			A image with no type restrictions
-		@param srcPoint:	The point that will get rotated by the algoritm
-		@param dstPoint:	The output channel for the rotated point
-		@param angle:		The rotation of the point in radians
+	Rotate a point around the center of the image
+	@param src:			A image with no type restrictions
+	@param srcPoint:	The point that will get rotated by the algoritm
+	@param dstPoint:	The output channel for the rotated point
+	@param angle:		The rotation of the point in radians
 	*/
 	void rotatePoint(const cv::Mat& src, const cv::Point& srcPoint, cv::Point& dstPoint, float angle) {
 		int len = std::max(src.cols, src.rows);
@@ -61,10 +61,25 @@ namespace math {
 	}
 
 	/**
-		Calculate the intersecting point of two lines
-		@param l1:				
-		@param l2:		
-		@return:	The intersecting point of the two lines	
+	Rotate a line around the center of the image
+	@param src:			A image with no type restrictions
+	@param srcPoint:	The line that will get rotated by the algoritm
+	@param dstPoint:	The output channel for the rotated line
+	@param angle:		The rotation of the line in radians
+	*/
+	void rotateLine(const Mat& src, const Line& srcLine, Line& dstLine, float angle) {
+		cv::Point lineEnd = srcLine.lineEnd();
+		rotatePoint(src, lineEnd, lineEnd, angle);
+		rotatePoint(src, srcLine.position, dstLine.position, angle);
+		dstLine.direction = lineEnd - dstLine.position;
+
+	}
+
+	/**
+	Calculate the intersecting point of two lines
+	@param l1:
+	@param l2:
+	@return:	The intersecting point of the two lines
 	*/
 	cv::Point lineLineIntersection(Line l1, Line l2) {
 		float u = cross(l2.position - l1.position, l1.direction) / cross(l1.direction, l2.direction);
@@ -72,10 +87,10 @@ namespace math {
 	}
 
 	/**
-		Find the intersecting points between the edge of the object and the line
-		@param src:				binary image(8 bit 1 channel) of the object
-		@param startHeight:		the y coordinate of the line
-		@return:				the intersecting points between the edge of the object and the line
+	Find the intersecting points between the edge of the object and the line
+	@param src:				binary image(8 bit 1 channel) of the object
+	@param startHeight:		the y coordinate of the line
+	@return:				the intersecting points between the edge of the object and the line
 	*/
 	std::vector<cv::Point> horizontalLineObjectIntersection(const Mat& src, int height) {
 		std::vector<cv::Point> out;

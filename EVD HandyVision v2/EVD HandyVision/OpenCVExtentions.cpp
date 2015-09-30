@@ -57,7 +57,7 @@ namespace cv {
 			drawContours(dst, contours, i, cv::Scalar(255), lineWidth);
 	}
 
-	void fill(const Mat& src, Mat& dst) {
+	void fillHoles(const Mat& src, Mat& dst) {
 		detectAndDrawContour(src, dst, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, -1);
 	}
 
@@ -98,7 +98,7 @@ namespace cv {
 		boundingRect.points(vertices);
 		for (int i = 0; i < 4; i++)
 			line(rectMask, vertices[i], vertices[(i + 1) % 4], Scalar(255));
-		fill(rectMask, rectMask);
+		fillHoles(rectMask, rectMask);
 
 		src.copyTo(dst, rectMask);
 	}
