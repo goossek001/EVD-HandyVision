@@ -25,6 +25,9 @@ int main(int argc, char** argb) {
 	cv::cvtColor(srcBGR, srcYCrCb, CV_RGB2YCrCb);
 	YCbCrSkinColorFilter(srcYCrCb, srcBinair);
 
+	//TODO: Reconise hand blob and remove all others
+	//TODO: Change ROI
+
 	// fill holes
 	cv::fillHoles(srcBinair, srcBinair);
 

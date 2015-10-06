@@ -302,16 +302,16 @@ void labelFingers(const std::vector<cv::RotatedRect>& boundingBoxesFingers, cons
 	for (int i = 0; i < boundingBoxesFingers.size(); ++i) {
 		if (i != thumbIndex) {
 			//Find the edge , in the bounding box, that lays closest to the wrist
-			float cloasestDistance = Infinity;
+			float closestDistance = Infinity;
 			cv::Point fingerPosition;
 			cv::Point2f vertices[4];
 			boundingBoxesFingers[i].points(vertices);
 			for (int j = 0; j <= 4; ++j) {
 				cv::Point point = (cv::Point)(vertices[j] + vertices[(j + 1) % 4]) / 2;
 				float distance = math::length(point - wristCenter);
-				if (distance < cloasestDistance) {
+				if (distance < closestDistance) {
 					fingerPosition = point;
-					cloasestDistance = distance;
+					closestDistance = distance;
 				}
 			}
 
