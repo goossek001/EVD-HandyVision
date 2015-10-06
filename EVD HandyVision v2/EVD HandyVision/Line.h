@@ -23,5 +23,8 @@ namespace cv {
 		inline Point lineEnd() const {
 			return position + direction;
 		}
+		inline Point lineStart() const {
+			return position;
+		}
 	};
 }
