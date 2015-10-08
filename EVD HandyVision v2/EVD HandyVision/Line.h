@@ -17,14 +17,13 @@ namespace cv {
 		Point position;
 		Point direction;
 
-		Line() : position(), direction() {}
-		Line(Point position, Point direction) : position(position), direction(direction) {}
+		Line();
+		Line(Point position, Point direction);
 
-		inline Point lineEnd() const {
-			return position + direction;
-		}
-		inline Point lineStart() const {
-			return position;
-		}
+		Point lineEnd() const;
+
+		Point lineStart() const;
+
+		float length() const;
 	};
 }
