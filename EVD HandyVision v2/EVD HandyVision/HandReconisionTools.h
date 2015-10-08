@@ -16,7 +16,7 @@ enum ThumbDirection {
 	Left = 1,
 	Right = -1
 };
-
+void BGRSkinColorFilter(const Mat& src, Mat& dst);
 void YCbCrSkinColorFilter(const Mat& src, Mat& dst);
 void getPalmCenter(const Mat& src, cv::Point& palmCenter, float& palmRadius);
 void createPalmMask(const Mat& src, Mat& dst, cv::Point palmCenter, float palmRadius);
