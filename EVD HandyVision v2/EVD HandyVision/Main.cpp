@@ -13,13 +13,11 @@
 #include "HandReconisionTools.h"
 #include "Math.h"
 
-#include <Windows.h>
-
 int main(int argc, char** argb) {
 	cv::Mat srcBGR, srcYUV, srcBinair, palmMask, fingerMask;
 
 	// open image
-	srcBGR = cv::imread("img2.jpg");
+	srcBGR = cv::imread("img3.jpg");
 	if (!srcBGR.data)
 		return -1;
 
@@ -78,18 +76,13 @@ int main(int argc, char** argb) {
 	//TODO: determen definition of the sign 
 	//TODO: display the image with the translation of the sign
 
-	//Display the generated images
-	imshow("original", srcBGR);
-	imshow("binair", srcBinair);
-	imshow("fingers", fingerMask);
-
-	displayFingers(srcBGR, fingers);
-
 	bool fingersStretch[5];
 	areFingersStretched(fingers, fingersStretch, palmRadius);
 
 	std::string gesture = deteremenGesture(GestureType::DutchCounting, fingersStretch);
-	MessageBox(0, gesture.c_str(), 0, 0);
+	cv::putText(srcBGR, gesture, cv::Point(0.05f*srcBGR.cols, 0.95f*srcBGR.rows), 2, 0.01f*srcBGR.rows, cv::Scalar(255, 0, 0), 8);
+
+	imshow("original", srcBGR);
 
 	//Wait until a key is pressed to kill the program
 	cv::waitKey(0);
