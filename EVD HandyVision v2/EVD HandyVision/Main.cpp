@@ -109,7 +109,10 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 
 	// find the palm line
 	cv::Line palmLine;
-	findPalmLine(srcBinair, palmLine, wristLine, palmRadius, handOrientation, fingers[0]);
+	bool foundPalm = true;
+	findPalmLine(srcBinair, palmLine, foundPalm, wristLine, palmRadius, handOrientation, fingers[0]);
+	if (!foundPalm)
+		return 1;
 	if (thumbDirection == Right) {
 		palmLine.position = palmLine.lineEnd();
 		palmLine.direction *= -1;

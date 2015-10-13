@@ -259,7 +259,7 @@ int getFindThumb(const std::vector<cv::RotatedRect>& boundingBoxesFingers, cv::P
 	@param handAngle:		The rotation of the hand
 	@param thumbDirection:	The direction the thumb is pointing relative to the hand			
 */
-void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, cv::Line wristLine, float palmRadius, cv::Point2f handOrientation, bool isThumbVisible) {
+void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, cv::Line wristLine, float palmRadius, cv::Point2f handOrientation, bool isThumbVisible) {
 	//Rotate the image, making the handOrientation (0, -1) 
 	Mat srcRotated;
 	float angle = atan2(handOrientation.y, handOrientation.x) + 0.5*PI;
@@ -313,6 +313,7 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, cv::Line wristLin
 			cv::imshow("rot", srcRotated);
 			cv::waitKey(0);*/
 			math::rotateLine(srcBinair, palmLineOut, palmLineOut, angle);
+			foundPalm = true;
 			break;
 		} else if (previousHoleCount > holes){
 			maxHoles = 1;
