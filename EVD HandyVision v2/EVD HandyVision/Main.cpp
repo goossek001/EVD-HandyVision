@@ -32,9 +32,6 @@ int main(int argc, char** argb) {
 	//TODO: Reconise hand blob and remove all others
 	//TODO: Change ROI
 
-	// fill holes
-	cv::fillHoles(srcBinair, srcBinair);
-
 	// find palm
 	cv::Point palmCenter;
 	float palmRadius;
