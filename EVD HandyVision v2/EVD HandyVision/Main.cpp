@@ -26,7 +26,7 @@ int main(int argc, char** argb) {
 int main_photo(int argc, char** argb) {
 	cv::Mat srcBGR;
 	// open image
-	srcBGR = cv::imread("img1.jpg");
+	srcBGR = cv::imread("cam1.jpg");
 	if (!srcBGR.data)
 		return -1;
 
@@ -39,7 +39,7 @@ int main_photo(int argc, char** argb) {
 }
 
 int main_video(int argc, char** argb) {
-	cv::VideoCapture cap(0); // open the video camera no. 0
+	cv::VideoCapture cap(1); // open the video camera no. 0
 
 	if (!cap.isOpened())  // if not success, exit program
 	{

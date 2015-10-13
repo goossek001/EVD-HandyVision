@@ -295,25 +295,27 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, 
 				height++;
 			intersections.clear();
 			intersections = math::horizontalLineObjectIntersection(srcRotated, height);
-			int index = -1;
-			int largestWidth = -1;
+			if (intersections.size()) {
+				int index = -1;
+				int largestWidth = -1;
 
-			for (int i = 0; i < holes*2+1; i+=2) {
-				int width = intersections[i+1].x - intersections[i].x;
-				if (width > largestWidth) {
-					index = i;
-					largestWidth = width;
+				for (int i = 0; i < holes * 2 + 1; i += 2) {
+					int width = intersections[i + 1].x - intersections[i].x;
+					if (width > largestWidth) {
+						index = i;
+						largestWidth = width;
+					}
 				}
+				palmLineOut.position.x = intersections[index].x;
+				palmLineOut.position.y = intersections[index].y;
+				palmLineOut.direction.x = intersections[index + 1].x - intersections[index].x;
+				palmLineOut.direction.y = intersections[index + 1].y - intersections[index].y;
+				/*line(srcRotated, palmLineOut.lineStart(), palmLineOut.lineEnd(), cv::Scalar(100));
+				cv::imshow("rot", srcRotated);
+				cv::waitKey(0);*/
+				math::rotateLine(srcBinair, palmLineOut, palmLineOut, angle);
+				foundPalm = true;
 			}
-			palmLineOut.position.x = intersections[index].x;
-			palmLineOut.position.y = intersections[index].y;
-			palmLineOut.direction.x = intersections[index + 1].x - intersections[index].x;
-			palmLineOut.direction.y = intersections[index + 1].y - intersections[index].y;
-			/*line(srcRotated, palmLineOut.lineStart(), palmLineOut.lineEnd(), cv::Scalar(100));
-			cv::imshow("rot", srcRotated);
-			cv::waitKey(0);*/
-			math::rotateLine(srcBinair, palmLineOut, palmLineOut, angle);
-			foundPalm = true;
 			break;
 		} else if (previousHoleCount > holes){
 			maxHoles = 1;
