@@ -337,7 +337,7 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, 
 	@param ringFingerIndexOut:				The index of the ring finger in the list boundingBoxesFingers
 	@param pinkyIndexOut:					The index of the pink in the list boundingBoxesFingers
 */
-void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fingersOut)[5], const cv::Point& wristCenter, const cv::Point& handOrientation
+void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* fingersOut[5], const cv::Point& wristCenter, const cv::Point& handOrientation
 	, cv::Line palmLine) {
 	float palmWidth = math::length(palmLine.direction);
 	//Loop through all fingers in 'boundingBoxesFingers' and label them
