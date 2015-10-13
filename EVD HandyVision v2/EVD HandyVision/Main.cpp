@@ -26,7 +26,7 @@ int main(int argc, char** argb) {
 int main_photo(int argc, char** argb) {
 	cv::Mat srcBGR;
 	// open image
-	srcBGR = cv::imread("img3.jpg");
+	srcBGR = cv::imread("img1.jpg");
 	if (!srcBGR.data)
 		return -1;
 
@@ -81,8 +81,9 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 
 	// find wrist
 	cv::Line wristLine;
-	findWrist(srcBinair, wristLine, palmCenter, palmRadius);
-	if (&wristLine == NULL)
+	bool foundWrist = false;
+	findWrist(srcBinair, wristLine, foundWrist, palmCenter, palmRadius);
+	if (!foundWrist)
 		return 1;
 
 	cv::Point wristCenter = wristLine.position + wristLine.direction / 2;
