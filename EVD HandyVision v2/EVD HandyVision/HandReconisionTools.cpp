@@ -10,6 +10,31 @@
 #include "OpenCVExtentions.h"
 #include "Math.h"
 
+std::map<int, std::string> gestures[GestureType::COUNT];
+void initHashTable() {
+	bool fingers[5] = { false };
+	gestures[GestureType::DutchCounting][GenerateHashKey(fingers)] = "0";
+	fingers[1] = true;
+	gestures[GestureType::DutchCounting][GenerateHashKey(fingers)] = "1";
+	fingers[2] = true;
+	gestures[GestureType::DutchCounting][GenerateHashKey(fingers)] = "2";
+	fingers[3] = true;
+	gestures[GestureType::DutchCounting][GenerateHashKey(fingers)] = "3";
+	fingers[4] = true;
+	gestures[GestureType::DutchCounting][GenerateHashKey(fingers)] = "4";
+	fingers[0] = true;
+	gestures[GestureType::DutchCounting][GenerateHashKey(fingers)] = "5";
+	std::fill(fingers, fingers + 5, false);
+	fingers[0] = true;
+	gestures[GestureType::DutchCounting][GenerateHashKey(fingers)] = "6";
+	fingers[1] = true;
+	gestures[GestureType::DutchCounting][GenerateHashKey(fingers)] = "7";
+	fingers[2] = true;
+	gestures[GestureType::DutchCounting][GenerateHashKey(fingers)] = "8";
+	fingers[3] = true;
+	gestures[GestureType::DutchCounting][GenerateHashKey(fingers)] = "9";
+}
+
 /**
 	A filter create a binair image that has seperated skin and background
 	@param src:		A YCbCr image
@@ -308,22 +333,17 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, cv::Line wristLin
 	@param ringFingerIndexOut:				The index of the ring finger in the list boundingBoxesFingers
 	@param pinkyIndexOut:					The index of the pink in the list boundingBoxesFingers
 */
-void labelFingers(const std::vector<cv::RotatedRect>& boundingBoxesFingers, const cv::Point& wristCenter, const cv::Point& handOrientation
-	, cv::Line palmLine, int thumbIndex, int& indexFingerIndexOut , int& middleFingerIndexOut, int& ringFingerIndexOut, int& pinkyIndexOut) {
-	indexFingerIndexOut = -1;
-	middleFingerIndexOut = -1;
-	ringFingerIndexOut = -1;
-	pinkyIndexOut = -1;
-
+void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fingersOut)[5], const cv::Point& wristCenter, const cv::Point& handOrientation
+	, cv::Line palmLine) {
 	float palmWidth = math::length(palmLine.direction);
 	//Loop through all fingers in 'boundingBoxesFingers' and label them
-	for (int i = 0; i < boundingBoxesFingers.size(); ++i) {
-		if (i != thumbIndex) {
+	for (int i = 0; i < fingersIn.size(); ++i) {
+		if (&fingersIn[i] != fingersOut[0]) {
 			//Find the edge , in the bounding box, that lays closest to the wrist
 			float closestDistance = Infinity;
 			cv::Point fingerPosition;
 			cv::Point2f vertices[4];
-			boundingBoxesFingers[i].points(vertices);
+			fingersIn[i].points(vertices);
 			for (int j = 0; j <= 4; ++j) {
 				cv::Point point = (cv::Point)(vertices[j] + vertices[(j + 1) % 4]) / 2;
 				float distance = math::length(point - wristCenter);
@@ -335,15 +355,61 @@ void labelFingers(const std::vector<cv::RotatedRect>& boundingBoxesFingers, cons
 
 			//Determen the finger label by its distance on the palmline
 			cv::Point intersect = math::lineLineIntersection(cv::Line(fingerPosition, -handOrientation), palmLine);
-			int finger = 1 + math::length(intersect - palmLine.position) / palmWidth * 4;
-			if (finger <= 1)
-				indexFingerIndexOut = i;
-			else if (finger == 2)
-				middleFingerIndexOut = i;
-			else if (finger == 3)
-				ringFingerIndexOut = i;
-			else
-				pinkyIndexOut = i;
+			int fingerIndex = 1 + math::length(intersect - palmLine.position) / palmWidth * 4;
+			fingersOut[fingerIndex] = &fingersIn[i];
 		}
 	}
+}
+
+void areFingersStretched(cv::RotatedRect* fingers[5], bool(&out)[5], float palmRadius) {
+	for (int i = 0; i < 5; ++i) {
+		float fingerLength;
+		if (fingers[i])
+			fingerLength = std::max(fingers[i]->size.width, fingers[i]->size.height);
+		else
+			fingerLength = 0;
+		float multiplier;
+		if (i == 0)
+			multiplier = 0.25f;
+		else
+			multiplier = 0.5f;
+		out[i] = fingerLength >= multiplier * palmRadius;
+	}
+}
+
+void displayFingers(const Mat& img, cv::RotatedRect* fingers[5]) {
+	//Create a seperate image of each finger
+	Mat thumb, indexFinger, middleFinger, ringFinger, pinky;
+	if (fingers[0]) {
+		cv::applyRectangleMask(img, thumb, *fingers[0]);
+		imshow("thumb", thumb);
+	}
+	if (fingers[1]){
+		cv::applyRectangleMask(img, indexFinger, *fingers[1]);
+		imshow("indexFinger", indexFinger);
+	}
+	if (fingers[2]){
+		cv::applyRectangleMask(img, middleFinger, *fingers[2]);
+		imshow("middleFinger", middleFinger);
+	}
+	if (fingers[3]){
+		cv::applyRectangleMask(img, ringFinger, *fingers[3]);
+		imshow("ringFinger", ringFinger);
+	}
+	if (fingers[4]) {
+		cv::applyRectangleMask(img, pinky, *fingers[4]);
+		imshow("pinky", pinky);
+	}
+}
+
+std::string deteremenGesture(GestureType gestureType, bool fingers[5]) {
+	std::map<int, std::string>::iterator it = gestures->find(GenerateHashKey(fingers));
+	if (it == gestures->end())
+		return "";
+	else
+		return it->second;
+}
+
+int GenerateHashKey(bool fingers[5]) {
+	return fingers[0] + 2 * fingers[1] + 4 * fingers[2] + 8 * fingers[3] + 16 * fingers[4];
 }

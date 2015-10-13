@@ -13,13 +13,17 @@
 #include "HandReconisionTools.h"
 #include "Math.h"
 
+#include <Windows.h>
+
 int main(int argc, char** argb) {
 	cv::Mat srcBGR, srcYUV, srcBinair, palmMask, fingerMask;
 
 	// open image
-	srcBGR = cv::imread("img3.jpg");
+	srcBGR = cv::imread("img2.jpg");
 	if (!srcBGR.data)
 		return -1;
+
+	initHashTable();
 
 	cv::cvtColor(srcBGR, srcYUV, CV_RGB2YCrCb);
 	// Skin color filter
@@ -55,20 +59,22 @@ int main(int argc, char** argb) {
 	ThumbDirection thumbDirection = Right;
 
 	// find the thumb
-	int thumbIndex, indexFingerIndex, middleFingerIndex, ringFingerIndex, pinkyIndex;
-	thumbIndex = getFindThumb(boundingBoxesFingers, palmCenter, handAngle, thumbDirection);
+	cv::RotatedRect* fingers[5];
+	std::fill(fingers, fingers + 5, nullptr);
+	int thumbIndex = getFindThumb(boundingBoxesFingers, palmCenter, handAngle, thumbDirection);
+	if (thumbIndex >= 0)
+		fingers[0] = &boundingBoxesFingers[thumbIndex];
 
 	// find the palm line
 	cv::Line palmLine;
-	findPalmLine(srcBinair, palmLine, wristLine, palmRadius, handOrientation, thumbIndex >= 0);
+	findPalmLine(srcBinair, palmLine, wristLine, palmRadius, handOrientation, fingers[0]);
 	if (thumbDirection == Right) {
 		palmLine.position = palmLine.lineEnd();
 		palmLine.direction *= -1;
 	}
 
 	// find the 4 other fingers
-	labelFingers(boundingBoxesFingers, wristCenter, handOrientation, palmLine, thumbIndex, indexFingerIndex
-		, middleFingerIndex, ringFingerIndex, pinkyIndex);
+	labelFingers(boundingBoxesFingers, fingers, wristCenter, handOrientation, palmLine);
 
 
 	//TODO: find wich finger is stretched
@@ -80,28 +86,13 @@ int main(int argc, char** argb) {
 	imshow("binair", srcBinair);
 	imshow("fingers", fingerMask);
 
-	//Create a seperate image of each finger
-	Mat thumb, indexFinger, middleFinger, ringFinger, pinky;
-	if (thumbIndex >= 0) {
-		cv::applyRectangleMask(fingerMask, thumb, boundingBoxesFingers[thumbIndex]);
-		imshow("thumb", thumb);
-	}
-	if (indexFingerIndex >= 0){
-		cv::applyRectangleMask(fingerMask, indexFinger, boundingBoxesFingers[indexFingerIndex]);
-		imshow("indexFinger", indexFinger);
-	}
-	if (middleFingerIndex >= 0){
-		cv::applyRectangleMask(fingerMask, middleFinger, boundingBoxesFingers[middleFingerIndex]);
-		imshow("middleFinger", middleFinger);
-	}
-	if (ringFingerIndex >= 0){
-		cv::applyRectangleMask(fingerMask, ringFinger, boundingBoxesFingers[ringFingerIndex]);
-		imshow("ringFinger", ringFinger);
-	}
-	if (pinkyIndex >= 0){
-		cv::applyRectangleMask(fingerMask, pinky, boundingBoxesFingers[pinkyIndex]);
-		imshow("pinky", pinky);
-	}
+	displayFingers(srcBGR, fingers);
+
+	bool fingersStretch[5];
+	areFingersStretched(fingers, fingersStretch, palmRadius);
+
+	std::string gesture = deteremenGesture(GestureType::DutchCounting, fingersStretch);
+	MessageBox(0, gesture.c_str(), 0, 0);
 
 	//Wait until a key is pressed to kill the program
 	cv::waitKey(0);
