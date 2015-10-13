@@ -76,8 +76,9 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 
 	// find wrist
 	cv::Line wristLine;
-	findWrist(srcBinair, wristLine, palmCenter, palmRadius);
-	if (&wristLine == NULL)
+	bool foundWrist = false;
+	findWrist(srcBinair, wristLine, foundWrist, palmCenter, palmRadius);
+	if (!foundWrist)
 		return 1;
 
 	cv::Point wristCenter = wristLine.position + wristLine.direction / 2;

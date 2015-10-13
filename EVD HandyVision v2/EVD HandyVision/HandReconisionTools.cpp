@@ -123,7 +123,7 @@ bool isSurrounded(const Mat& src, cv::Point pos) {
 	@param angleStart:	The start angle of the area that the algoritm will be eximinated by the algoritm
 	@param angleEnd:	The end angle of the area that the algoritm will be eximinated by the algoritm
 */
-void findLargestGap(const Mat& src, cv::Line& out, cv::Point center, float maxRadius, float angleStart, float angleEnd) {
+void findLargestGap(const Mat& src, cv::Line& out, bool& foundLine, cv::Point center, float maxRadius, float angleStart, float angleEnd) {
 	cv::Point previousPoint;
 	float previousAngle;
 	float largestGap = -1;
@@ -142,6 +142,7 @@ void findLargestGap(const Mat& src, cv::Line& out, cv::Point center, float maxRa
 					largestGap = std::abs(previousAngle - angle) / deltaAngle - 1;
 					out.position = previousPoint;
 					out.direction = pixelPos - previousPoint;
+					foundLine = true;
 				}
 				previousPoint = pixelPos;
 				previousAngle = angle;
@@ -159,15 +160,15 @@ void findLargestGap(const Mat& src, cv::Line& out, cv::Point center, float maxRa
 	@param palmCenter:	The center position of the palm
 	@param palmRadius:	The radius of the palm in pixels
 */
-void findWrist(const Mat& src, cv::Line& wristOut, cv::Point palmCenter, float palmRadius) {
+void findWrist(const Mat& src, cv::Line& wristOut, bool& foundWrist, cv::Point palmCenter, float palmRadius) {
 	//Look for the rough direction of the wrist by using a large radius. This is done to prefent part of the palm to be miss-inprentended as wrist
-	findLargestGap(src, wristOut, palmCenter, 1.75*palmRadius, 0, 3.0f*PI);
+	findLargestGap(src, wristOut, foundWrist, palmCenter, 1.75*palmRadius, 0, 3.0f*PI);
 
 	//Look for a better estimation of the wirst position
 	float nintyDegrees = 0.5f * PI;
 	float minAngle = std::atan2(wristOut.position.y - palmCenter.y, wristOut.position.x - palmCenter.x) - nintyDegrees;
 	float maxAngle = std::atan2(wristOut.lineEnd().y - palmCenter.y, wristOut.lineEnd().x - palmCenter.x) + nintyDegrees;
-	findLargestGap(src, wristOut, palmCenter, 1.2*palmRadius, minAngle, maxAngle);
+	findLargestGap(src, wristOut, foundWrist, palmCenter, 1.2*palmRadius, minAngle, maxAngle);
 }
 
 /**
