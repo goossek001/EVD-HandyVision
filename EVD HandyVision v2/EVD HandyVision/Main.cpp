@@ -26,7 +26,7 @@ int main(int argc, char** argb) {
 int main_photo(int argc, char** argb) {
 	cv::Mat srcBGR;
 	// open image
-	srcBGR = cv::imread("img3.jpg");
+	srcBGR = cv::imread("img1.jpg");
 	if (!srcBGR.data)
 		return -1;
 
