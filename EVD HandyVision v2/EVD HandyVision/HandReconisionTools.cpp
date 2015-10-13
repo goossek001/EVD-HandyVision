@@ -11,15 +11,6 @@
 #include "Math.h"
 
 /**
-A filter create a binair image that has seperated skin and background
-@param src:		A BGR image
-@param dst:		Output as a 8 bit binair image. Skin will have value 1 and non-skin value 0
-*/
-void BGRSkinColorFilter(const Mat& src, Mat& dst) {
-	cv::BGRThreshold(src, dst, 133, 173, 0, 255, 127, 77);
-}
-
-/**
 	A filter create a binair image that has seperated skin and background
 	@param src:		A YCbCr image
 	@param dst:		Output as a 8 bit binair image. Skin will have value 1 and non-skin value 0

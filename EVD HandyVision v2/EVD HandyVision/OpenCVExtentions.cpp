@@ -19,33 +19,21 @@ namespace cv {
 		inRange(src, lowerbound, upperbound, dst);
 	}
 
-	void BGRThreshold(const Mat& src, Mat& dst,
-		double R_min, double R_max,
-		double G_min, double G_max,
-		double B_min, double B_max) {
+	void YCbCrThreshold(const Mat& src, Mat& dst,
+		double Y_min, double Y_max,
+		double Cb_min, double Cb_max,
+		double Cr_min, double Cr_max) {
 		//Split into channels
 		Mat channels[3];
 		split(src, channels);
 
 		//Apply thresholds
-		threshold(channels[0], channels[0], R_min, R_max);
-		threshold(channels[1], channels[1], G_min, G_max);
-		threshold(channels[2], channels[2], B_min, B_max);
+		threshold(channels[0], channels[0], Y_min, Y_max);
+		threshold(channels[1], channels[1], Cb_min, Cb_max);
+		threshold(channels[2], channels[2], Cr_min, Cr_max);
 
 		//Combine threshold images
 		cv::bitwise_and(channels[0], channels[1], dst, channels[2]);
-	}
-
-	/**
-		Apply a threshold on a YCbCr image
-		@param src: a 3 channel YCbCr image
-		@param dst: output as a 8 bit binair image
-	*/
-	void YCbCrThreshold(const Mat& src, Mat& dst,
-		double Y_min, double Y_max,
-		double Cb_min, double Cb_max,
-		double Cr_min, double Cr_max) {
-		BGRThreshold(src, dst, Y_min, Y_max, Cb_min, Cb_max, Cr_min, Cr_max);
 	}
 
 	/**

@@ -14,15 +14,16 @@
 #include "Math.h"
 
 int main(int argc, char** argb) {
-	cv::Mat srcBGR, srcBinair, palmMask, fingerMask;
+	cv::Mat srcBGR, srcYUV, srcBinair, palmMask, fingerMask;
 
 	// open image
 	srcBGR = cv::imread("img3.jpg");
 	if (!srcBGR.data)
 		return -1;
 
+	cv::cvtColor(srcBGR, srcYUV, CV_RGB2YCrCb);
 	// Skin color filter
-	BGRSkinColorFilter(srcBGR, srcBinair);
+	YCbCrSkinColorFilter(srcYUV, srcBinair);
 
 	//TODO: Reconise hand blob and remove all others
 	//TODO: Change ROI
