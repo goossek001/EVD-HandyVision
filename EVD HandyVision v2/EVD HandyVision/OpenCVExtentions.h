@@ -11,7 +11,7 @@
 
 namespace cv {
 	void threshold(const Mat& src, const Mat& dst, double lowerbound, double upperbound);
-	void cvYCbCrThreshold(const Mat& src, Mat& dst,
+	void YCbCrThreshold(const Mat& src, Mat& dst,
 		double Y_min, double Y_max,
 		double Cb_min, double Cb_max,
 		double Cr_min, double Cr_max);

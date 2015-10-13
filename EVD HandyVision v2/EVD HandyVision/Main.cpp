@@ -14,16 +14,16 @@
 #include "Math.h"
 
 int main(int argc, char** argb) {
-	cv::Mat srcBGR, srcYCrCb, srcBinair, palmMask, fingerMask;
+	cv::Mat srcBGR, srcYUV, srcBinair, palmMask, fingerMask;
 
 	// open image
 	srcBGR = cv::imread("img13.jpg");
 	if (!srcBGR.data)
 		return -1;
 
-	// YCbCr skin color filter
-	cv::cvtColor(srcBGR, srcYCrCb, CV_RGB2YCrCb);
-	YCbCrSkinColorFilter(srcYCrCb, srcBinair);
+	cv::cvtColor(srcBGR, srcYUV, CV_RGB2YCrCb);
+	// Skin color filter
+	YCbCrSkinColorFilter(srcYUV, srcBinair);
 
 	// find biggest contour return binair.
 	getContour(srcBinair, srcBinair);
@@ -57,7 +57,7 @@ int main(int argc, char** argb) {
 
 	// find the palm line
 	cv::Line palmLine;
-	findPalmLine(srcBinair, palmLine, wristLine, handOrientation, thumbIndex >= 0);
+	findPalmLine(srcBinair, palmLine, wristLine, palmRadius, handOrientation, thumbIndex >= 0);
 	if (thumbDirection == Right) {
 		palmLine.position = palmLine.lineEnd();
 		palmLine.direction *= -1;

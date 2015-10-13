@@ -19,12 +19,7 @@ namespace cv {
 		inRange(src, lowerbound, upperbound, dst);
 	}
 
-	/**
-		Apply a threshold on a YCbCr image
-		@param src: a 3 channel YCbCr image
-		@param dst: output as a 8 bit binair image
-	*/
-	void cvYCbCrThreshold(const Mat& src, Mat& dst,
+	void YCbCrThreshold(const Mat& src, Mat& dst,
 		double Y_min, double Y_max,
 		double Cb_min, double Cb_max,
 		double Cr_min, double Cr_max) {

@@ -16,7 +16,7 @@
 	@param dst:		Output as a 8 bit binair image. Skin will have value 1 and non-skin value 0
 */
 void YCbCrSkinColorFilter(const Mat& src, Mat& dst) {
-	cv::cvYCbCrThreshold(src, dst, 0, 255, 77, 127, 133, 173);
+	cv::YCbCrThreshold(src, dst, 0, 255, 77, 127, 133, 173);
 } 
 
 /**
@@ -233,7 +233,7 @@ int getFindThumb(const std::vector<cv::RotatedRect>& boundingBoxesFingers, cv::P
 	@param handAngle:		The rotation of the hand
 	@param thumbDirection:	The direction the thumb is pointing relative to the hand			
 */
-void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, cv::Line wristLine, cv::Point2f handOrientation, bool isThumbVisible) {
+void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, cv::Line wristLine, float palmRadius, cv::Point2f handOrientation, bool isThumbVisible) {
 	//Rotate the image, making the handOrientation (0, -1) 
 	Mat srcRotated;
 	float angle = atan2(handOrientation.y, handOrientation.x) + 0.5*PI;
@@ -241,7 +241,12 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, cv::Line wristLin
 	cv::rotateImage(srcBinair, srcRotated, angle);
 	math::rotatePoint(srcBinair, wristLine.position, temp, angle);
 
-	int height = temp.y;
+	//Remove small noise
+	Mat kernel = Mat::ones(cv::Point(3, 3), CV_8UC1);
+	kernel.at<uchar>(cv::Point(1, 1)) = 0;
+	cv::morphologyEx(srcRotated, srcRotated, CV_MOP_CLOSE, kernel);
+
+	int height = temp.y - palmRadius;
 	int previousHoleCount = 0;
 	int maxHoles = isThumbVisible ? 2 : 1;
 	//Look in horizontal lines to find the palm line, by counting the edges
@@ -249,25 +254,38 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, cv::Line wristLin
 		std::vector<cv::Point> intersections = math::horizontalLineObjectIntersection(srcRotated, height);
 		int holes = intersections.size() / 2-1;
 
-		if (holes >= maxHoles) {
-			height++;
+		int index = -1;
+		int largestWidth = -1;
+
+		for (int i = 0; i < holes * 2+1; i += 2) {
+			int width = intersections[i+1].x - intersections[i].x;
+			if (width > largestWidth) {
+				index = i;
+				largestWidth = width;
+			}
+		}
+		if (holes >= maxHoles || largestWidth < 1.75f*palmRadius) {
+			if (holes >= maxHoles)
+				height++;
 			intersections.clear();
 			intersections = math::horizontalLineObjectIntersection(srcRotated, height);
 			int index = -1;
 			int largestWidth = -1;
 
-			for (int i = 0; i < holes*2; i+=2) {
-				int width = intersections[i].x - intersections[i].x;
+			for (int i = 0; i < holes*2+1; i+=2) {
+				int width = intersections[i+1].x - intersections[i].x;
 				if (width > largestWidth) {
 					index = i;
 					largestWidth = width;
 				}
 			}
-
 			palmLineOut.position.x = intersections[index].x;
 			palmLineOut.position.y = intersections[index].y;
 			palmLineOut.direction.x = intersections[index + 1].x - intersections[index].x;
 			palmLineOut.direction.y = intersections[index + 1].y - intersections[index].y;
+			/*line(srcRotated, palmLineOut.lineStart(), palmLineOut.lineEnd(), cv::Scalar(100));
+			cv::imshow("rot", srcRotated);
+			cv::waitKey(0);*/
 			math::rotateLine(srcBinair, palmLineOut, palmLineOut, angle);
 			break;
 		} else if (previousHoleCount > holes){
