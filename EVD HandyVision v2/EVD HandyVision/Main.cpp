@@ -63,6 +63,8 @@ int main_video(int argc, char** argb) {
 
 		bool bSuccess = cap.read(frame); // read a new frame from video
 
+		cv::flip(frame, frame, 1);
+
 		if (!bSuccess) { //if not success, break loop
 			MessageBox(0, "Cannot read a frame from video stream", 0, 0);
 			break;
@@ -88,6 +90,9 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	cv::cvtColor(srcBGR, srcYUV, CV_RGB2YCrCb);
 	// Skin color filter
 	YCbCrSkinColorFilter(srcYUV, srcBinair);
+
+	cv::getContour(srcBinair, srcBinair);
+	cv::fillHoles(srcBinair, srcBinair);
 
 	// find palm
 	cv::Point palmCenter;
@@ -146,9 +151,10 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	areFingersStretched(fingers, fingersStretch, palmRadius);
 
 	std::string gesture = deteremenGesture(GestureType::DutchCounting, fingersStretch);
-	cv::putText(srcBGR, gesture, cv::Point(0.05f*srcBGR.cols, 0.95f*srcBGR.rows), 2, 0.01f*srcBGR.rows, cv::Scalar(255, 0, 0), 8);
+	cv::putText(srcBinair, gesture, cv::Point(0.05f*srcBGR.cols, 0.95f*srcBGR.rows), 2, 0.01f*srcBGR.rows, cv::Scalar(100, 0, 0), 8);
 
-	imshow(windowName, srcBGR);
+	imshow(windowName, srcBinair);
+	imshow("asdfasdfasdfa", fingerMask);
 
 	return 0;
 }

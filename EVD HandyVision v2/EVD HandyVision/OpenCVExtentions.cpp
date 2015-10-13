@@ -152,7 +152,5 @@ namespace cv {
 		Scalar color(255, 255, 255);
 		cv::drawContours(contourOutput, contours, largest_contour_index, color, CV_FILLED, 8, hierarchy); // Draw the largest contour using previously stored index.
 		contourOutput.copyTo(dst);
-		waitKey(0);
-
 	}
 }

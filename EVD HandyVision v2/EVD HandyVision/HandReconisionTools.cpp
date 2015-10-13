@@ -200,7 +200,7 @@ void createPalmMask(const Mat& src, Mat& dst, cv::Point palmCenter, float palmRa
 void createFingerMask(const Mat& src, Mat& dst, Mat& palmMask, cv::Point wristCenter, cv::Point2f handOrientation) {
 	cv::Point2f rSize(src.rows + src.cols, src.rows + src.cols);
 	cv::Point2f rCenter = (cv::Point2f)wristCenter + 0.5f*rSize.x * handOrientation;
-	float rAngle = std::atan2(handOrientation.y, handOrientation.x);
+	float rAngle = std::atan2(handOrientation.y, handOrientation.x) * 180 / PI;
 
 	//Create a finger mask, using the bounding boxes of the fingers
 	Mat rectMask(src.size(), src.type(), cv::Scalar(0));
