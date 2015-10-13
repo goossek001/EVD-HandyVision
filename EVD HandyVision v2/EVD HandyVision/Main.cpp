@@ -13,22 +13,60 @@
 #include "HandReconisionTools.h"
 #include "Math.h"
 
-int main(int argc, char** argb) {
-	cv::Mat srcBGR, srcYUV, srcBinair, palmMask, fingerMask;
+#include <Windows.h>
 
+int DetermenGesture(std::string windowName, cv::Mat& srcBGR);
+int main_photo(int argc, char** argb);
+int main_video(int argc, char** argb);
+
+int main(int argc, char** argb) {
+	main_video(argc, argb);
+}
+
+int main_photo(int argc, char** argb) {
+	cv::Mat srcBGR;
 	// open image
 	srcBGR = cv::imread("img3.jpg");
 	if (!srcBGR.data)
 		return -1;
+
+	return DetermenGesture("MyVideo", srcBGR);
+}
+
+int main_video(int argc, char** argb) {
+	cv::VideoCapture cap(1); // open the video camera no. 0
+
+	if (!cap.isOpened())  // if not success, exit program
+	{
+		MessageBox(0, "Cannot open the video cam", 0, 0);
+		return -1;
+	}
+
+	cv::namedWindow("MyVideo", CV_WINDOW_AUTOSIZE); //create a window called "MyVideo"
+
+	while (1) {
+		Mat frame;
+
+		bool bSuccess = cap.read(frame); // read a new frame from video
+
+		//if (!bSuccess) { //if not success, break loop
+		//	MessageBox(0, "Cannot read a frame from video stream", 0, 0);
+		//	break;
+		//}
+
+		DetermenGesture("MyVideo", frame);
+	}
+	return 0;
+}
+
+int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
+	cv::Mat srcYUV, srcBinair, palmMask, fingerMask;
 
 	initHashTable();
 
 	cv::cvtColor(srcBGR, srcYUV, CV_RGB2YCrCb);
 	// Skin color filter
 	YCbCrSkinColorFilter(srcYUV, srcBinair);
-
-	//TODO: Reconise hand blob and remove all others
-	//TODO: Change ROI
 
 	// find palm
 	cv::Point palmCenter;
@@ -39,6 +77,9 @@ int main(int argc, char** argb) {
 	// find wrist
 	cv::Line wristLine;
 	findWrist(srcBinair, wristLine, palmCenter, palmRadius);
+	if (&wristLine == NULL)
+		return 1;
+
 	cv::Point wristCenter = wristLine.position + wristLine.direction / 2;
 
 	// find the orientation of the hand
@@ -71,18 +112,13 @@ int main(int argc, char** argb) {
 	// find the 4 other fingers
 	labelFingers(boundingBoxesFingers, fingers, wristCenter, handOrientation, palmLine);
 
-
-	//TODO: find wich finger is stretched
-	//TODO: determen definition of the sign 
-	//TODO: display the image with the translation of the sign
-
 	bool fingersStretch[5];
 	areFingersStretched(fingers, fingersStretch, palmRadius);
 
 	std::string gesture = deteremenGesture(GestureType::DutchCounting, fingersStretch);
 	cv::putText(srcBGR, gesture, cv::Point(0.05f*srcBGR.cols, 0.95f*srcBGR.rows), 2, 0.01f*srcBGR.rows, cv::Scalar(255, 0, 0), 8);
 
-	imshow("original", srcBGR);
+	imshow(windowName, srcBGR);
 
 	//Wait until a key is pressed to kill the program
 	cv::waitKey(0);
