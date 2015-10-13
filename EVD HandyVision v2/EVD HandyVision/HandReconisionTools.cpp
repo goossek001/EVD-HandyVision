@@ -276,7 +276,7 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, 
 	int previousHoleCount = 0;
 	int maxHoles = isThumbVisible ? 2 : 1;
 	//Look in horizontal lines to find the palm line, by counting the edges
-	while (height >= 0) {
+	while (height >= 0 && height < srcRotated.rows) {
 		std::vector<cv::Point> intersections = math::horizontalLineObjectIntersection(srcRotated, height);
 		int holes = intersections.size() / 2-1;
 
@@ -337,7 +337,7 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, 
 	@param ringFingerIndexOut:				The index of the ring finger in the list boundingBoxesFingers
 	@param pinkyIndexOut:					The index of the pink in the list boundingBoxesFingers
 */
-void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* fingersOut[5], const cv::Point& wristCenter, const cv::Point& handOrientation
+void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fingersOut)[5], const cv::Point& wristCenter, const cv::Point& handOrientation
 	, cv::Line palmLine) {
 	float palmWidth = math::length(palmLine.direction);
 	//Loop through all fingers in 'boundingBoxesFingers' and label them
@@ -360,8 +360,8 @@ void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* fing
 			//Determen the finger label by its distance on the palmline
 			cv::Point intersect = math::lineLineIntersection(cv::Line(fingerPosition, -handOrientation), palmLine);
 			int fingerIndex = 1 + math::length(intersect - palmLine.position) / palmWidth * 4;
-			if (fingerIndex < 5)
-				fingersOut[fingerIndex] = &fingersIn[i];
+			if (fingerIndex < 5 && fingerIndex > 0)
+				fingersOut[fingerIndex] = &(fingersIn[i]);
 		}
 	}
 }

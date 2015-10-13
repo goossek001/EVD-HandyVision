@@ -39,7 +39,7 @@ int main_photo(int argc, char** argb) {
 }
 
 int main_video(int argc, char** argb) {
-	cv::VideoCapture cap(1); // open the video camera no. 0
+	cv::VideoCapture cap(0); // open the video camera no. 0
 
 	if (!cap.isOpened())  // if not success, exit program
 	{
@@ -47,7 +47,16 @@ int main_video(int argc, char** argb) {
 		return -1;
 	}
 
+	double dWidth = cap.get(CV_CAP_PROP_FRAME_WIDTH); //get the width of frames of the video
+	double dHeight = cap.get(CV_CAP_PROP_FRAME_HEIGHT); //get the height of frames of the video
+
 	cv::namedWindow("MyVideo", CV_WINDOW_AUTOSIZE); //create a window called "MyVideo"
+
+	if (!cap.isOpened())  // if not success, exit program
+	{
+		MessageBox(0, "Cannot open the video cam", 0, 0);
+		return -1;
+	}
 
 	while (1) {
 		cv::Mat frame;
@@ -58,8 +67,15 @@ int main_video(int argc, char** argb) {
 			MessageBox(0, "Cannot read a frame from video stream", 0, 0);
 			break;
 		}
+		//cv::imshow("MyVideo", frame);
 
 		DetermenGesture("MyVideo", frame);
+
+		if (cv::waitKey(30) == 27) //wait for 'esc' key press for 30ms. If 'esc' key is pressed, break loop
+		{
+			MessageBox(0, "esc key is pressed by user", 0, 0);
+			break;
+		}
 	}
 	return 0;
 }
