@@ -30,11 +30,16 @@ int main_photo(int argc, char** argb) {
 	if (!srcBGR.data)
 		return -1;
 
-	return DetermenGesture("MyVideo", srcBGR);
+	int asdf = DetermenGesture("MyVideo", srcBGR);
+
+	//Wait until a key is pressed to kill the program
+	cv::waitKey(0);
+
+	return asdf;
 }
 
 int main_video(int argc, char** argb) {
-	cv::VideoCapture cap(1); // open the video camera no. 0
+	cv::VideoCapture cap(0); // open the video camera no. 0
 
 	if (!cap.isOpened())  // if not success, exit program
 	{
@@ -45,14 +50,14 @@ int main_video(int argc, char** argb) {
 	cv::namedWindow("MyVideo", CV_WINDOW_AUTOSIZE); //create a window called "MyVideo"
 
 	while (1) {
-		Mat frame;
+		cv::Mat frame;
 
 		bool bSuccess = cap.read(frame); // read a new frame from video
 
-		//if (!bSuccess) { //if not success, break loop
-		//	MessageBox(0, "Cannot read a frame from video stream", 0, 0);
-		//	break;
-		//}
+		if (!bSuccess) { //if not success, break loop
+			MessageBox(0, "Cannot read a frame from video stream", 0, 0);
+			break;
+		}
 
 		DetermenGesture("MyVideo", frame);
 	}
@@ -119,9 +124,6 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	cv::putText(srcBGR, gesture, cv::Point(0.05f*srcBGR.cols, 0.95f*srcBGR.rows), 2, 0.01f*srcBGR.rows, cv::Scalar(255, 0, 0), 8);
 
 	imshow(windowName, srcBGR);
-
-	//Wait until a key is pressed to kill the program
-	cv::waitKey(0);
 
 	return 0;
 }

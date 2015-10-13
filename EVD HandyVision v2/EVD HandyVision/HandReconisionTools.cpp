@@ -356,7 +356,8 @@ void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fi
 			//Determen the finger label by its distance on the palmline
 			cv::Point intersect = math::lineLineIntersection(cv::Line(fingerPosition, -handOrientation), palmLine);
 			int fingerIndex = 1 + math::length(intersect - palmLine.position) / palmWidth * 4;
-			fingersOut[fingerIndex] = &fingersIn[i];
+			if (fingerIndex < 5)
+				fingersOut[fingerIndex] = &fingersIn[i];
 		}
 	}
 }
