@@ -88,6 +88,9 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 
 	cv::Point wristCenter = wristLine.position + wristLine.direction / 2;
 
+	if (palmCenter == wristCenter)
+		return 1;
+
 	// find the orientation of the hand
 	cv::Point2f handOrientation = (cv::Point2f)palmCenter - (cv::Point2f)wristCenter;
 	handOrientation /= std::pow(handOrientation.x*handOrientation.x + handOrientation.y*handOrientation.y, 0.5f);
@@ -102,7 +105,9 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 
 	// find the thumb
 	cv::RotatedRect* fingers[5];
-	std::fill(fingers, fingers + 5, nullptr);
+	for (int i = 0; i < 5; ++i) {
+		fingers[i] = 0;
+	}
 	int thumbIndex = getFindThumb(boundingBoxesFingers, palmCenter, handAngle, thumbDirection);
 	if (thumbIndex >= 0)
 		fingers[0] = &boundingBoxesFingers[thumbIndex];
@@ -110,7 +115,7 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	// find the palm line
 	cv::Line palmLine;
 	bool foundPalm = true;
-	findPalmLine(srcBinair, palmLine, foundPalm, wristLine, palmRadius, handOrientation, fingers[0]);
+	findPalmLine(srcBinair, palmLine, foundPalm, wristLine, palmRadius, handOrientation, fingers[0] != 0);
 	if (!foundPalm)
 		return 1;
 	if (thumbDirection == Right) {
