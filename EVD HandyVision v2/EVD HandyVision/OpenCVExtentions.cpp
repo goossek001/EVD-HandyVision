@@ -126,4 +126,38 @@ namespace cv {
 
 		src.copyTo(dst, rectMask);
 	}
+
+	/**
+	Only keep the biggest contour suposeingly its the hand
+	@param src:			An binairy image
+	@param dst			The binairy src image after applying the mask and give only the biggest contour.
+	*/
+	void getContour(cv::Mat& src, cv::Mat& dst){
+		
+		int largest_area = 0;
+		int largest_contour_index = 0;
+
+		cv::Mat contourOutput(src.rows, src.cols, CV_8UC1, Scalar::all(0));
+		cv::Mat contourImage = src.clone();
+
+		std::vector<std::vector<cv::Point> > contours;
+		std::vector<Vec4i> hierarchy;
+		cv::findContours(contourImage, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE); // Find the contours in the image
+
+		for (int i = 0; i< contours.size(); i++) // iterate through each contour. 
+		{
+			double a = contourArea(contours[i], false);  //  Find the area of contour
+			if (a>largest_area){
+				largest_area = a;
+				largest_contour_index = i;                //Store the index of largest contour
+			}
+
+		}
+
+		Scalar color(255, 255, 255);
+		cv::drawContours(contourOutput, contours, largest_contour_index, color, CV_FILLED, 8, hierarchy); // Draw the largest contour using previously stored index.
+		contourOutput.copyTo(dst);
+		waitKey(0);
+
+	}
 }

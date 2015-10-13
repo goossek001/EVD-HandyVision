@@ -17,7 +17,7 @@ int main(int argc, char** argb) {
 	cv::Mat srcBGR, srcYCrCb, srcBinair, palmMask, fingerMask;
 
 	// open image
-	srcBGR = cv::imread("img3.jpg");
+	srcBGR = cv::imread("img13.jpg");
 	if (!srcBGR.data)
 		return -1;
 
@@ -25,11 +25,8 @@ int main(int argc, char** argb) {
 	cv::cvtColor(srcBGR, srcYCrCb, CV_RGB2YCrCb);
 	YCbCrSkinColorFilter(srcYCrCb, srcBinair);
 
-	//TODO: Reconise hand blob and remove all others
-	//TODO: Change ROI
-
-	// fill holes
-	cv::fillHoles(srcBinair, srcBinair);
+	// find biggest contour return binair.
+	getContour(srcBinair, srcBinair);
 
 	// find palm
 	cv::Point palmCenter;
@@ -76,6 +73,7 @@ int main(int argc, char** argb) {
 	//TODO: display the image with the translation of the sign
 
 	//Display the generated images
+	cv::line(srcBinair, wristLine.lineStart(), wristLine.lineEnd(), cv::Scalar(100, 0, 0));
 	imshow("original", srcBGR);
 	imshow("binair", srcBinair);
 	imshow("fingers", fingerMask);
