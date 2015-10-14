@@ -41,7 +41,7 @@ void initHashTable() {
 	@param dst:		Output as a 8 bit binair image. Skin will have value 1 and non-skin value 0
 */
 void YCbCrSkinColorFilter(const Mat& src, Mat& dst) {
-	cv::YCbCrThreshold(src, dst, 0, 255, 77, 127, 133, 173);
+	cv::YCbCrThreshold(src, dst, 0, 255, 0, 127, 133, 255);
 } 
 
 /**
@@ -242,8 +242,8 @@ int getFindThumb(const std::vector<cv::RotatedRect>& boundingBoxesFingers, cv::P
 			direction.x * rotationMatrix[0][0] + direction.y * rotationMatrix[1][0],
 			direction.x * rotationMatrix[0][1] + direction.y * rotationMatrix[1][1]
 		);
-		float rotation = atan2(direction.y, direction.x);
-		if (rotation >= 40 * thumbDirection) {
+		float rotation = atan2(direction.y, direction.x) / PI * 180;
+		if (rotation>=0 == thumbDirection<=0 && rotation >= abs(40 * thumbDirection)) {
 			return i;
 		}
 	}
@@ -313,7 +313,8 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, 
 				/*line(srcRotated, palmLineOut.lineStart(), palmLineOut.lineEnd(), cv::Scalar(100));
 				cv::imshow("rot", srcRotated);
 				cv::waitKey(0);*/
-				math::rotateLine(srcBinair, palmLineOut, palmLineOut, angle);
+
+				math::rotateLine(srcRotated, palmLineOut, palmLineOut, -angle);
 				foundPalm = true;
 			}
 			break;

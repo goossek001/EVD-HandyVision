@@ -42,6 +42,17 @@ namespace math {
 		return (v1.x*v2.y) - (v1.y*v2.x);
 	}
 
+	cv::Point operator*(const cv::Point& p, cv::Mat M) {
+		cv::Mat_<double> src(3/*rows*/, 1 /* cols */);
+
+		src(0, 0) = p.x;
+		src(1, 0) = p.y;
+		src(2, 0) = 1.0;
+
+		cv::Mat_<double> dst = M*src; //USE MATRIX ALGEBRA 
+		return cv::Point(dst(0, 0), dst(1, 0));
+	}
+
 	/**
 	Rotate a point around the center of the image
 	@param src:			A image with no type restrictions
@@ -52,13 +63,8 @@ namespace math {
 	void rotatePoint(const cv::Mat& src, const cv::Point& srcPoint, cv::Point& dstPoint, float angle) {
 		int len = std::max(src.cols, src.rows);
 		cv::Point2f pt(len / 2., len / 2.);
-
-		cv::Point2f temp = (cv::Point2f) srcPoint - pt;
-		temp.x = std::cos(angle)*temp.x - std::sin(angle)*temp.y;
-		temp.y = std::sin(angle)*temp.x + std::cos(angle)*temp.y;
-		temp += pt;
-
-		dstPoint = (cv::Point) temp;
+		cv::Mat R = cv::getRotationMatrix2D(pt, angle / PI * 180, 1.0);
+		dstPoint = srcPoint * R;
 	}
 
 	/**
@@ -68,12 +74,11 @@ namespace math {
 	@param dstPoint:	The output channel for the rotated line
 	@param angle:		The rotation of the line in radians
 	*/
-	void rotateLine(const Mat& src, const Line& srcLine, Line& dstLine, float angle) {
+	void rotateLine(const Mat& src, Line& srcLine, Line& dstLine, float angle) {
 		cv::Point lineEnd = srcLine.lineEnd();
 		rotatePoint(src, lineEnd, lineEnd, angle);
 		rotatePoint(src, srcLine.position, dstLine.position, angle);
 		dstLine.direction = lineEnd - dstLine.position;
-
 	}
 
 	/**

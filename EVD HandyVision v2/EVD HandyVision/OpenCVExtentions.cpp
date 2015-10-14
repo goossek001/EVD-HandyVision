@@ -97,7 +97,7 @@ namespace cv {
 	void rotateImage(const cv::Mat& src, cv::Mat& dst, float angle) {
 		int len = std::max(src.cols, src.rows);
 		cv::Point2f pt(len / 2., len / 2.);
-		cv::Mat r = cv::getRotationMatrix2D(pt, angle*180/PI, 1.0);
+		cv::Mat r = cv::getRotationMatrix2D(pt, angle / PI * 180, 1.0);
 
 		cv::warpAffine(src, dst, r, cv::Size(len, len));
 	}

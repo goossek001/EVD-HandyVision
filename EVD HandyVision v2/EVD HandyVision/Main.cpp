@@ -26,7 +26,7 @@ int main(int argc, char** argb) {
 int main_photo(int argc, char** argb) {
 	cv::Mat srcBGR;
 	// open image
-	srcBGR = cv::imread("cam1.jpg");
+	srcBGR = cv::imread("img1.jpg");
 	if (!srcBGR.data)
 		return -1;
 
@@ -62,8 +62,6 @@ int main_video(int argc, char** argb) {
 		cv::Mat frame;
 
 		bool bSuccess = cap.read(frame); // read a new frame from video
-
-		cv::flip(frame, frame, 1);
 
 		if (!bSuccess) { //if not success, break loop
 			MessageBox(0, "Cannot read a frame from video stream", 0, 0);
@@ -136,7 +134,7 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	// find the palm line
 	cv::Line palmLine;
 	bool foundPalm = true;
-	findPalmLine(srcBinair, palmLine, foundPalm, wristLine, palmRadius, handOrientation, fingers[0] != 0);
+	findPalmLine(srcBinair, palmLine, foundPalm, wristLine, palmRadius, handOrientation, thumbIndex >= 0);
 	if (!foundPalm)
 		return 1;
 	if (thumbDirection == Right) {
@@ -151,12 +149,13 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	areFingersStretched(fingers, fingersStretch, palmRadius);
 
 	std::string gesture = deteremenGesture(GestureType::DutchCounting, fingersStretch);
-	cv::putText(srcBinair, gesture, cv::Point(0.05f*srcBGR.cols, 0.95f*srcBGR.rows), 2, 0.01f*srcBGR.rows, cv::Scalar(100, 0, 0), 8);
+	//cv::putText(srcBinair, gesture, cv::Point(0.05f*srcBGR.cols, 0.95f*srcBGR.rows), 2, 0.01f*srcBGR.rows, cv::Scalar(100, 0, 0), 8);
+	cv::putText(srcBinair, std::to_string(thumbIndex), cv::Point(0.05f*srcBGR.cols, 0.95f*srcBGR.rows), 2, 0.01f*srcBGR.rows, cv::Scalar(100, 0, 0), 8);
 
-	cv::line(srcBinair, palmLine.lineStart(), palmLine.lineEnd(),cv::Scalar(100));
-	displayFingers(fingerMask, fingers);
+	cv::line(srcBinair, palmLine.lineStart(), palmLine.lineEnd(),cv::Scalar(150));
+	imshow("asdf", fingerMask);
 	imshow(windowName, srcBinair);
-	imshow("asdfasdfasdfa", fingerMask);
+	displayFingers(srcBinair, fingers);
 
 	return 0;
 }
