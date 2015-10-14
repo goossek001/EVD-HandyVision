@@ -153,6 +153,8 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	std::string gesture = deteremenGesture(GestureType::DutchCounting, fingersStretch);
 	cv::putText(srcBinair, gesture, cv::Point(0.05f*srcBGR.cols, 0.95f*srcBGR.rows), 2, 0.01f*srcBGR.rows, cv::Scalar(100, 0, 0), 8);
 
+	cv::line(srcBinair, palmLine.lineStart(), palmLine.lineEnd(),cv::Scalar(100));
+	displayFingers(fingerMask, fingers);
 	imshow(windowName, srcBinair);
 	imshow("asdfasdfasdfa", fingerMask);
 

@@ -375,7 +375,7 @@ void areFingersStretched(cv::RotatedRect* fingers[5], bool(&out)[5], float palmR
 			fingerLength = 0;
 		float multiplier;
 		if (i == 0)
-			multiplier = 0.25f;
+			multiplier = 0.12f;
 		else
 			multiplier = 0.5f;
 		out[i] = fingerLength >= multiplier * palmRadius;
