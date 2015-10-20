@@ -35,14 +35,50 @@ void initHashTable() {
 	gestures[GestureType::DutchCounting][GenerateHashKey(fingers)] = "9";
 }
 
+double Y_min = 0, Y_max = 255, U_min = 0, U_max = 127, V_min = 133, V_max = 255;
+
+void asdf(Mat& dst) {
+	cv::putText(dst,
+		std::to_string((int)Y_min) + "-" + std::to_string((int)Y_max) + " , " +
+		std::to_string((int)U_min) + "-" + std::to_string((int)U_max) + " , " +
+		std::to_string((int)V_min) + "-" + std::to_string((int)V_max)
+		, cv::Point(0.05f*dst.cols, 0.95f*dst.rows), 2, 0.003f*dst.rows, cv::Scalar(100), 2);
+}
+
 /**
 	A filter create a binair image that has seperated skin and background
 	@param src:		A YCbCr image
 	@param dst:		Output as a 8 bit binair image. Skin will have value 1 and non-skin value 0
 */
 void YCbCrSkinColorFilter(const Mat& src, Mat& dst) {
-	cv::YCbCrThreshold(src, dst, 0, 255, 0, 127, 133, 255);
-} 
+	double d = 1.0;
+	int key = cv::waitKey(30);
+	if (key == (int)('q'))
+		Y_min = std::min(255.0, Y_min + d);
+	if (key == (int)('a'))
+		Y_min = std::max(0.0, Y_min - d);
+	if (key == (int)('w'))
+		Y_max = std::min(255.0, Y_max + d);
+	if (key == (int)('s'))
+		Y_max = std::max(0.0, Y_max - d);
+	if (key == (int)('e'))
+		U_min = std::min(255.0, U_min + d);
+	if (key == (int)('s'))
+		U_min = std::max(0.0, U_min - d);
+	if (key == (int)('r'))
+		U_max = std::min(255.0, U_max + d);
+	if (key == (int)('f'))
+		U_max = std::max(0.0, U_max - d);
+	if (key == (int)('t'))
+		V_min = std::min(255.0, V_min + d);
+	if (key == (int)('g'))
+		V_min = std::max(0.0, V_min - d);
+	if (key == (int)('y'))
+		V_max = std::min(255.0, V_max + d);
+	if (key == (int)('h'))
+		V_max = std::max(0.0, V_max - d);
+	cv::YCbCrThreshold(src, dst, Y_min, Y_max, U_min, U_max, V_min, V_max);
+}
 
 /**
 	Sort two blobs on contour area
@@ -290,7 +326,7 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, 
 				largestWidth = width;
 			}
 		}
-		if (holes >= maxHoles || largestWidth < 1.75f*palmRadius) {
+		if (holes >= maxHoles || largestWidth < 1.85f*palmRadius) {
 			if (holes >= maxHoles)
 				height++;
 			intersections.clear();

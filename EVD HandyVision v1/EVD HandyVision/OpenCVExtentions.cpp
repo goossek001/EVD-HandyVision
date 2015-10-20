@@ -33,6 +33,7 @@ namespace cv {
 		cv::bitwise_and(channels[0], channels[1], *dst, channels[2]);
 	}
 
+
 	/**
 		Detect and the contour of objects
 		@param src: a 8 bit binair image

@@ -71,11 +71,11 @@ int main_video(int argc, char** argb) {
 
 		DetermenGesture("MyVideo", frame);
 
-		if (cv::waitKey(30) == 27) //wait for 'esc' key press for 30ms. If 'esc' key is pressed, break loop
+		/*if (cv::waitKey(30) == 27) //wait for 'esc' key press for 30ms. If 'esc' key is pressed, break loop
 		{
 			MessageBox(0, "esc key is pressed by user", 0, 0);
 			break;
-		}
+		}*/
 	}
 	return 0;
 }
@@ -150,12 +150,13 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 
 	std::string gesture = deteremenGesture(GestureType::DutchCounting, fingersStretch);
 	//cv::putText(srcBinair, gesture, cv::Point(0.05f*srcBGR.cols, 0.95f*srcBGR.rows), 2, 0.01f*srcBGR.rows, cv::Scalar(100, 0, 0), 8);
-	cv::putText(srcBinair, std::to_string(thumbIndex), cv::Point(0.05f*srcBGR.cols, 0.95f*srcBGR.rows), 2, 0.01f*srcBGR.rows, cv::Scalar(100, 0, 0), 8);
+	//cv::putText(srcBinair, std::to_string(thumbIndex), cv::Point(0.05f*srcBGR.cols, 0.95f*srcBGR.rows), 2, 0.01f*srcBGR.rows, cv::Scalar(100, 0, 0), 8);
 
 	cv::line(srcBinair, palmLine.lineStart(), palmLine.lineEnd(),cv::Scalar(150));
-	imshow("asdf", fingerMask);
+	asdf(srcBinair);
+	//imshow("asdf", fingerMask);
 	imshow(windowName, srcBinair);
-	displayFingers(srcBinair, fingers);
+	//displayFingers(srcBinair, fingers);
 
 	return 0;
 }

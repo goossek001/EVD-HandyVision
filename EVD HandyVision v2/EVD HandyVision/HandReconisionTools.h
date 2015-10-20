@@ -22,6 +22,8 @@ enum GestureType {
 	COUNT
 };
 
+
+
 void initHashTable();
 int GenerateHashKey(bool fingers[5]);
 
@@ -37,3 +39,5 @@ void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fi
 void areFingersStretched(cv::RotatedRect* fingers[5], bool(&out)[5], float palmRadius);
 void displayFingers(const Mat& img, cv::RotatedRect* fingers[5]);
 std::string deteremenGesture(GestureType gestureType, bool fingers[5]);
+
+void asdf(Mat& dst);

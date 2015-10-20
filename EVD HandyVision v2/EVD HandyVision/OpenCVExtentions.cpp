@@ -27,6 +27,10 @@ namespace cv {
 		Mat channels[3];
 		split(src, channels);
 
+		imshow("Y", channels[0]);
+		imshow("U", channels[1]);
+		imshow("V", channels[2]);
+
 		//Apply thresholds
 		threshold(channels[0], channels[0], Y_min, Y_max);
 		threshold(channels[1], channels[1], Cb_min, Cb_max);
