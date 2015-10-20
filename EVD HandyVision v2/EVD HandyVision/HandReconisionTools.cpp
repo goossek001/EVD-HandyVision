@@ -44,6 +44,22 @@ void YCbCrSkinColorFilter(const Mat& src, Mat& dst) {
 	cv::YCbCrThreshold(src, dst, 0, 255, 0, 127, 133, 255);
 } 
 
+void CannyHandFilter(const Mat& src, Mat& dst) {
+	Mat channels[3];
+	split(src, channels);
+
+	Mat copy;
+
+	cv::GaussianBlur(src, copy, cv::Size(11, 11), 0, 0);
+
+	cv::Canny(copy, dst, 40, 60);
+	Mat kernel = Mat::ones(cv::Point(5, 5), CV_8UC1);
+	cv::morphologyEx(dst, dst, CV_MOP_DILATE, kernel);
+	cv::line(dst, cv::Point(1, 1), cv::Point(dst.cols - 2, 1), cv::Scalar(255));
+	cv::fillHoles(dst, dst);
+	cv::morphologyEx(dst, dst, CV_MOP_ERODE, kernel);
+}
+
 /**
 	Sort two blobs on contour area
 	@param blob1:
@@ -386,25 +402,36 @@ void areFingersStretched(cv::RotatedRect* fingers[5], bool(&out)[5], float palmR
 void displayFingers(const Mat& img, cv::RotatedRect* fingers[5]) {
 	//Create a seperate image of each finger
 	Mat thumb, indexFinger, middleFinger, ringFinger, pinky;
+	Mat empty = Mat::zeros(img.size(), img.type());
 	if (fingers[0]) {
 		cv::applyRectangleMask(img, thumb, *fingers[0]);
 		imshow("thumb", thumb);
+	} else {
+		imshow("thumb", empty);
 	}
 	if (fingers[1]){
 		cv::applyRectangleMask(img, indexFinger, *fingers[1]);
 		imshow("indexFinger", indexFinger);
+	} else {
+		imshow("indexFinger", empty);
 	}
 	if (fingers[2]){
 		cv::applyRectangleMask(img, middleFinger, *fingers[2]);
 		imshow("middleFinger", middleFinger);
+	} else {
+		imshow("middleFinger", empty);
 	}
 	if (fingers[3]){
 		cv::applyRectangleMask(img, ringFinger, *fingers[3]);
 		imshow("ringFinger", ringFinger);
+	} else {
+		imshow("ringFinger", empty);
 	}
 	if (fingers[4]) {
 		cv::applyRectangleMask(img, pinky, *fingers[4]);
 		imshow("pinky", pinky);
+	} else {
+		imshow("pinky", empty);
 	}
 }
 

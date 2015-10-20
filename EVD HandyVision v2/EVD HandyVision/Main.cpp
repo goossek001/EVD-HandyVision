@@ -87,7 +87,8 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 
 	cv::cvtColor(srcBGR, srcYUV, CV_RGB2YCrCb);
 	// Skin color filter
-	YCbCrSkinColorFilter(srcYUV, srcBinair);
+	//YCbCrSkinColorFilter(srcYUV, srcBinair);
+	CannyHandFilter(srcYUV, srcBinair);
 
 	cv::getContour(srcBinair, srcBinair);
 	cv::fillHoles(srcBinair, srcBinair);
@@ -150,12 +151,13 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 
 	std::string gesture = deteremenGesture(GestureType::DutchCounting, fingersStretch);
 	//cv::putText(srcBinair, gesture, cv::Point(0.05f*srcBGR.cols, 0.95f*srcBGR.rows), 2, 0.01f*srcBGR.rows, cv::Scalar(100, 0, 0), 8);
-	cv::putText(srcBinair, std::to_string(thumbIndex), cv::Point(0.05f*srcBGR.cols, 0.95f*srcBGR.rows), 2, 0.01f*srcBGR.rows, cv::Scalar(100, 0, 0), 8);
+	cv::putText(srcBinair, gesture, cv::Point(0.05f*srcBGR.cols, 0.95f*srcBGR.rows), 2, 0.01f*srcBGR.rows, cv::Scalar(100, 0, 0), 8);
 
+	cv::line(srcBinair, wristLine.lineStart(), wristLine.lineEnd(), cv::Scalar(150));
 	cv::line(srcBinair, palmLine.lineStart(), palmLine.lineEnd(),cv::Scalar(150));
-	imshow("asdf", fingerMask);
-	imshow(windowName, srcBinair);
-	displayFingers(srcBinair, fingers);
+	Mat srcFlipped;
+	cv::flip(srcBinair, srcFlipped, -1);
+	imshow(windowName, srcFlipped);
 
 	return 0;
 }
