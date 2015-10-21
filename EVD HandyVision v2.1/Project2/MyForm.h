@@ -17,6 +17,22 @@ namespace ASDF {
 	public:
 		MyForm(void)
 		{
+
+			this->components = gcnew System::ComponentModel::Container();
+			this->Size = System::Drawing::Size(300, 300);
+			this->Text = L"MyForm";
+			this->Padding = System::Windows::Forms::Padding(0);
+			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
+
+
+			backgroundWorker = gcnew System::ComponentModel::BackgroundWorker;
+
+			backgroundWorker->DoWork += gcnew DoWorkEventHandler(this, &MyForm::DoWork);
+			backgroundWorker->RunWorkerCompleted += gcnew RunWorkerCompletedEventHandler(this, &MyForm::RunWorkerCompleted);
+			backgroundWorker->ProgressChanged += gcnew ProgressChangedEventHandler(this, &MyForm::ProgressChanged);
+
+			backgroundWorker->RunWorkerAsync();
+
 			InitializeComponent();
 			//
 			//TODO: Add the constructor code here
@@ -27,13 +43,7 @@ namespace ASDF {
 		/// <summary>
 		/// Clean up any resources being used.
 		/// </summary>
-		~MyForm()
-		{
-			if (components)
-			{
-				delete components;
-			}
-		}
+		~MyForm();
 
 		virtual void DoWork(Object^ sender, DoWorkEventArgs^ e);
 		void RunWorkerCompleted(Object^, RunWorkerCompletedEventArgs^ e);

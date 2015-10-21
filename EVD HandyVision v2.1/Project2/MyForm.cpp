@@ -29,22 +29,16 @@ void MyForm::ProgressChanged(Object^, ProgressChangedEventArgs^ e) {
 }
 
 void MyForm::InitializeComponent(void) {
-	this->components = gcnew System::ComponentModel::Container();
-	this->Size = System::Drawing::Size(300, 300);
-	this->Text = L"MyForm";
-	this->Padding = System::Windows::Forms::Padding(0);
-	this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 
-
-	backgroundWorker = gcnew System::ComponentModel::BackgroundWorker;
-
-	backgroundWorker->DoWork += gcnew DoWorkEventHandler(this, &MyForm::DoWork);
-	backgroundWorker->RunWorkerCompleted += gcnew RunWorkerCompletedEventHandler(this, &MyForm::RunWorkerCompleted);
-	backgroundWorker->ProgressChanged += gcnew ProgressChangedEventHandler(this, &MyForm::ProgressChanged);
-
-	backgroundWorker->RunWorkerAsync();
 }
 
+MyForm::~MyForm() {
+	if (components)
+	{
+		delete components;
+	}
+	delete backgroundWorker;
+}
 [STAThread]
 int main() {
 	Application::EnableVisualStyles();
@@ -178,7 +172,7 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	std::string gesture = deteremenGesture(GestureType::DutchCounting, fingersStretch);
 
 	//cv::line(srcBinair, palmLine.lineStart(), palmLine.lineEnd(), cv::Scalar(150));
-	//cv::line(srcBinair, wristLine.lineStart(), wristLine.lineEnd(), cv::Scalar(50));;
+	//cv::line(srcBinair, wristLine.lineStart(), wristLine.lineEnd(), cv::Scalar(50));
 	
 	Mat finalImage(srcBGR);
 	cv::putText(finalImage, gesture, cv::Point(0.05f*finalImage.cols, 0.95f*finalImage.rows), 2, 0.006f*finalImage.rows, cv::Scalar(100, 0, 0), 8);
