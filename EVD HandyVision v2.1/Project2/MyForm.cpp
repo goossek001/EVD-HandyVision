@@ -71,6 +71,11 @@ int main_photo() {
 	return asdf;
 }
 
+struct Asdf {
+	std::string gesture;
+	long long timestamp;
+};
+
 int main_video() {
 	cv::VideoCapture cap(0); // open the video camera no. 0
 
@@ -171,6 +176,7 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	areFingersStretched(fingers, fingersStretch, palmRadius);
 
 	std::string gesture = deteremenGesture(GestureType::DutchCounting, fingersStretch);
+	
 	//cv::putText(srcBinair, gesture, cv::Point(0.05f*srcBGR.cols, 0.95f*srcBGR.rows), 2, 0.01f*srcBGR.rows, cv::Scalar(100, 0, 0), 8);
 	cv::putText(srcBinair, gesture, cv::Point(0.05f*srcBGR.cols, 0.95f*srcBGR.rows), 2, 0.01f*srcBGR.rows, cv::Scalar(100, 0, 0), 8);
 

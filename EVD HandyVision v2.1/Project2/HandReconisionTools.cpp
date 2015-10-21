@@ -362,13 +362,13 @@ void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fi
 			cv::Line finger;
 			cv::Point2f vertices[4];
 			fingersIn[i].points(vertices);
-			for (int j = 0; j <= 4; ++j) {
+			for (int j = 0; j < 4; ++j) {
 				cv::Point v1 = vertices[j];
 				cv::Point v2 = vertices[(j + 1) % 4];
-				cv::Point point = (cv::Point)(v1 + v2) / 2;
-				float distance = math::length(point - wristCenter);
+				cv::Point center = (cv::Point)(v1 + v2) / 2;
+				float distance = math::length(center - wristCenter);
 				if (distance < closestDistance) {
-					finger.position= point;
+					finger.position = center;
 					finger.direction = cv::Point(v1.y - v2.y, v2.x - v1.x);
 					closestDistance = distance;
 				}
