@@ -12,6 +12,7 @@
 
 std::map<int, std::string> gestures[GestureType::COUNT];
 void initHashTable() {
+	//Numbers
 	bool fingers[5] = { false };
 	gestures[GestureType::DutchCounting][GenerateHashKey(fingers)] = "0";
 	fingers[1] = true;
@@ -33,6 +34,12 @@ void initHashTable() {
 	gestures[GestureType::DutchCounting][GenerateHashKey(fingers)] = "8";
 	fingers[3] = true;
 	gestures[GestureType::DutchCounting][GenerateHashKey(fingers)] = "9";
+
+	//Other signs
+	fingers[0] = true; fingers[1] = true; fingers[2] = false; fingers[3] = false; fingers[4] = true;
+	gestures[GestureType::DutchCounting][GenerateHashKey(fingers)] = "I Love You";
+	fingers[0] = false; fingers[1] = false; fingers[2] = true; fingers[3] = false; fingers[4] = false;
+	gestures[GestureType::DutchCounting][GenerateHashKey(fingers)] = "!@#$";
 }
 
 /**
@@ -197,7 +204,7 @@ void findWrist(const Mat& src, cv::Line& wristOut, bool& foundWrist, cv::Point p
 void createPalmMask(const Mat& src, Mat& dst, cv::Point palmCenter, float palmRadius) {
 	//Create a circle that will cover the palm
 	cv::Mat circleMask = cv::Mat::zeros(src.rows, src.cols, src.type());
-	circle(circleMask, palmCenter, 1.6f * palmRadius, cv::Scalar(255), -1, 8, 0);
+	circle(circleMask, palmCenter, 1.56f * palmRadius, cv::Scalar(255), -1, 8, 0);
 
 	//Create a palm mask, by preforming a binary and on the circlemask and the image of the hand
 	dst.create(src.size(), src.type());
