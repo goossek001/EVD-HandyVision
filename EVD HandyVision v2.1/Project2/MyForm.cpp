@@ -178,6 +178,7 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	cv::line(srcBinair, palmLine.lineStart(), palmLine.lineEnd(), cv::Scalar(150));
 	cv::line(srcBinair, wristLine.lineStart(), wristLine.lineEnd(), cv::Scalar(50));;
 	imshow(windowName, srcBinair);
+	displayFingers(srcBGR, fingers);
 
 	return 0;
 }

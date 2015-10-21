@@ -259,7 +259,8 @@ int getFindThumb(const std::vector<cv::RotatedRect>& boundingBoxesFingers, cv::P
 			direction.x * rotationMatrix[0][1] + direction.y * rotationMatrix[1][1]
 		);
 		float rotation = atan2(direction.y, direction.x) / PI * 180;
-		if (rotation>=0 == thumbDirection<=0 && rotation >= abs(40 * thumbDirection)) {
+
+		if ((rotation >= 0) != (thumbDirection >= 0) && std::abs(rotation) >= 40) {
 			return i;
 		}
 	}
@@ -290,9 +291,8 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, 
 	kernel.at<uchar>(cv::Point(1, 1)) = 0;
 	cv::morphologyEx(srcRotated, srcRotated, CV_MOP_CLOSE, kernel);
 
-	int height = temp.y - palmRadius;
-	int previousHoleCount = 0;
-	int maxHoles = isThumbVisible ? 2 : 1;
+	int height = temp.y - 0.5f*palmRadius;
+
 	//Look in horizontal lines to find the palm line, by counting the edges
 	while (height >= 0 && height < srcRotated.rows) {
 		std::vector<cv::Point> intersections = math::horizontalLineObjectIntersection(srcRotated, height);
@@ -308,11 +308,15 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, 
 				largestWidth = width;
 			}
 		}
-		if (holes >= maxHoles || largestWidth < 1.75f*palmRadius) {
-			if (holes >= maxHoles)
+		if (holes >= 1 || largestWidth < 1.75f*palmRadius) {
+			if (!isThumbVisible)
 				height++;
-			intersections.clear();
-			intersections = math::horizontalLineObjectIntersection(srcRotated, height);
+			else
+				height--;
+			std::vector<cv::Point> temp = math::horizontalLineObjectIntersection(srcRotated, height);
+			intersections.reserve(temp.size());
+			intersections.insert(intersections.end(), temp.begin(), temp.end());
+
 			if (intersections.size()) {
 				int index = -1;
 				int largestWidth = -1;
@@ -333,11 +337,8 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, 
 				foundPalm = true;
 			}
 			break;
-		} else if (previousHoleCount > holes){
-			maxHoles = 1;
-		}
+		} 
 		--height;
-		previousHoleCount = holes;
 	}
 }
 
@@ -374,7 +375,7 @@ void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fi
 			}
 
 			//Determen the finger label by its distance on the palmline
-			cv::Point intersect = math::lineLineIntersection(cv::Line(fingerPosition, -handOrientation), palmLine);
+			cv::Point intersect = math::lineLineIntersection(cv::Line(fingerPosition, palmLine.perpendicularDir()), palmLine);
 			int fingerIndex = 1 + math::length(intersect - palmLine.position) / palmWidth * 4;
 			if (fingerIndex < 5 && fingerIndex > 0)
 				fingersOut[fingerIndex] = &(fingersIn[i]);

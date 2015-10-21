@@ -16,4 +16,8 @@ namespace cv{
 	float Line::length() const {
 		return math::length(direction);
 	}
+
+	Point Line::perpendicularDir() const {
+		return cv::Point(direction.y, -direction.x);
+	}
 }

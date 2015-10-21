@@ -25,5 +25,7 @@ namespace cv {
 		Point lineStart() const;
 
 		float length() const;
+
+		Point perpendicularDir() const;
 	};
 }
