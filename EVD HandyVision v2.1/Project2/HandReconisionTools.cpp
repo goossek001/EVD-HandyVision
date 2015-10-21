@@ -355,11 +355,11 @@ void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fi
 	, cv::Line palmLine) {
 	float palmWidth = math::length(palmLine.direction);
 
-	Mat img = Mat::zeros(cv::Size(640, 480), CV_8UC3);
-	cv::line(img, palmLine.position + 0.00f*palmLine.direction, palmLine.position + 0.25f*palmLine.direction, cv::Scalar(255, 0, 0));
-	cv::line(img, palmLine.position + 0.25f*palmLine.direction, palmLine.position + 0.50f*palmLine.direction, cv::Scalar(0, 0, 255));
-	cv::line(img, palmLine.position + 0.50f*palmLine.direction, palmLine.position + 0.75f*palmLine.direction, cv::Scalar(0, 255, 0));
-	cv::line(img, palmLine.position + 0.75f*palmLine.direction, palmLine.position + 1.00f*palmLine.direction, cv::Scalar(255, 0, 0));
+	//Mat img = Mat::zeros(cv::Size(640, 480), CV_8UC3);
+	//cv::line(img, palmLine.position + 0.00f*palmLine.direction, palmLine.position + 0.25f*palmLine.direction, cv::Scalar(255, 0, 0));
+	//cv::line(img, palmLine.position + 0.25f*palmLine.direction, palmLine.position + 0.50f*palmLine.direction, cv::Scalar(0, 0, 255));
+	//cv::line(img, palmLine.position + 0.50f*palmLine.direction, palmLine.position + 0.75f*palmLine.direction, cv::Scalar(0, 255, 0));
+	//cv::line(img, palmLine.position + 0.75f*palmLine.direction, palmLine.position + 1.00f*palmLine.direction, cv::Scalar(255, 0, 0));
 
 	//Loop through all fingers in 'boundingBoxesFingers' and label them
 	for (int i = 0; i < fingersIn.size(); ++i) {
@@ -383,7 +383,7 @@ void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fi
 
 			//Determen the finger label by its distance on the palmline
 			cv::Point intersect = math::lineLineIntersection(cv::Line(finger.position, -finger.direction), palmLine);
-			cv::line(img, finger.position, finger.position - 2*finger.direction, cv::Scalar(255, 255, 255));
+			//cv::line(img, finger.position, finger.position - 2*finger.direction, cv::Scalar(255, 255, 255));
 			int index = 1 + math::length(intersect - palmLine.position) / palmWidth * 4;
 			if (index > 0 && index < 5) {
 				if (!fingersOut[index] || fingersOut[index]->size.area() <= fingersIn[i].size.area())
@@ -391,8 +391,7 @@ void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fi
 			}
 		}
 	}
-
-	imshow("fingers", img);
+	//imshow("fingers", img);
 }
 
 void areFingersStretched(cv::RotatedRect* fingers[5], bool(&out)[5], float palmRadius) {
