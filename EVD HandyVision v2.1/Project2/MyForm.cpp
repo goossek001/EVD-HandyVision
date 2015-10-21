@@ -147,9 +147,8 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 
 	// find the thumb
 	cv::RotatedRect* fingers[5];
-	for (int i = 0; i < 5; ++i) {
-		fingers[i] = 0;
-	}
+	std::fill(fingers, fingers + 5, (cv::RotatedRect*)0);
+
 	int thumbIndex = getFindThumb(boundingBoxesFingers, palmCenter, handAngle, thumbDirection);
 	if (thumbIndex >= 0)
 		fingers[0] = &boundingBoxesFingers[thumbIndex];
@@ -178,7 +177,6 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	cv::line(srcBinair, palmLine.lineStart(), palmLine.lineEnd(), cv::Scalar(150));
 	cv::line(srcBinair, wristLine.lineStart(), wristLine.lineEnd(), cv::Scalar(50));;
 	imshow(windowName, srcBinair);
-	displayFingers(srcBGR, fingers);
 
 	return 0;
 }
