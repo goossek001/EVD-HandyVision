@@ -449,7 +449,7 @@ void displayFingers(const Mat& img, cv::RotatedRect* fingers[5]) {
 std::string deteremenGesture(GestureType gestureType, bool fingers[5]) {
 	std::map<int, std::string>::iterator it = gestures->find(GenerateHashKey(fingers));
 	if (it == gestures->end())
-		return "???";
+		return "";
 	else
 		return it->second;
 }

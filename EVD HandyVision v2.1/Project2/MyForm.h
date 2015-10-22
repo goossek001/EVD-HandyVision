@@ -1,5 +1,10 @@
 #pragma once
 
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/opencv.hpp>
+#include <string>
+
 namespace ASDF {
 
 	using namespace System;
@@ -38,6 +43,19 @@ namespace ASDF {
 			//TODO: Add the constructor code here
 			//
 		}
+		int DetermenGesture(std::string windowName, cv::Mat& srcBGR);
+		int main_photo();
+		int main_video();
+		void SetText(String^ str) {
+			label1->Text = str;
+			this->label1->Font = (gcnew System::Drawing::Font(this->label1->Font->FontFamily, 20, this->label1->Font->Style, this->label1->Font->Unit,
+				this->label1->Font->GdiCharSet));
+		}
+		delegate void SetTextDelegate(String^ str);
+		void SetImage(Bitmap^ img) {
+			panel1->BackgroundImage = img;
+		}
+		delegate void SetImageDelegate(Bitmap^ img);
 
 	protected:
 		/// <summary>
@@ -51,7 +69,10 @@ namespace ASDF {
 
 	private:
 		BackgroundWorker^ backgroundWorker;
-		/// <summary>
+
+	private: System::Windows::Forms::Panel^  panel1;
+	private: System::Windows::Forms::Label^  label1;
+			 /// <summary>
 		/// Required designer variable.
 		/// </summary>
 		System::ComponentModel::Container ^components;
@@ -63,5 +84,13 @@ namespace ASDF {
 		/// </summary>
 		void InitializeComponent(void);
 #pragma endregion
+	private: System::Void MyForm_Load(System::Object^  sender, System::EventArgs^  e) {
+
+	}
+	private: System::Void panel1_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e) {
+					
+	}
+	private: System::Void label1_Click(System::Object^  sender, System::EventArgs^  e) {
+	}
 	};
 }

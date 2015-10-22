@@ -1,9 +1,5 @@
 #include "MyForm.h"
 
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/opencv.hpp>
-
 #include "OpenCVExtentions.h"
 #include "HandReconisionTools.h"
 #include "Math.h"
@@ -11,10 +7,6 @@
 using namespace System;
 using namespace System::Windows::Forms;
 using namespace ASDF;
-
-int DetermenGesture(std::string windowName, cv::Mat& srcBGR);
-int main_photo();
-int main_video();
 
 void MyForm::DoWork(Object^ sender, DoWorkEventArgs^ e) {
 	main_video();
@@ -29,6 +21,39 @@ void MyForm::ProgressChanged(Object^, ProgressChangedEventArgs^ e) {
 }
 
 void MyForm::InitializeComponent(void) {
+	this->panel1 = (gcnew System::Windows::Forms::Panel());
+	this->label1 = (gcnew System::Windows::Forms::Label());
+	this->SuspendLayout();
+	// 
+	// panel1
+	// 
+	this->panel1->Location = System::Drawing::Point(12, 12);
+	this->panel1->Name = L"panel1";
+	this->panel1->Size = System::Drawing::Size(623, 462);
+	this->panel1->TabIndex = 1;
+	this->panel1->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &MyForm::panel1_Paint);
+	// 
+	// label1
+	// 
+	this->label1->AutoSize = true;
+	this->label1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 20, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+		static_cast<System::Byte>(0)));
+	this->label1->Location = System::Drawing::Point(245, 489);
+	this->label1->Name = L"label1";
+	this->label1->Size = System::Drawing::Size(109, 39);
+	this->label1->TabIndex = 2;
+	this->label1->Text = L"label1";
+	this->label1->Click += gcnew System::EventHandler(this, &MyForm::label1_Click);
+	// 
+	// MyForm
+	// 
+	this->ClientSize = System::Drawing::Size(652, 533);
+	this->Controls->Add(this->label1);
+	this->Controls->Add(this->panel1);
+	this->Name = L"MyForm";
+	this->Load += gcnew System::EventHandler(this, &MyForm::MyForm_Load);
+	this->ResumeLayout(false);
+	this->PerformLayout();
 
 }
 
@@ -50,27 +75,22 @@ int main() {
 	return 0;
 }
 
-int main_photo() {
+int MyForm::main_photo() {
 	cv::Mat srcBGR;
 	// open image
 	srcBGR = cv::imread("img1.jpg");
 	if (!srcBGR.data)
 		return -1;
 
-	int asdf = DetermenGesture("MyVideo", srcBGR);
+	int r = DetermenGesture("MyVideo", srcBGR);
 
 	//Wait until a key is pressed to kill the program
 	cv::waitKey(0);
 
-	return asdf;
+	return r;
 }
 
-struct Asdf {
-	std::string gesture;
-	long long timestamp;
-};
-
-int main_video() {
+int MyForm::main_video() {
 	cv::VideoCapture cap(0); // open the video camera no. 0
 
 	if (!cap.isOpened()) 
@@ -101,7 +121,7 @@ int main_video() {
 	return 0;
 }
 
-int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
+int MyForm::DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	cv::Mat srcYUV, srcBinair, palmMask, fingerMask;
 
 	initHashTable();
@@ -142,7 +162,7 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	std::vector<cv::RotatedRect> boundingBoxesFingers = getBoundingBoxes(fingerMask);
 
 	//TODO: determen the direction of the thumb
-	ThumbDirection thumbDirection = Left;
+	ThumbDirection thumbDirection = ThumbDirection::Left;
 
 	// find the thumb
 	cv::RotatedRect* fingers[5];
@@ -158,7 +178,7 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	findPalmLine(srcBinair, palmLine, foundPalm, wristLine, palmRadius, handOrientation, thumbIndex >= 0);
 	if (!foundPalm)
 		return 1;
-	if (thumbDirection == Right) {
+	if (thumbDirection == ThumbDirection::Right) {
 		palmLine.position = palmLine.lineEnd();
 		palmLine.direction *= -1;
 	}
@@ -174,9 +194,31 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	//cv::line(srcBinair, palmLine.lineStart(), palmLine.lineEnd(), cv::Scalar(150));
 	//cv::line(srcBinair, wristLine.lineStart(), wristLine.lineEnd(), cv::Scalar(50));
 	
-	Mat finalImage(srcBGR);
-	cv::putText(finalImage, gesture, cv::Point(0.05f*finalImage.cols, 0.95f*finalImage.rows), 2, 0.006f*finalImage.rows, cv::Scalar(100, 0, 0), 8);
-	imshow(windowName, finalImage);
+	//Mat finalImage(srcBGR);
+	//if (gesture.size() > 0)
+	//	cv::putText(finalImage, gesture, cv::Point(0.05f*finalImage.cols, 0.95f*finalImage.rows), 2, 0.006f*finalImage.rows, cv::Scalar(100, 0, 0), 8);
+	//imshow(windowName, finalImage);
+
+	String^ str = gcnew System::String(gesture.c_str());
+	if (this->label1->InvokeRequired) {
+		SetTextDelegate^ d = gcnew SetTextDelegate(this, &MyForm::SetText);
+		this->Invoke(d, gcnew array<Object^> { str });
+	} else {
+		SetText(str);
+	}
+	
+	Bitmap^ img = gcnew System::Drawing::Bitmap(srcBGR.size().width,
+		srcBGR.size().height,
+		srcBGR.step,
+		Drawing::Imaging::PixelFormat::Format24bppRgb,
+		(IntPtr)srcBGR.data
+	);
+	if (this->panel1->InvokeRequired) {
+		SetImageDelegate^ d = gcnew SetImageDelegate(this, &MyForm::SetImage);
+		this->Invoke(d, gcnew array<Object^> { img });
+	} else {
+		SetImage(img);
+	}
 
 	return 0;
 }
