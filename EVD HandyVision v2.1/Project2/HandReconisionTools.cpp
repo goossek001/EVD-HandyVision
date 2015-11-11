@@ -42,14 +42,115 @@ void initHashTable() {
 	gestures[GestureType::DutchCounting][GenerateHashKey(fingers)] = "!@#$";
 }
 
-/**
-	A filter create a binair image that has seperated skin and background
-	@param src:		A YCbCr image
-	@param dst:		Output as a 8 bit binair image. Skin will have value 1 and non-skin value 0
-*/
-void YCbCrSkinColorFilter(const Mat& src, Mat& dst) {
-	cv::YCbCrThreshold(src, dst, 0, 255, 0, 127, 133, 255);
-} 
+float length(cv::Point p) {
+	return abs(p.x) + abs(p.y);
+}
+
+void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst) {
+
+	cv::Point H = cv::Point(0.9 * 255, 0.2 * 255);
+	cv::Point S = cv::Point(0.15 * 255, 0.75 * 255);
+	cv::Point V = cv::Point(0.35 * 255, 0.95 * 255);
+
+	Mat temp;
+	cv::HSVThreshold(src, temp, H.x, H.y, S.x, S.y, V.x, V.y);
+	imshow("org", temp);
+	cv::waitKey(0);
+
+	float sranges[] = { 60, 160 };
+	float vranges[] = { 100, 200 };
+	cv::Point center = cv::Point(sranges[0] + (sranges[1] - sranges[0]) / 2,
+		vranges[0] + (vranges[1] - vranges[0]) / 2);
+
+	cv::MatND hist;
+	double maxVal;
+	cv::Point maxLoc;
+	for (int i = 0; i < 10; ++i) {
+
+		const float* ranges[] = { sranges, vranges };
+		int sbins = sranges[1] - sranges[0];
+		int vbins = vranges[1] - vranges[0];
+		int histSize[] = { sbins, vbins };
+		int channels[] = { 1, 2 };
+
+		calcHist(&src, 1, channels, Mat(), // do not use mask
+			hist, 2, histSize, ranges,
+			true, // the histogram is uniform
+			false);
+		minMaxLoc(hist, 0, &maxVal, 0, &maxLoc);
+
+
+		Mat temp;
+		cv::HSVThreshold(src, temp, H.x, H.y, sranges[0], sranges[1], vranges[0], vranges[1]);
+		imshow("img", temp);
+		imshow("hist", hist);
+		cv::waitKey(0);
+
+		cv::Point2d avarage;
+		int count = 0;
+		for (int i = 0; i < hist.rows; ++i) {
+			for (int j = 0; j < hist.cols; ++j) {
+				if (hist.at<float>(i, j) >= maxVal * 0.1) {
+					avarage = (avarage * count + cv::Point2d(i, j)*hist.at<float>(i, j)) / (hist.at<float>(i, j) + count);
+					count += hist.at<float>(i, j);
+				}
+			}
+		}
+		avarage.x += sranges[0];
+		avarage.y += vranges[0];
+
+		sranges[0] = avarage.x - 50;
+		sranges[1] = avarage.x + 50;
+		vranges[0] = avarage.y - 50;
+		vranges[1] = avarage.y + 50;
+
+
+		int size = 100;
+
+		if (sranges[0] < S.x) {
+			sranges[0] = S.x;
+			sranges[1] = S.x + size;
+		}
+		if (sranges[1] > S.y) {
+			sranges[1] = S.y;
+			sranges[0] = S.y - size;
+		}
+		if (vranges[0] < V.x) {
+			vranges[0] = V.x;
+			vranges[1] = V.x + size;
+		}
+		if (vranges[1] > V.y) {
+			vranges[1] = V.y;
+			vranges[0] = V.y - size;
+		}
+
+
+		cv::Point prev = center;
+		center.x = sranges[1] - sranges[0];
+		center.y = vranges[1] - vranges[0];
+
+		if (length(center - prev) < 1)
+			break;
+	}
+
+	int sRanges[2] = { 256, 0 };
+	int vRanges[2] = { 256, 0 };
+
+	for (int i = 0; i < hist.rows; ++i) {
+		for (int j = 0; j < hist.cols; ++j) {
+			if (sRanges[0] > j + sranges[0]) 
+				sRanges[0] = j + sranges[0];
+			if (sRanges[1] < j + sranges[0])
+				sRanges[1] = j + sranges[0];
+			if (vRanges[0] > i + vranges[0])
+				vRanges[0] = i + vranges[0];
+			if (vRanges[1] < i + vranges[0])
+				vRanges[1] = i + vranges[0];
+		}
+	}
+
+	cv::HSVThreshold(src, dst, H.x, H.y, sRanges[0], sRanges[1], vRanges[0], vRanges[1]);
+}
 
 void CannyHandFilter(const Mat& src, Mat& dst) {
 	Mat channels[3];

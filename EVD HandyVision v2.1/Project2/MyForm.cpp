@@ -9,7 +9,7 @@ using namespace System::Windows::Forms;
 using namespace ASDF;
 
 void MyForm::DoWork(Object^ sender, DoWorkEventArgs^ e) {
-	main_video();
+	main_photo();
 }
 
 void MyForm::RunWorkerCompleted(Object^, RunWorkerCompletedEventArgs^ e) {
@@ -78,14 +78,14 @@ int main() {
 int MyForm::main_photo() {
 	cv::Mat srcBGR;
 	// open image
-	srcBGR = cv::imread("img1.jpg");
+	srcBGR = cv::imread("img15.jpg");
 	if (!srcBGR.data)
 		return -1;
 
 	int r = DetermenGesture("MyVideo", srcBGR);
 
 	//Wait until a key is pressed to kill the program
-	cv::waitKey(0);
+	//cv::waitKey(0);
 
 	return r;
 }
@@ -96,13 +96,7 @@ int MyForm::main_video() {
 	if (!cap.isOpened()) 
 		throw "Cannot open the video cam";
 
-	double dWidth = cap.get(CV_CAP_PROP_FRAME_WIDTH); //get the width of frames of the video
-	double dHeight = cap.get(CV_CAP_PROP_FRAME_HEIGHT); //get the height of frames of the video
-
 	cv::namedWindow("MyVideo", CV_WINDOW_AUTOSIZE); //create a window called "MyVideo"
-
-	if (!cap.isOpened())  // if not success, exit program
-		throw "Cannot open the video cam";
 
 	while (1) {
 		cv::Mat frame;
@@ -122,16 +116,19 @@ int MyForm::main_video() {
 }
 
 int MyForm::DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
-	cv::Mat srcYUV, srcBinair, palmMask, fingerMask;
+	cv::Mat srcHSV, srcBinair, palmMask, fingerMask;
 
 	initHashTable();
 
-	cv::cvtColor(srcBGR, srcYUV, CV_RGB2YCrCb);
-	// Skin color filter
-	//YCbCrSkinColorFilter(srcYUV, srcBinair);
-	CannyHandFilter(srcYUV, srcBinair);
+	cv::cvtColor(srcBGR, srcHSV, CV_BGR2HSV);
 
-	cv::getContour(srcBinair, srcBinair);
+	// Skin color filter
+	adaptiveHSVSkinColorFilter(srcHSV, srcBinair);
+
+	imshow("org", srcBGR);
+	imshow("skin", srcBinair);
+	cv::waitKey(0);
+
 	cv::fillHoles(srcBinair, srcBinair);
 
 	// find palm
@@ -211,7 +208,7 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 		srcBGR.size().height,
 		srcBGR.step,
 		Drawing::Imaging::PixelFormat::Format24bppRgb,
-		(IntPtr)srcBGR.data
+		/*(IntPtr)srcBGR.data*/ (IntPtr)srcBinair.data
 	);
 	if (this->panel1->InvokeRequired) {
 		SetImageDelegate^ d = gcnew SetImageDelegate(this, &MyForm::SetImage);

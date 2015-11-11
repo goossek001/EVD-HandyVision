@@ -1,0 +1,8 @@
+Opencv code vervangen
+Port
+Enhancement & segmentatie
+Bepalen of een blob een hand of geen hand is
+Bepalen aan welke zijde de duim zal zitten
+Nauwkeuriger palmlijn schatten, wanneer pink is ingetrokken
+Nauwkeuriger palmlijn schatten, wanneer duim tegen de hand aan ligt
+Vingers die tegen elkaar aan liggen scheiden

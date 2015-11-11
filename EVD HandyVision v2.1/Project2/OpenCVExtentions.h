@@ -11,10 +11,10 @@
 
 namespace cv {
 	void threshold(const Mat& src, const Mat& dst, double lowerbound, double upperbound);
-	void YCbCrThreshold(const Mat& src, Mat& dst,
-		double Y_min, double Y_max,
-		double Cb_min, double Cb_max,
-		double Cr_min, double Cr_max);
+	void HSVThreshold(const Mat& src, Mat& dst,
+		double H_min, double H_max,
+		double S_min, double S_max,
+		double V_min, double V_max);
 	Point getCenterOfMass(const Mat& src);
 	void detectAndDrawContour(const Mat& src, Mat& dst, int mode, int method, int lineWidth = 1, int minAreaThreshold = 16);
 	void fillHoles(const Mat& src, Mat& dst);

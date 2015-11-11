@@ -16,21 +16,28 @@ namespace cv {
 		@param dst: output as a 8 bit binair image
 		*/
 	void threshold(const Mat& src, const Mat& dst, double lowerbound, double upperbound) {
-		inRange(src, lowerbound, upperbound, dst);
+		if (lowerbound <= upperbound)
+			inRange(src, lowerbound, upperbound, dst);
+		else {
+			Mat img1, img2;
+			inRange(src, lowerbound, 256, img1);
+			inRange(src, 0, upperbound, img2);
+			cv::bitwise_or(img1, img2, dst);
+		}
 	}
 
-	void YCbCrThreshold(const Mat& src, Mat& dst,
-		double Y_min, double Y_max,
-		double Cb_min, double Cb_max,
-		double Cr_min, double Cr_max) {
+	void HSVThreshold(const Mat& src, Mat& dst,
+		double H_min, double H_max,
+		double S_min, double S_max,
+		double V_min, double V_max) {
 		//Split into channels
 		Mat channels[3];
 		split(src, channels);
 
 		//Apply thresholds
-		threshold(channels[0], channels[0], Y_min, Y_max);
-		threshold(channels[1], channels[1], Cb_min, Cb_max);
-		threshold(channels[2], channels[2], Cr_min, Cr_max);
+		threshold(channels[0], channels[0], H_min, H_max);
+		threshold(channels[1], channels[1], S_min, S_max);
+		threshold(channels[2], channels[2], V_min, V_max);
 
 		//Combine threshold images
 		cv::bitwise_and(channels[0], channels[1], dst, channels[2]);

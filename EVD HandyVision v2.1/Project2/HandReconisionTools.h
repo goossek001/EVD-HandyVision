@@ -25,7 +25,7 @@ enum GestureType {
 void initHashTable();
 int GenerateHashKey(bool fingers[5]);
 
-void YCbCrSkinColorFilter(const Mat& src, Mat& dst);
+void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst);
 void CannyHandFilter(const Mat& src, Mat& dst);
 void getPalmCenter(const Mat& src, cv::Point& palmCenter, float& palmRadius);
 void createPalmMask(const Mat& src, Mat& dst, cv::Point palmCenter, float palmRadius);
