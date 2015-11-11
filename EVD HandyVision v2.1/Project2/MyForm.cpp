@@ -78,7 +78,7 @@ int main() {
 int MyForm::main_photo() {
 	cv::Mat srcBGR;
 	// open image
-	srcBGR = cv::imread("img15.jpg");
+	srcBGR = cv::imread("img2.jpg");
 	if (!srcBGR.data)
 		return -1;
 

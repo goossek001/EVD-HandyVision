@@ -52,15 +52,13 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst) {
 	cv::Point S = cv::Point(0.15 * 255, 0.75 * 255);
 	cv::Point V = cv::Point(0.35 * 255, 0.95 * 255);
 
-	Mat temp;
-	cv::HSVThreshold(src, temp, H.x, H.y, S.x, S.y, V.x, V.y);
-	imshow("org", temp);
-	cv::waitKey(0);
+	int size = 100;
+	int extend = size / 2;
+	cv::Point center = cv::Point(S.x + (S.y - S.x) / 2,
+		V.x + (V.y - V.x) / 2);
 
-	float sranges[] = { 60, 160 };
-	float vranges[] = { 100, 200 };
-	cv::Point center = cv::Point(sranges[0] + (sranges[1] - sranges[0]) / 2,
-		vranges[0] + (vranges[1] - vranges[0]) / 2);
+	float sranges[] = { center.x - extend, center.x + extend };
+	float vranges[] = { center.y - extend, center.y + extend };
 
 	cv::MatND hist;
 	double maxVal;
@@ -68,23 +66,13 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst) {
 	for (int i = 0; i < 10; ++i) {
 
 		const float* ranges[] = { sranges, vranges };
-		int sbins = sranges[1] - sranges[0];
-		int vbins = vranges[1] - vranges[0];
-		int histSize[] = { sbins, vbins };
+		int histSize[] = { size, size };
 		int channels[] = { 1, 2 };
-
 		calcHist(&src, 1, channels, Mat(), // do not use mask
 			hist, 2, histSize, ranges,
 			true, // the histogram is uniform
 			false);
 		minMaxLoc(hist, 0, &maxVal, 0, &maxLoc);
-
-
-		Mat temp;
-		cv::HSVThreshold(src, temp, H.x, H.y, sranges[0], sranges[1], vranges[0], vranges[1]);
-		imshow("img", temp);
-		imshow("hist", hist);
-		cv::waitKey(0);
 
 		cv::Point2d avarage;
 		int count = 0;
@@ -99,13 +87,10 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst) {
 		avarage.x += sranges[0];
 		avarage.y += vranges[0];
 
-		sranges[0] = avarage.x - 50;
-		sranges[1] = avarage.x + 50;
-		vranges[0] = avarage.y - 50;
-		vranges[1] = avarage.y + 50;
-
-
-		int size = 100;
+		sranges[0] = avarage.x - extend;
+		sranges[1] = avarage.x + extend;
+		vranges[0] = avarage.y - extend;
+		vranges[1] = avarage.y + extend;
 
 		if (sranges[0] < S.x) {
 			sranges[0] = S.x;
