@@ -78,7 +78,7 @@ int main() {
 int MyForm::main_photo() {
 	cv::Mat srcBGR;
 	// open image
-	srcBGR = cv::imread("img2.jpg");
+	srcBGR = cv::imread("img15.jpg");
 	if (!srcBGR.data)
 		return -1;
 
@@ -125,11 +125,13 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	// Skin color filter
 	adaptiveHSVSkinColorFilter(srcHSV, srcBinair);
 
+	Mat kernel = Mat::ones(cv::Point(5, 5), CV_8UC1);
+	cv::morphologyEx(srcBinair, srcBinair, CV_MOP_CLOSE, kernel);
+	cv::fillHoles(srcBinair, srcBinair);
+
 	imshow("org", srcBGR);
 	imshow("skin", srcBinair);
 	cv::waitKey(0);
-
-	cv::fillHoles(srcBinair, srcBinair);
 
 	// find palm
 	cv::Point palmCenter;

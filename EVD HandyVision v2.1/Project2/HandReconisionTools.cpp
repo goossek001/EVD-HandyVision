@@ -46,13 +46,32 @@ float length(cv::Point p) {
 	return abs(p.x) + abs(p.y);
 }
 
+
+void biggestColorBlob(const Mat& src, Mat& dst, const Mat& mask) {
+	float fullRange[2] = { 0, 255 };
+	const float* ranges[] = { fullRange, fullRange, fullRange };
+	int histSize[] = { 255, 255, 255 };
+	int channels[] = { 0, 1, 2 };
+	cv::MatND hist;
+	calcHist(&src, 1, channels, Mat(), // do not use mask
+		hist, 3, histSize, ranges,
+		true, // the histogram is uniform
+	false);
+
+	//TODO: Label blobs
+	//TODO: Caclulate distance between blobs (center to center)
+	//TODO: Merge blobs until two blobs are remaining, giving closer blobs prioritiy
+	//TODO: Determen wich blob is skin color, by analyising the blobs and determen wich shape is more likely to be a hand or a head
+	
+}
+
 void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst) {
 
 	cv::Point H = cv::Point(0.9 * 255, 0.2 * 255);
-	cv::Point S = cv::Point(0.15 * 255, 0.75 * 255);
-	cv::Point V = cv::Point(0.35 * 255, 0.95 * 255);
+	cv::Point S = cv::Point(0.05 * 255, 255);
+	cv::Point V = cv::Point(0.05 * 255, 0.95 * 255);
 
-	int size = 100;
+	int size = 128;
 	int extend = size / 2;
 	cv::Point center = cv::Point(S.x + (S.y - S.x) / 2,
 		V.x + (V.y - V.x) / 2);
@@ -135,6 +154,8 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst) {
 	}
 
 	cv::HSVThreshold(src, dst, H.x, H.y, sRanges[0], sRanges[1], vRanges[0], vRanges[1]);
+
+	//biggestColorBlob(src, dst, dst);
 }
 
 void CannyHandFilter(const Mat& src, Mat& dst) {
