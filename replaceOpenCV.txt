@@ -1,0 +1,25 @@
+Mat
+create(size, type, color)
+bitwise_and
+BitwiseXOr
+bitwise_or
+inRange (threshold)
+findContours
+drawFilledContours
+fillHoles
+Copy
+GetContourArea
+GetMinRotatedRect(contour)
+GetRotationMatrix2D
+wrapAffine
+fillConvexPoly
+line
+Point
+Point2f
+CalcHist
+minMaxLoc
+morpologyEx (Dilate, Erode, Open, Close)
+GausianBlur
+DistanceTransform
+CreateCircle
+BGRtoHSV
