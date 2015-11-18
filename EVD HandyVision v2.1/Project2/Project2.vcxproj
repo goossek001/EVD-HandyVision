@@ -140,6 +140,7 @@
     <ClCompile Include="Math.cpp" />
     <ClCompile Include="MyForm.cpp" />
     <ClCompile Include="OpenCVExtentions.cpp" />
+    <ClCompile Include="VisionOperators.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HandReconisionTools.h" />
@@ -149,6 +150,7 @@
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="OpenCVExtentions.h" />
+    <ClInclude Include="VisionOperators.h" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="MyForm.resx">
