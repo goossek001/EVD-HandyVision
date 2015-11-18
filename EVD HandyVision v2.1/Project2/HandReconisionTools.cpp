@@ -48,6 +48,7 @@ float length(cv::Point p) {
 
 
 void biggestColorBlob(const Mat& src, Mat& dst, const Mat& mask) {
+	//Create histogram
 	float fullRange[2] = { 0, 255 };
 	const float* ranges[] = { fullRange, fullRange, fullRange };
 	int histSize[] = { 255, 255, 255 };
@@ -58,6 +59,8 @@ void biggestColorBlob(const Mat& src, Mat& dst, const Mat& mask) {
 		true, // the histogram is uniform
 	false);
 
+	//Label blobs
+
 	//TODO: Label blobs
 	//TODO: Caclulate distance between blobs (center to center)
 	//TODO: Merge blobs until two blobs are remaining, giving closer blobs prioritiy
@@ -66,10 +69,9 @@ void biggestColorBlob(const Mat& src, Mat& dst, const Mat& mask) {
 }
 
 void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst) {
-
 	cv::Point H = cv::Point(0.9 * 255, 0.2 * 255);
-	cv::Point S = cv::Point(0.05 * 255, 255);
-	cv::Point V = cv::Point(0.05 * 255, 0.95 * 255);
+	cv::Point S = cv::Point(0.35 * 255, 0.95*255);
+	cv::Point V = cv::Point(0.15 * 255, 0.75 * 255);
 
 	int size = 128;
 	int extend = size / 2;
@@ -156,6 +158,11 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst) {
 	cv::HSVThreshold(src, dst, H.x, H.y, sRanges[0], sRanges[1], vRanges[0], vRanges[1]);
 
 	//biggestColorBlob(src, dst, dst);
+
+	Mat temp;
+	cv::HSVThreshold(src, temp, H.x, H.y, S.x, S.y, V.x, V.y);
+	cv::imshow("fullRange", temp);
+	cv::imshow("binair", dst);
 }
 
 void CannyHandFilter(const Mat& src, Mat& dst) {

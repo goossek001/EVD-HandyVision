@@ -9,7 +9,7 @@ using namespace System::Windows::Forms;
 using namespace ASDF;
 
 void MyForm::DoWork(Object^ sender, DoWorkEventArgs^ e) {
-	main_photo();
+	main_video();
 }
 
 void MyForm::RunWorkerCompleted(Object^, RunWorkerCompletedEventArgs^ e) {
@@ -78,7 +78,7 @@ int main() {
 int MyForm::main_photo() {
 	cv::Mat srcBGR;
 	// open image
-	srcBGR = cv::imread("img15.jpg");
+	srcBGR = cv::imread("img11.jpg");
 	if (!srcBGR.data)
 		return -1;
 
@@ -119,19 +119,15 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	cv::Mat srcHSV, srcBinair, palmMask, fingerMask;
 
 	initHashTable();
-
 	cv::cvtColor(srcBGR, srcHSV, CV_BGR2HSV);
 
 	// Skin color filter
+	cv::GaussianBlur(srcHSV, srcHSV, cv::Size(7, 7), 0, 0);
 	adaptiveHSVSkinColorFilter(srcHSV, srcBinair);
 
 	Mat kernel = Mat::ones(cv::Point(5, 5), CV_8UC1);
 	cv::morphologyEx(srcBinair, srcBinair, CV_MOP_CLOSE, kernel);
 	cv::fillHoles(srcBinair, srcBinair);
-
-	imshow("org", srcBGR);
-	imshow("skin", srcBinair);
-	cv::waitKey(0);
 
 	// find palm
 	cv::Point palmCenter;
@@ -210,7 +206,7 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 		srcBGR.size().height,
 		srcBGR.step,
 		Drawing::Imaging::PixelFormat::Format24bppRgb,
-		/*(IntPtr)srcBGR.data*/ (IntPtr)srcBinair.data
+		(IntPtr)srcBGR.data
 	);
 	if (this->panel1->InvokeRequired) {
 		SetImageDelegate^ d = gcnew SetImageDelegate(this, &MyForm::SetImage);
