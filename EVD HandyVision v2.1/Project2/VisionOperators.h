@@ -42,3 +42,15 @@ public:
 };
 
 void bitwise_and(Mat& src1, Mat& src2, Mat& dst);
+void bitwise_or(const Mat& src1, const Mat& src2, Mat& dst);
+void bitwise_xor(const Mat& src1, const Mat& src2, Mat& dst);
+
+enum Mor
+{
+	ERODE = 0,
+	DILATE = 1,
+	OPEN = 2,
+	CLOSE = 3
+};
+
+void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, Mat& kernel);
