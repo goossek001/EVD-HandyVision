@@ -71,3 +71,18 @@ void Mat::set(int i, int j, Color color) {
 void Mat::set(Point index, Color color) {
 	set(index.y, index.x, color);
 }
+
+void bitwise_and(Mat& src1, Mat& src2, Mat& dst) {
+	unsigned char* pA = src1.data;
+	unsigned char* pB = src2.data;
+	unsigned char* pDst = dst.data;
+
+	dst.cols = src1.cols;
+	dst.rows = src1.rows;
+	dst.type = src1.type;
+
+	int i = src1.rows * src1.cols * bytesPerPixel(src1.type) + 1;
+	while (--i) {
+		*pDst++ = *pA++ & *pB++;
+	}
+}

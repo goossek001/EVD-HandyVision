@@ -40,3 +40,5 @@ public:
 	void set(int i, int j, Color color);
 	void set(Point index, Color color);
 };
+
+void bitwise_and(Mat& src1, Mat& src2, Mat& dst);
