@@ -40,3 +40,7 @@ public:
 	void set(int i, int j, Color color);
 	void set(Point index, Color color);
 };
+
+void bitwise_and(const Mat& src1, const Mat& src2, const Mat& dst);
+void bitwise_or(const Mat& src1, const Mat& src2, const Mat& dst);
+void bitwise_xor(const Mat& src1, const Mat& src2, const Mat& dst);

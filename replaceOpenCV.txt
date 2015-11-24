@@ -1,15 +1,10 @@
-Mat
-create(size, type, color)
 bitwise_and
 BitwiseXOr
 bitwise_or
+create(size, type, color)
+
 inRange (threshold)
-findContours
-drawFilledContours
-fillHoles
 Copy
-GetContourArea
-GetMinRotatedRect(contour)
 GetRotationMatrix2D
 wrapAffine
 fillConvexPoly
@@ -23,3 +18,8 @@ GausianBlur
 DistanceTransform
 CreateCircle
 BGRtoHSV
+-GetContourArea
+-GetMinRotatedRect(contour)
+-findContours
+-drawFilledContours
+-fillHoles

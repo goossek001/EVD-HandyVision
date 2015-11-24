@@ -71,3 +71,24 @@ void Mat::set(int i, int j, Color color) {
 void Mat::set(Point index, Color color) {
 	set(index.y, index.x, color);
 }
+
+void bitwise_and(const Mat& src1, const Mat& src2, const Mat& dst) {
+
+	for (int i = 0; i < src1.rows; i++){
+		for (int j = 0; j < src1.cols; i++){
+			dst[i][j] = src1 & 1 << src2;
+		}
+	}
+
+	return;
+}
+
+
+void bitwise_or(const Mat& src1, const Mat& src2, const Mat& dst){
+	//	|
+	return;
+}
+void bitwise_xor(const Mat& src1, const Mat& src2, const Mat& dst){
+	//	^
+	return;
+	}
