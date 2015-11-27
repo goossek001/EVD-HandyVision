@@ -8,45 +8,33 @@
 #include "OpenCVExtentions.h"
 #include "Math.h"
 #include <limits>
+#include "VisionOperators.h"
 
 namespace cv {
-	/**
-		Apply a threshold with a lower- and upperbound
-		@param src: a 1 channel 8 bit image
-		@param dst: output as a 8 bit binair image
-		*/
-	void threshold(const Mat& src, const Mat& dst, double lowerbound, double upperbound) {
-		if (lowerbound <= upperbound)
-			inRange(src, lowerbound, upperbound, dst);
-		else {
-			Mat img1, img2;
-			inRange(src, lowerbound, 256, img1);
-			inRange(src, 0, upperbound, img2);
-			cv::bitwise_or(img1, img2, dst);
-		}
-	}
-
 	void HSVThreshold(const Mat& src, Mat& dst,
 		double H_min, double H_max,
 		double S_min, double S_max,
 		double V_min, double V_max) {
 		//Split into channels
-		Mat channels[3];
-		split(src, channels);
+		vision::Mat channels[3];
+		vision::split(src, channels);
 
 		//Apply thresholds
-		threshold(channels[0], channels[0], H_min, H_max);
-		threshold(channels[1], channels[1], S_min, S_max);
-		threshold(channels[2], channels[2], V_min, V_max);
+		vision::threshold(channels[0], channels[0], H_min, H_max);
+		vision::threshold(channels[1], channels[1], S_min, S_max);
+		vision::threshold(channels[2], channels[2], V_min, V_max);
 
 		//Combine threshold images
-		cv::bitwise_and(channels[0], channels[1], dst, channels[2]);
+		vision::Mat temp;
+		vision::bitwise_and(channels[0], channels[1], temp);
+		vision::bitwise_and(temp, channels[2], temp);
+		dst = temp;
 	}
 
 	/**
-		Detect and the contour of objects
-		@param src: a 8 bit binair image
-		@param dst: output as a 8 bit binair image 
+	Detect and the contour of objects
+	@param src: a 8 bit binair image
+	@param dst: output as a 8 bit binair image
 	*/
 	void detectAndDrawContour(const Mat& src, Mat& dst, int mode, int method, int lineWidth, int minAreaThreshold) {
 		Mat srcCopy;
@@ -61,22 +49,22 @@ namespace cv {
 		dst.create(src.size(), CV_8UC1);
 		dst.setTo(cv::Scalar(0));
 		for (size_t i = 0; i<contours.size(); ++i)
-			if (contourArea(contours[i]) >= minAreaThreshold)
-				drawContours(dst, contours, i, cv::Scalar(255), lineWidth);
+		if (contourArea(contours[i]) >= minAreaThreshold)
+			drawContours(dst, contours, i, cv::Scalar(255), lineWidth);
 	}
 
 	/**
-		Fill the holes inside the blobs
-		@param src: a 8 bit binair image
-		@param dst: output as a 8 bit binair image without holes
+	Fill the holes inside the blobs
+	@param src: a 8 bit binair image
+	@param dst: output as a 8 bit binair image without holes
 	*/
 	void fillHoles(const Mat& src, Mat& dst) {
 		detectAndDrawContour(src, dst, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, -1);
 	}
 
 	/**
-		Find a rotated bounding boxes for each blob
-		@param src: a 8 bit binair image
+	Find a rotated bounding boxes for each blob
+	@param src: a 8 bit binair image
 	*/
 	std::vector<cv::RotatedRect> getBoundingBoxes(const Mat& src) {
 		int minAreaThreshold = 16;
@@ -89,17 +77,17 @@ namespace cv {
 		std::vector<cv::RotatedRect> boundingBoxes;
 		cv::findContours(srcCopy, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 		for (int i = 0; i < contours.size(); ++i)
-			if (contourArea(contours[i]) >= minAreaThreshold)
-				boundingBoxes.push_back(cv::minAreaRect(contours[i]));
+		if (contourArea(contours[i]) >= minAreaThreshold)
+			boundingBoxes.push_back(cv::minAreaRect(contours[i]));
 
 		return boundingBoxes;
 	}
 
 	/**
-		Rotate a image around its center 
-		@param src:			A image with no type restrictions
-		@param dst			The output channel for the rotated image. This image will have the same type and parent as the param 'src'
-		@param angle:		The rotation of the image in radians
+	Rotate a image around its center
+	@param src:			A image with no type restrictions
+	@param dst			The output channel for the rotated image. This image will have the same type and parent as the param 'src'
+	@param angle:		The rotation of the image in radians
 	*/
 	void rotateImage(const cv::Mat& src, cv::Mat& dst, float angle) {
 		int len = std::max(src.cols, src.rows);
@@ -110,10 +98,10 @@ namespace cv {
 	}
 
 	/**
-		Only keep the pixels of a image that lay inside a bounding rect
-		@param src:			A image with no type restrictions
-		@param dst			The src image after applying the mask
-		@param boundingRect: The shape of the mask
+	Only keep the pixels of a image that lay inside a bounding rect
+	@param src:			A image with no type restrictions
+	@param dst			The src image after applying the mask
+	@param boundingRect: The shape of the mask
 	*/
 	void applyRectangleMask(const cv::Mat& src, cv::Mat& dst, RotatedRect boundingRect) {
 		Mat rectMask = Mat::zeros(src.size(), CV_8UC1);
@@ -135,7 +123,7 @@ namespace cv {
 	@param dst			The binairy src image after applying the mask and give only the biggest contour.
 	*/
 	void getContour(cv::Mat& src, cv::Mat& dst){
-		
+
 		int largest_area = 0;
 		int largest_contour_index = 0;
 
