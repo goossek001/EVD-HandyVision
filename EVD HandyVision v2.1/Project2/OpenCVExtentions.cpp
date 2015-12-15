@@ -11,24 +11,32 @@
 #include "VisionOperators.h"
 
 namespace cv {
+	void threshold(const Mat& src, Mat& dst, int lowerbound, int upperbound) {
+			if (lowerbound <= upperbound) {
+				inRange(src, lowerbound, upperbound, dst);
+			}
+			else {
+				inRange(src, 0, lowerbound, dst);
+				inRange(dst, upperbound, 255, dst);
+			}
+	}
+
 	void HSVThreshold(const Mat& src, Mat& dst,
 		double H_min, double H_max,
 		double S_min, double S_max,
 		double V_min, double V_max) {
 		//Split into channels
-		vision::Mat channels[3];
-		vision::split(src, channels);
+		cv::Mat channels[3];
+		cv::split(src, channels);
 
 		//Apply thresholds
-		vision::threshold(channels[0], channels[0], H_min, H_max);
-		vision::threshold(channels[1], channels[1], S_min, S_max);
-		vision::threshold(channels[2], channels[2], V_min, V_max);
+		cv::threshold(channels[0], channels[0], H_min, H_max);
+		cv::threshold(channels[1], channels[1], S_min, S_max);
+		cv::threshold(channels[2], channels[2], V_min, V_max);
 
 		//Combine threshold images
-		vision::Mat temp;
-		vision::bitwise_and(channels[0], channels[1], temp);
-		vision::bitwise_and(temp, channels[2], temp);
-		dst = temp;
+		cv::bitwise_and(channels[0], channels[1], dst);
+		cv::bitwise_and(dst, channels[2], dst);
 	}
 
 	/**

@@ -2,9 +2,9 @@ bitwise_and
 BitwiseXOr
 bitwise_or
 create(size, type, color)
-
 inRange (threshold)
 Copy
+
 GetRotationMatrix2D
 wrapAffine
 fillConvexPoly

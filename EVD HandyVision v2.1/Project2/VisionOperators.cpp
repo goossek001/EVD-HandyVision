@@ -2,17 +2,21 @@
 #include <algorithm>
 
 namespace vision {
+	#define PI 3.14159265359f
+
 	Point::Point(int x, int y) {
 		this->x = x;
 		this->y = y;
 	}
 
-	Color::Color(int R, int G, int B, int A) {
-		mR = R;
-		mG = G;
-		mB = B;
-		mA = A;
+	Color::Color(float R, float G, float B, float A) {
+		this->R = R;
+		this->G = G;
+		this->B = B;
+		this->A = A;
 	}
+
+	Color::Color(const Color& other) : Color(other.R, other.G, other.B, other.A) {	}
 
 	int bytesPerPixel(ImageType type) {
 		switch (type) {
@@ -22,10 +26,29 @@ namespace vision {
 			return 1;
 		case IM_8UC3:
 			return 3;
+		case IM_32SC1:
+			return 4;
 		}
 	}
 
-	Mat::Mat(): Mat(0, 0, IM_8UC1) {}
+	Mat::Mat() : Mat(0, 0, IM_8UC1) {}
+
+	Mat::Mat(const Mat& other) {
+		this->rows = other.rows;
+		this->cols = other.cols;
+		this->type = other.type;
+
+		int length = bytesPerPixel(type) * rows * cols;
+		data = new unsigned char[length];
+
+		unsigned char* src = other.data;
+		unsigned char* dst = this->data;
+
+		++length;
+		while (--length) {
+			*(dst++) = *(src++);
+		}
+	}
 
 	Mat::Mat(int rows, int cols, ImageType type) {
 		this->rows = rows;
@@ -44,6 +67,24 @@ namespace vision {
 		delete[] data;
 	}
 
+	void Mat::copyFrom(const Mat& other) {
+		delete[] data;
+
+		this->rows = other.rows;
+		this->cols = other.cols;
+		this->type = other.type;
+
+		int length = bytesPerPixel(type) * rows * cols;
+		data = new unsigned char[length];
+
+		unsigned char* src = other.data;
+		unsigned char* dst = this->data;
+
+		++length;
+		while (--length)
+			*(dst++) = *(src++);
+	}
+
 	void Mat::create(int rows, int cols, ImageType type) {
 		delete[] data;
 
@@ -56,14 +97,34 @@ namespace vision {
 		std::fill(data, data + length, 0);
 	}
 
-	Color Mat::get(int i, int j) {
+	Color Mat::get(int i, int j) const {
 		int pixelSize = bytesPerPixel(type);
 		unsigned char* loc = data + pixelSize * j + pixelSize * i * rows;
-		Color* color = reinterpret_cast<Color*>(loc);
 
-		return *color;
+		float r, g, b;
+		switch (type) {
+		default:
+			throw "get(i, j) is missing the implementation for type '???'";
+		case IM_8UC1:
+			return Color(*loc);
+		case IM_8UC3:
+			r = *loc;
+			g = ++(*loc);
+			b = ++(*loc);
+
+			return Color(r, g, b);
+		case IM_32SC1:
+			unsigned int i;
+			i = ((unsigned int)*loc << 24);
+			i |= ((unsigned int)*(++loc) << 16);
+			i |= ((unsigned int)*(++loc) << 8);
+			i |= *(++loc);
+			float f = *reinterpret_cast<float*>(&i);
+
+			return Color(f);
+		}
 	}
-	Color Mat::get(Point index) {
+	Color Mat::get(Point index) const {
 		return get(index.y, index.x);
 	}
 
@@ -71,18 +132,24 @@ namespace vision {
 		int pixelSize = bytesPerPixel(type);
 		unsigned char* loc = data + pixelSize * j + pixelSize * i * rows;
 
-		*loc = color.R();
-		if (pixelSize > 1) {
-			++loc;
-			*loc = color.G();
-			if (pixelSize > 2) {
-				++loc;
-				*loc = color.B();
-				if (pixelSize > 3) {
-					++loc;
-					*loc = color.A();
-				}
-			}
+		switch (type) {
+		default:
+			throw "get(i, j) is missing the implementation for type '???'";
+		case IM_8UC1:
+			*loc = color.R;
+			break;
+		case IM_8UC3:
+			*loc = color.R;
+			*(++loc) = color.G;
+			*(++loc) = color.B;
+			break;
+		case IM_32SC1:
+			unsigned int i = *reinterpret_cast<unsigned int*>(&color.R);
+			*loc = i >> 24;
+			*(++loc) = (i >> 16) & 0xff;
+			*(++loc) = (i >> 8) & 0xff;
+			*(++loc) = i & 0xff;
+			break;
 		}
 	}
 	void Mat::set(Point index, Color color) {
@@ -135,7 +202,7 @@ namespace vision {
 			for (int i = 0; i < 3; ++i) {
 				dst[i].create(src.rows, src.cols, IM_8UC1);
 
-				const ColorC3 *pSrc = reinterpret_cast<const ColorC3*>(&src);
+				const ColorC3 *pSrc = reinterpret_cast<const ColorC3*>(src.data);
 				unsigned char *pDst = dst[i].data;
 				int j = src.rows * src.cols + 1;
 				while (--j) {
@@ -144,5 +211,48 @@ namespace vision {
 				break;
 			}
 		}
+	}
+
+	Mat getRotationMatrix2D(Point center, float angle) {
+		angle *= PI / 180;
+
+		Mat R(3, 3, IM_32SC1);
+		R.set(Point(0, 0), Color(cos(angle)));
+		R.set(Point(0, 1), Color(-sin(angle)));
+		R.set(Point(1, 1), Color(cos(angle)));
+		R.set(Point(1, 0), Color(sin(angle)));
+
+		R.set(Point(0, 2), Color(center.x - center.x * R.get(Point(0, 0)).R - center.y * R.get(Point(0, 1)).R));
+		R.set(Point(1, 2), Color(center.y - center.x * R.get(Point(1, 0)).R - center.y * R.get(Point(1, 1)).R));
+		R.set(Point(2, 2), Color(1));
+
+		return R;
+	}
+
+	void warpAffine(const Mat& src, Mat& dst, const Mat& R, Point size) {
+		if (size.x < 0)
+			size.x = src.cols;
+		if (size.y < 0)
+			size.y = src.rows;
+
+		Mat result(size.x, size.y, src.type);
+		Point offset(size.x - src.cols, size.y - src.rows);
+
+		for (int i = 0; i < result.rows; ++i) {
+			for (int j = 0; j < result.cols; ++j) {
+				int x = j - offset.x;
+				int y = i - offset.y;
+				int xDst = x * R.get(Point(0, 0)).R + y * R.get(Point(0, 1)).R + R.get(Point(0, 2)).R + 0.5f;
+				int yDst = x * R.get(Point(1, 0)).R + y * R.get(Point(1, 1)).R + R.get(Point(1, 2)).R + 0.5f;
+
+				if (xDst >= 0 && xDst < src.cols && yDst >= 0 && yDst < src.rows) {
+					result.set(i, j, src.get(Point(xDst, yDst)));
+				}
+				else {
+					result.set(i, j, Color(0));
+				}
+			}
+		}
+		dst.copyFrom(result);
 	}
 }
