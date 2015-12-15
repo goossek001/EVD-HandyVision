@@ -1,63 +1,56 @@
 #pragma once
 
-namespace vision {
-	struct Point {
-		int x, y;
+struct Point {
+	int x, y;
 
-		Point();
-		Point(int x, int y);
-	};
-	struct Point2f {
-		float x, y;
+	Point(int x, int y);
+};
 
-		Point2f();
-		Point2f(float x, float y);
-	};
+struct Color {
+	unsigned char mR, mG, mB, mA;
 
-	struct Color {
-		float R, G, B, A;
+	Color(int R, int G = 0, int B = 0, int A = 0);
 
-		Color(float R, float G = 0, float B = 0, float A = 0);
-		Color(const Color& other);
-	};
+	inline int R() { return (int)mR; }
+	inline int G() { return (int)mG; }
+	inline int B() { return (int)mB; }
+	inline int A() { return (int)mA; }
+};
 
-	enum ImageType {
-		IM_8UC1,
-		IM_8UC3,
-		IM_32SC1
-	};
+enum ImageType {
+	IM_8UC1,
+	IM_8UC3
+};
 
 
-	int bytesPerPixel(ImageType type);
+int bytesPerPixel(ImageType type);
 
-	struct Mat {
-	public:
-		unsigned char* data;
-		unsigned int rows, cols;
-		ImageType type;
+struct Mat {
+public:
+	unsigned char* data;
+	unsigned int rows, cols;
+	ImageType type;
 
-		Mat();
-		Mat(int rows, int cols, ImageType type);
-		Mat(Point size, ImageType type);
-		Mat::Mat(const Mat& other);
-		~Mat();
+	Mat(Point size, ImageType type);
+	~Mat();
 
-		void copyFrom(const Mat& other);
+	Color get(int i, int j);
+	Color get(Point index);
 
-		void create(int rows, int cols, ImageType type);
+	void set(int i, int j, Color color);
+	void set(Point index, Color color);
+};
 
-		Color get(int i, int j) const;
-		Color get(Point index) const;
+void bitwise_and(Mat& src1, Mat& src2, Mat& dst);
+void bitwise_or(const Mat& src1, const Mat& src2, Mat& dst);
+void bitwise_xor(const Mat& src1, const Mat& src2, Mat& dst);
 
-		void set(int i, int j, Color color);
-		void set(Point index, Color color);
-	};
+enum Mor
+{
+	ERODE = 0,
+	DILATE = 1,
+	OPEN = 2,
+	CLOSE = 3
+};
 
-	void bitwise_and(const Mat& src1, const Mat& src2, Mat& dst);
-	void threshold(const Mat& src, Mat& dst, int lowerbound, int upperbound);
-	void split(const Mat& src, Mat dst[]);
-
-	Mat getRotationMatrix2D(Point center, float angle);
-	void warpAffine(const Mat& src, Mat& dst, const Mat& R, Point size = Point(-1, -1));
-	void warpAffine(const Point2f& src, Point2f& dst, const Mat& R);
-}
+void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, Mat& kernel);
