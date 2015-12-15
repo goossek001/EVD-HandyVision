@@ -1,6 +1,13 @@
+<<<<<<< HEAD
 * zit in les van hugo
 
 create(size, type, color)
+=======
+create(size, type, color)
+inRange (threshold)
+Copy
+
+>>>>>>> ce262189f4bed8ec7871a17d2c4da12df978516e
 GetRotationMatrix2D
 wrapAffine
 fillConvexPoly

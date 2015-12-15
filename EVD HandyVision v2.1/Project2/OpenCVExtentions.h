@@ -10,7 +10,6 @@
 #include <opencv2/opencv.hpp>
 
 namespace cv {
-	void threshold(const Mat& src, const Mat& dst, double lowerbound, double upperbound);
 	void HSVThreshold(const Mat& src, Mat& dst,
 		double H_min, double H_max,
 		double S_min, double S_max,
