@@ -1,72 +1,6 @@
 #include "VisionOperators.h"
 #include <algorithm>
 
-<<<<<<< HEAD
-Point::Point(int x, int y) {
-	this->x = x;
-	this->y = y;
-}
-
-Color::Color(int R, int G, int B, int A) {
-	mR = R;
-	mG = G;
-	mB = B;
-	mA = A;
-}
-
-int bytesPerPixel(ImageType type) {
-	switch (type) {
-	default:
-		throw "PixelSize(type) is missing the implementation for type '???'";
-	case IM_8UC1:
-		return 1;
-	case IM_8UC3:
-		return 3;
-	}
-}
-
-
-Mat::Mat(Point size, ImageType type) {
-	rows = size.x;
-	cols = size.y;
-	this->type = type;
-
-	int length = bytesPerPixel(type) * rows * cols;
-	data = new unsigned char[length];
-	std::fill(data, data + length, 0);
-}
-
-Mat::~Mat() {
-	delete[] data;
-}
-
-Color Mat::get(int i, int j) const {
-	int pixelSize = bytesPerPixel(type);
-	unsigned char* loc = data + pixelSize * j + pixelSize * i * cols;
-	Color* color = reinterpret_cast<Color*>(loc);
-
-	return *color;
-}
-Color Mat::get(Point index) const {
-	return get(index.y, index.x);
-}
-
-void Mat::set(int i, int j, Color color) {
-	int pixelSize = bytesPerPixel(type);
-	unsigned char* loc = data + pixelSize * j + pixelSize * i * cols;
-
-	*loc = color.R();
-	if (pixelSize > 1) {
-		++loc;
-		*loc = color.G();
-		if (pixelSize > 2) {
-			++loc;
-			*loc = color.B();
-			if (pixelSize > 3) {
-				++loc;
-				*loc = color.A();
-			}
-=======
 namespace vision {
 #define PI 3.14159265359f
 
@@ -106,7 +40,6 @@ namespace vision {
 			return 3;
 		case IM_32SC1:
 			return 4;
->>>>>>> ce262189f4bed8ec7871a17d2c4da12df978516e
 		}
 	}
 
@@ -164,63 +97,12 @@ namespace vision {
 			*(dst++) = *(src++);
 	}
 
-<<<<<<< HEAD
-void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, int kernel)
-{
-	dst.cols = src.cols;
-	dst.rows = src.rows;
-	dst.type = src.type;
-	int Columns = src.cols;
-	int Rows = src.rows;
-	int k = kernel;
-	if (k % 2 == 0)	{ k += 1;}
-	int HalfKernel = k / 2;
-	int MaskRow = 0, MaskColumns = 0;
-=======
 	void Mat::create(int rows, int cols, ImageType type) {
 		delete[] data;
->>>>>>> ce262189f4bed8ec7871a17d2c4da12df978516e
 
 		this->rows = rows;
 		this->cols = cols;
 		this->type = type;
-
-<<<<<<< HEAD
-		for (Rows = HalfKernel; Rows < (src.rows - HalfKernel); Rows++){         // loop voor te behandele pixel  PAKT RAND NIET MEE
-			for (Columns = (HalfKernel); Columns < (src.cols - HalfKernel); Columns++){
-				MaskRow = Rows;
-				MaskColumns = Columns;
-
-				for (MaskRow - HalfKernel; MaskRow < (src.rows + HalfKernel); MaskRow++) {                    // Loop door masker
-					for (MaskColumns - HalfKernel; MaskColumns < (src.cols + HalfKernel); MaskColumns++) {
-						if ( src.get(MaskRow, MaskColumns).R == 0 ){				// als de data in deze rij en colom 0 is
-							 dst.set(Rows, Columns, 0);						// maak de dstdata ook 0
-						}
-					}
-				}
-			}
-		}
-
-		break;
-
-	case DILATE:
-		for (Rows = HalfKernel; Rows < (src.rows - HalfKernel); Rows++){         // loop voor te behandele pixel  PAKT RAND NIET MEE
-			for (Columns = (HalfKernel); Columns < (src.cols - HalfKernel); Columns++){
-				MaskRow = Rows;
-				MaskColumns = Columns;
-
-				for (MaskRow - HalfKernel; MaskRow < (src.rows + HalfKernel); MaskRow++) {                    // Loop door masker
-					for (MaskColumns - HalfKernel; MaskColumns < (src.cols + HalfKernel); MaskColumns++) {
-						if (src.get(MaskRow, MaskColumns).R == 1){				// als de data in deze rij en colom 1 is
-							dst.set(Rows, Columns, 1);						// maak de dstdata ook 1
-						}
-					}
-				}
-			}
-		}
-
-		break;
-=======
 		int length = bytesPerPixel(type) * rows * rows;
 		data = new unsigned char[length];
 		std::fill(data, data + length, 0);
@@ -303,9 +185,7 @@ void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, int kernel)
 		unsigned char* pB = src2.data;
 		unsigned char* pDst = dst.data;
 
-		dst.cols = src1.cols;
-		dst.rows = src1.rows;
-		dst.type = src1.type;
+		dst.create(src1.rows, src1.cols, src1.type);
 
 		int i = src1.rows * src1.cols * bytesPerPixel(src1.type) + 1;
 		while (--i) {
@@ -317,11 +197,8 @@ void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, int kernel)
 		unsigned char* pA = src1.data;
 		unsigned char* pB = src2.data;
 		unsigned char* pDst = dst.data;
->>>>>>> ce262189f4bed8ec7871a17d2c4da12df978516e
 
-		dst.cols = src1.cols;
-		dst.rows = src1.rows;
-		dst.type = src1.type;
+		dst.create(src1.rows, src1.cols, src1.type);
 
 		int i = src1.rows * src1.cols * bytesPerPixel(src1.type) + 1;
 		while (--i) {
@@ -421,31 +298,52 @@ void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, int kernel)
 		dst.y = src.x * R.get(Point(1, 0)).R + src.y * R.get(Point(1, 1)).R + R.get(Point(1, 2)).R;
 	}
 
-	void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, Mat& kernel)
+	void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, int kernel)
 	{
-		unsigned char* pA = src.data;
-		unsigned char* pDst = dst.data;
-		dst.cols = src.cols;
-		dst.rows = src.rows;
-		dst.type = src.type;
+		dst.create(src.rows, src.cols, src.type);
+		int Columns = src.cols;
+		int Rows = src.rows;
+		int k = kernel;
+		if (k % 2 == 0)	{ k += 1; }
+		int HalfKernel = k / 2;
+		int MaskRow = 0, MaskColumns = 0;
 
-		int i;
-		switch (EDOC)
-		{
+		switch (EDOC) {
 		case ERODE:
+		for (Rows = HalfKernel; Rows < (src.rows - HalfKernel); Rows++){         // loop voor te behandele pixel  PAKT RAND NIET MEE
+			for (Columns = (HalfKernel); Columns < (src.cols - HalfKernel); Columns++){
+				MaskRow = Rows;
+				MaskColumns = Columns;
 
-			i = src.rows * src.cols * bytesPerPixel(src.type) + 1;
-			// start bij kernel /2 + 1 uit de hoek / randen
-
-			while (--i) {
-				// compare kernel with this spot
-				// if kernel fits in scr do nothing.  Else delete the mid pixel from the kernel in dst.
+				for (MaskRow - HalfKernel; MaskRow < (src.rows + HalfKernel); MaskRow++) {                    // Loop door masker
+					for (MaskColumns - HalfKernel; MaskColumns < (src.cols + HalfKernel); MaskColumns++) {
+						if (src.get(MaskRow, MaskColumns).R == 0){				// als de data in deze rij en colom 0 is
+							dst.set(Rows, Columns, 0);						// maak de dstdata ook 0
+						}
+					}
+				}
 			}
-			break;
+		}
 
-		case DILATE:
-			// #warning create the Dilate function VisionOperators.cpp
-			break;
+		break;
+
+	case DILATE:
+		for (Rows = HalfKernel; Rows < (src.rows - HalfKernel); Rows++){         // loop voor te behandele pixel  PAKT RAND NIET MEE
+			for (Columns = (HalfKernel); Columns < (src.cols - HalfKernel); Columns++){
+				MaskRow = Rows;
+				MaskColumns = Columns;
+
+				for (MaskRow - HalfKernel; MaskRow < (src.rows + HalfKernel); MaskRow++) {                    // Loop door masker
+					for (MaskColumns - HalfKernel; MaskColumns < (src.cols + HalfKernel); MaskColumns++) {
+						if (src.get(MaskRow, MaskColumns).R == 1){				// als de data in deze rij en colom 1 is
+							dst.set(Rows, Columns, 1);						// maak de dstdata ook 1
+						}
+					}
+				}
+			}
+		}
+
+		break;
 
 		case OPEN:
 			// #warning create the Open function VisionOperators.cpp

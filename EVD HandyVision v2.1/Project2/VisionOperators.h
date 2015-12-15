@@ -42,28 +42,12 @@ namespace vision {
 		Mat::Mat(const Mat& other);
 		~Mat();
 
-<<<<<<< HEAD
-	Color get(int i, int j) const;
-	Color get(Point index)  const;
-=======
+		Color get(int i, int j) const;
+		Color get(Point index)  const;
 		void copyFrom(const Mat& other);
->>>>>>> ce262189f4bed8ec7871a17d2c4da12df978516e
 
 		void create(int rows, int cols, ImageType type);
 
-		Color get(int i, int j) const;
-		Color get(Point index) const;
-
-<<<<<<< HEAD
-enum Mor
-{
-	ERODE = 0,
-	DILATE = 1,
-	OPEN = 2,
-	CLOSE = 3
-};
-void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, int kernel);
-=======
 		void set(int i, int j, Color color);
 		void set(Point index, Color color);
 	};
@@ -89,4 +73,3 @@ void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, int kernel);
 
 	void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, Mat& kernel);
 }
->>>>>>> ce262189f4bed8ec7871a17d2c4da12df978516e
