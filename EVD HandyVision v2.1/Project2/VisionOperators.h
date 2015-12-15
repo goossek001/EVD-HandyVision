@@ -34,8 +34,8 @@ public:
 	Mat(Point size, ImageType type);
 	~Mat();
 
-	Color get(int i, int j);
-	Color get(Point index);
+	Color get(int i, int j) const;
+	Color get(Point index)  const;
 
 	void set(int i, int j, Color color);
 	void set(Point index, Color color);
@@ -52,5 +52,4 @@ enum Mor
 	OPEN = 2,
 	CLOSE = 3
 };
-
-void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, Mat& kernel);
+void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, int kernel);

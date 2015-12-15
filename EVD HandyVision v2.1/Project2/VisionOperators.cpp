@@ -39,14 +39,14 @@ Mat::~Mat() {
 	delete[] data;
 }
 
-Color Mat::get(int i, int j) {
+Color Mat::get(int i, int j) const {
 	int pixelSize = bytesPerPixel(type);
 	unsigned char* loc = data + pixelSize * j + pixelSize * i * cols;
 	Color* color = reinterpret_cast<Color*>(loc);
 
 	return *color;
 }
-Color Mat::get(Point index) {
+Color Mat::get(Point index) const {
 	return get(index.y, index.x);
 }
 
@@ -117,29 +117,55 @@ void bitwise_xor(const Mat& src1, const Mat& src2, Mat& dst) {
 	}
 }
 
-void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, Mat& kernel)
+void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, int kernel)
 {
-	unsigned char* pA = src.data;
-	unsigned char* pDst = dst.data;
 	dst.cols = src.cols;
 	dst.rows = src.rows;
 	dst.type = src.type;
+	int Columns = src.cols;
+	int Rows = src.rows;
+	int k = kernel;
+	if (k % 2 == 0)	{ k += 1;}
+	int HalfKernel = k / 2;
+	int MaskRow = 0, MaskColumns = 0;
 
 	switch (EDOC)
 	{
 	case ERODE:
 
-		int i = src.rows * src.cols * bytesPerPixel(src.type) + 1;
-		// start bij kernel /2 + 1 uit de hoek / randen
-		
-		while (--i) {
-			// compare kernel with this spot
-			// if kernel fits in scr do nothing.  Else delete the mid pixel from the kernel in dst.
+		for (Rows = HalfKernel; Rows < (src.rows - HalfKernel); Rows++){         // loop voor te behandele pixel  PAKT RAND NIET MEE
+			for (Columns = (HalfKernel); Columns < (src.cols - HalfKernel); Columns++){
+				MaskRow = Rows;
+				MaskColumns = Columns;
+
+				for (MaskRow - HalfKernel; MaskRow < (src.rows + HalfKernel); MaskRow++) {                    // Loop door masker
+					for (MaskColumns - HalfKernel; MaskColumns < (src.cols + HalfKernel); MaskColumns++) {
+						if ( src.get(MaskRow, MaskColumns).R == 0 ){				// als de data in deze rij en colom 0 is
+							 dst.set(Rows, Columns, 0);						// maak de dstdata ook 0
+						}
+					}
+				}
+			}
 		}
+
 		break;
 
 	case DILATE:
-		// #warning create the Dilate function VisionOperators.cpp
+		for (Rows = HalfKernel; Rows < (src.rows - HalfKernel); Rows++){         // loop voor te behandele pixel  PAKT RAND NIET MEE
+			for (Columns = (HalfKernel); Columns < (src.cols - HalfKernel); Columns++){
+				MaskRow = Rows;
+				MaskColumns = Columns;
+
+				for (MaskRow - HalfKernel; MaskRow < (src.rows + HalfKernel); MaskRow++) {                    // Loop door masker
+					for (MaskColumns - HalfKernel; MaskColumns < (src.cols + HalfKernel); MaskColumns++) {
+						if (src.get(MaskRow, MaskColumns).R == 1){				// als de data in deze rij en colom 1 is
+							dst.set(Rows, Columns, 1);						// maak de dstdata ook 1
+						}
+					}
+				}
+			}
+		}
+
 		break;
 
 	case OPEN:
