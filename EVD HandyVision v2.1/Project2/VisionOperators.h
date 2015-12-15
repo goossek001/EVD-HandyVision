@@ -4,7 +4,14 @@ namespace vision {
 	struct Point {
 		int x, y;
 
+		Point();
 		Point(int x, int y);
+	};
+	struct Point2f {
+		float x, y;
+
+		Point2f();
+		Point2f(float x, float y);
 	};
 
 	struct Color {
@@ -52,4 +59,5 @@ namespace vision {
 
 	Mat getRotationMatrix2D(Point center, float angle);
 	void warpAffine(const Mat& src, Mat& dst, const Mat& R, Point size = Point(-1, -1));
+	void warpAffine(const Point2f& src, Point2f& dst, const Mat& R);
 }

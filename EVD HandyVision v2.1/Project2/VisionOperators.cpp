@@ -2,9 +2,21 @@
 #include <algorithm>
 
 namespace vision {
-	#define PI 3.14159265359f
+#define PI 3.14159265359f
 
+	Point::Point() {
+		x = 0;
+		y = 0;
+	}
 	Point::Point(int x, int y) {
+		this->x = x;
+		this->y = y;
+	}
+	Point2f::Point2f() {
+		x = 0;
+		y = 0;
+	}
+	Point2f::Point2f(float x, float y) {
 		this->x = x;
 		this->y = y;
 	}
@@ -242,8 +254,8 @@ namespace vision {
 			for (int j = 0; j < result.cols; ++j) {
 				int x = j - offset.x;
 				int y = i - offset.y;
-				int xDst = x * R.get(Point(0, 0)).R + y * R.get(Point(0, 1)).R + R.get(Point(0, 2)).R + 0.5f;
-				int yDst = x * R.get(Point(1, 0)).R + y * R.get(Point(1, 1)).R + R.get(Point(1, 2)).R + 0.5f;
+				int xDst = roundf(x * R.get(Point(0, 0)).R + y * R.get(Point(0, 1)).R + R.get(Point(0, 2)).R);
+				int yDst = roundf(x * R.get(Point(1, 0)).R + y * R.get(Point(1, 1)).R + R.get(Point(1, 2)).R);
 
 				if (xDst >= 0 && xDst < src.cols && yDst >= 0 && yDst < src.rows) {
 					result.set(i, j, src.get(Point(xDst, yDst)));
@@ -254,5 +266,10 @@ namespace vision {
 			}
 		}
 		dst.copyFrom(result);
+	}
+
+	void warpAffine(const Point2f& src, Point2f& dst, const Mat& R) {
+		dst.x = src.x * R.get(Point(0, 0)).R + src.y * R.get(Point(0, 1)).R + R.get(Point(0, 2)).R;
+		dst.y = src.x * R.get(Point(1, 0)).R + src.y * R.get(Point(1, 1)).R + R.get(Point(1, 2)).R;
 	}
 }
