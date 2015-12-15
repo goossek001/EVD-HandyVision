@@ -181,6 +181,36 @@ namespace vision {
 		}
 	}
 
+	void bitwise_or(const Mat& src1, const Mat& src2, Mat& dst) {
+		unsigned char* pA = src1.data;
+		unsigned char* pB = src2.data;
+		unsigned char* pDst = dst.data;
+
+		dst.cols = src1.cols;
+		dst.rows = src1.rows;
+		dst.type = src1.type;
+
+		int i = src1.rows * src1.cols * bytesPerPixel(src1.type) + 1;
+		while (--i) {
+			*pDst++ = *pA++ | *pB++;
+		}
+	}
+
+	void bitwise_xor(const Mat& src1, const Mat& src2, Mat& dst) {
+		unsigned char* pA = src1.data;
+		unsigned char* pB = src2.data;
+		unsigned char* pDst = dst.data;
+
+		dst.cols = src1.cols;
+		dst.rows = src1.rows;
+		dst.type = src1.type;
+
+		int i = src1.rows * src1.cols * bytesPerPixel(src1.type) + 1;
+		while (--i) {
+			*pDst++ = *pA++ ^ *pB++;
+		}
+	}
+
 	void threshold(const Mat& src, Mat& dst, int lowerbound, int upperbound) {
 		unsigned char* pSrc = src.data;
 		unsigned char* pDst = dst.data;
@@ -272,69 +302,40 @@ namespace vision {
 		dst.x = src.x * R.get(Point(0, 0)).R + src.y * R.get(Point(0, 1)).R + R.get(Point(0, 2)).R;
 		dst.y = src.x * R.get(Point(1, 0)).R + src.y * R.get(Point(1, 1)).R + R.get(Point(1, 2)).R;
 	}
-}
 
-void bitwise_or(const Mat& src1, const Mat& src2, Mat& dst) {
-	unsigned char* pA = src1.data;
-	unsigned char* pB = src2.data;
-	unsigned char* pDst = dst.data;
-
-	dst.cols = src1.cols;
-	dst.rows = src1.rows;
-	dst.type = src1.type;
-
-	int i = src1.rows * src1.cols * bytesPerPixel(src1.type) + 1;
-	while (--i) {
-		*pDst++ = *pA++ | *pB++;
-	}
-}
-
-void bitwise_xor(const Mat& src1, const Mat& src2, Mat& dst) {
-	unsigned char* pA = src1.data;
-	unsigned char* pB = src2.data;
-	unsigned char* pDst = dst.data;
-
-	dst.cols = src1.cols;
-	dst.rows = src1.rows;
-	dst.type = src1.type;
-
-	int i = src1.rows * src1.cols * bytesPerPixel(src1.type) + 1;
-	while (--i) {
-		*pDst++ = *pA++ ^ *pB++;
-	}
-}
-
-void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, Mat& kernel)
-{
-	unsigned char* pA = src.data;
-	unsigned char* pDst = dst.data;
-	dst.cols = src.cols;
-	dst.rows = src.rows;
-	dst.type = src.type;
-
-	switch (EDOC)
+	void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, Mat& kernel)
 	{
-	case ERODE:
+		unsigned char* pA = src.data;
+		unsigned char* pDst = dst.data;
+		dst.cols = src.cols;
+		dst.rows = src.rows;
+		dst.type = src.type;
 
-		int i = src.rows * src.cols * bytesPerPixel(src.type) + 1;
-		// start bij kernel /2 + 1 uit de hoek / randen
-		
-		while (--i) {
-			// compare kernel with this spot
-			// if kernel fits in scr do nothing.  Else delete the mid pixel from the kernel in dst.
+		int i;
+		switch (EDOC)
+		{
+		case ERODE:
+
+			i = src.rows * src.cols * bytesPerPixel(src.type) + 1;
+			// start bij kernel /2 + 1 uit de hoek / randen
+
+			while (--i) {
+				// compare kernel with this spot
+				// if kernel fits in scr do nothing.  Else delete the mid pixel from the kernel in dst.
+			}
+			break;
+
+		case DILATE:
+			// #warning create the Dilate function VisionOperators.cpp
+			break;
+
+		case OPEN:
+			// #warning create the Open function VisionOperators.cpp
+			break;
+
+		case CLOSE:
+			// #warning create the Close function VisionOperators.cpp
+			break;
 		}
-		break;
-
-	case DILATE:
-		// #warning create the Dilate function VisionOperators.cpp
-		break;
-
-	case OPEN:
-		// #warning create the Open function VisionOperators.cpp
-		break;
-
-	case CLOSE:
-		// #warning create the Close function VisionOperators.cpp
-		break;
 	}
 }
