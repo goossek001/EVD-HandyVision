@@ -12,6 +12,12 @@ namespace vision {
 		this->x = x;
 		this->y = y;
 	}
+	Point Point::operator+(const Point& other) const {
+		return Point(x + other.x, y + other.y);
+	}
+	Point Point::operator-(const Point& other) const {
+		return Point(x - other.x, y - other.y);
+	}
 	Point2f::Point2f() {
 		x = 0;
 		y = 0;
@@ -19,6 +25,12 @@ namespace vision {
 	Point2f::Point2f(float x, float y) {
 		this->x = x;
 		this->y = y;
+	}
+	Point2f Point2f::operator+(const Point2f& other) const {
+		return Point2f(x + other.x, y + other.y);
+	}
+	Point2f Point2f::operator-(const Point2f& other) const {
+		return Point2f(x - other.x, y - other.y);
 	}
 
 	Color::Color(float R, float G, float B, float A) {
@@ -250,7 +262,7 @@ namespace vision {
 		}
 	}
 
-	Mat getRotationMatrix2D(Point center, float angle) {
+	Mat getRotationMatrix2D(Point2f center, float angle) {
 		angle *= PI / 180;
 
 		Mat R(3, 3, IM_32SC1);
@@ -265,6 +277,9 @@ namespace vision {
 
 		return R;
 	}
+	Mat getRotationMatrix2D(Point center, float angle) {
+		return getRotationMatrix2D(Point2f(center.x, center.y), angle);
+	}
 
 	void warpAffine(const Mat& src, Mat& dst, const Mat& R, Point size) {
 		if (size.x < 0)
@@ -275,27 +290,30 @@ namespace vision {
 		Mat result(size.x, size.y, src.type);
 		Point offset(size.x - src.cols, size.y - src.rows);
 
-		for (int i = 0; i < result.rows; ++i) {
-			for (int j = 0; j < result.cols; ++j) {
+		for (int i = 0; i < src.rows; ++i) {
+			for (int j = 0; j < src.cols; ++j) {
 				int x = j - offset.x;
 				int y = i - offset.y;
 				int xDst = roundf(x * R.get(Point(0, 0)).R + y * R.get(Point(0, 1)).R + R.get(Point(0, 2)).R);
 				int yDst = roundf(x * R.get(Point(1, 0)).R + y * R.get(Point(1, 1)).R + R.get(Point(1, 2)).R);
 
-				if (xDst >= 0 && xDst < src.cols && yDst >= 0 && yDst < src.rows) {
-					result.set(i, j, src.get(Point(xDst, yDst)));
-				}
-				else {
-					result.set(i, j, Color(0));
+				if (xDst >= 0 && xDst < result.cols && yDst >= 0 && yDst < result.rows) {
+					result.set(Point(xDst, yDst), src.get(i, j));
 				}
 			}
 		}
 		dst.copyFrom(result);
 	}
 
-	void warpAffine(const Point2f& src, Point2f& dst, const Mat& R) {
+	void warpAffine(const Point2f src, Point2f& dst, const Mat& R) {
 		dst.x = src.x * R.get(Point(0, 0)).R + src.y * R.get(Point(0, 1)).R + R.get(Point(0, 2)).R;
 		dst.y = src.x * R.get(Point(1, 0)).R + src.y * R.get(Point(1, 1)).R + R.get(Point(1, 2)).R;
+	}
+	void warpAffine(const Point& src, Point& dst, const Mat& R) {
+		Point2f p(src.x, src.y);
+		warpAffine(p, p, R);
+		dst.x = roundf(p.x);
+		dst.y = roundf(p.y);
 	}
 
 	void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, int kernel)
@@ -310,40 +328,40 @@ namespace vision {
 
 		switch (EDOC) {
 		case ERODE:
-		for (Rows = HalfKernel; Rows < (src.rows - HalfKernel); Rows++){         // loop voor te behandele pixel  PAKT RAND NIET MEE
-			for (Columns = (HalfKernel); Columns < (src.cols - HalfKernel); Columns++){
-				MaskRow = Rows;
-				MaskColumns = Columns;
+			for (Rows = HalfKernel; Rows < (src.rows - HalfKernel); Rows++){         // loop voor te behandele pixel  PAKT RAND NIET MEE
+				for (Columns = (HalfKernel); Columns < (src.cols - HalfKernel); Columns++){
+					MaskRow = Rows;
+					MaskColumns = Columns;
 
-				for (MaskRow - HalfKernel; MaskRow < (src.rows + HalfKernel); MaskRow++) {                    // Loop door masker
-					for (MaskColumns - HalfKernel; MaskColumns < (src.cols + HalfKernel); MaskColumns++) {
-						if (src.get(MaskRow, MaskColumns).R == 0){				// als de data in deze rij en colom 0 is
-							dst.set(Rows, Columns, 0);						// maak de dstdata ook 0
+					for (MaskRow - HalfKernel; MaskRow < (src.rows + HalfKernel); MaskRow++) {                    // Loop door masker
+						for (MaskColumns - HalfKernel; MaskColumns < (src.cols + HalfKernel); MaskColumns++) {
+							if (src.get(MaskRow, MaskColumns).R == 0){				// als de data in deze rij en colom 0 is
+								dst.set(Rows, Columns, 0);						// maak de dstdata ook 0
+							}
 						}
 					}
 				}
 			}
-		}
 
-		break;
+			break;
 
-	case DILATE:
-		for (Rows = HalfKernel; Rows < (src.rows - HalfKernel); Rows++){         // loop voor te behandele pixel  PAKT RAND NIET MEE
-			for (Columns = (HalfKernel); Columns < (src.cols - HalfKernel); Columns++){
-				MaskRow = Rows;
-				MaskColumns = Columns;
+		case DILATE:
+			for (Rows = HalfKernel; Rows < (src.rows - HalfKernel); Rows++){         // loop voor te behandele pixel  PAKT RAND NIET MEE
+				for (Columns = (HalfKernel); Columns < (src.cols - HalfKernel); Columns++){
+					MaskRow = Rows;
+					MaskColumns = Columns;
 
-				for (MaskRow - HalfKernel; MaskRow < (src.rows + HalfKernel); MaskRow++) {                    // Loop door masker
-					for (MaskColumns - HalfKernel; MaskColumns < (src.cols + HalfKernel); MaskColumns++) {
-						if (src.get(MaskRow, MaskColumns).R == 1){				// als de data in deze rij en colom 1 is
-							dst.set(Rows, Columns, 1);						// maak de dstdata ook 1
+					for (MaskRow - HalfKernel; MaskRow < (src.rows + HalfKernel); MaskRow++) {                    // Loop door masker
+						for (MaskColumns - HalfKernel; MaskColumns < (src.cols + HalfKernel); MaskColumns++) {
+							if (src.get(MaskRow, MaskColumns).R == 1){				// als de data in deze rij en colom 1 is
+								dst.set(Rows, Columns, 1);						// maak de dstdata ook 1
+							}
 						}
 					}
 				}
 			}
-		}
 
-		break;
+			break;
 
 		case OPEN:
 			// #warning create the Open function VisionOperators.cpp
@@ -352,6 +370,24 @@ namespace vision {
 		case CLOSE:
 			// #warning create the Close function VisionOperators.cpp
 			break;
+		}
+	}
+
+	void drawRect(const Mat& src, Mat& dst, const RotatadRect& rect, const Color& color) {
+		Mat R = getRotationMatrix2D(rect.center, rect.angle);
+		Point2f extends(rect.size.x * 0.5f, rect.size.y * 0.5f);
+		Point bottomRight = Point(roundf(rect.center.x - extends.x), roundf(rect.center.y - extends.y));
+		Point topLeft = Point(roundf(rect.center.x + extends.x), roundf(rect.center.y + extends.y));
+		if (&src != &dst)
+			dst.copyFrom(src);
+
+		for (int x = bottomRight.x; x < topLeft.x; ++x) {
+			for (int y = bottomRight.y; y < topLeft.y; ++y) {
+				Point p(x, y);
+				warpAffine(p, p, R);
+				if (p.x >= 0 && p.x < dst.cols && p.y >= 0 && p.y < dst.rows)
+					dst.set(p, color);
+			}
 		}
 	}
 }
