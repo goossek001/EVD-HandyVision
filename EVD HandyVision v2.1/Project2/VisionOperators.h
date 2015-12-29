@@ -85,4 +85,9 @@ namespace vision {
 	void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, Mat& kernel);
 
 	void drawRect(const Mat& src, Mat& dst, const RotatadRect& rect, const Color& color = Color(1));
+
+	enum DistanceType {
+		Pythagoras
+	};
+	void distanceTransform(const Mat& src, Mat& dst, DistanceType type);
 }
