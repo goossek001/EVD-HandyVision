@@ -102,12 +102,12 @@ namespace vision {
 		int length = bytesPerPixel(type) * rows * cols;
 		data = new unsigned char[length];
 
-		unsigned char* src = other.data;
-		unsigned char* dst = this->data;
+		unsigned char* pSrc = other.data;
+		unsigned char* pDst = this->data;
 
 		++length;
 		while (--length)
-			*(dst++) = *(src++);
+			*(pDst++) = *(pSrc++);
 	}
 
 	void Mat::create(int rows, int cols, ImageType type) {
@@ -263,6 +263,32 @@ namespace vision {
 		}
 	}
 
+	void fill(Mat& img, Color color) {
+		unsigned char* pImg = (unsigned char*)img.data;
+		int i = img.rows * img.cols + 1;
+		while (--i) {
+			switch (img.type) {
+			default:
+				throw "ERROR";
+			case IM_8UC1:
+				*(pImg++) = color.R;
+				break;
+			case IM_8UC3:
+				*(pImg++) = color.R;
+				*(pImg++) = color.G;
+				*(pImg++) = color.B;
+				break;
+			case IM_32SC1:
+				unsigned int i = *reinterpret_cast<unsigned int*>(&color.R);
+				*(pImg++) = i >> 24;
+				*(pImg++) = (i >> 16) & 0xff;
+				*(pImg++) = (i >> 8) & 0xff;
+				*(pImg++) = i & 0xff;
+				break;
+			}
+		}
+	}
+
 	Mat getRotationMatrix2D(Point2f center, float angle) {
 		angle *= PI / 180;
 
@@ -392,58 +418,49 @@ namespace vision {
 		}
 	}
 
-	void distanceTransform(const Mat& src, Mat& dst, DistanceType type) {
-		if (type != Pythagoras)
-			throw "Missing a implementation for one of the DistanceTypes";
-
-		if (dst.cols != src.cols || dst.rows != src.cols || dst.type != src.type)
-			dst.create(src.rows, src.cols, src.type);
-
-		int maxCicleSize = ceil(powf(src.cols * src.cols + src.rows + src.rows, 0.5f));
-		for (int x = 0; x < src.cols; ++x) {
-			for (int y = 0; y < src.rows; ++y) {
-				if (src.get(Point(x, y)).R) {
-					float distance = 0;
-					for (int i = 1; !distance; ++i) {
-						if (i > src.cols + src.rows) {
-							distance = i;
-							break;
-						}
-
-						float radians = 0;
-						while (true) {
-							int x_ = roundf(cos(radians)*i);
-							int y_ = roundf(sin(radians)*i);
-
-							int dx_ = x_ + (radians < PI - 0.001f ? -1 : 1);
-							int dy_ = y_ + (fmod(radians + 0.5f*PI, TWO_PI) < PI - 0.001f ? 1 : -1);
-
-							float radians_new;
-							float distances[2];
-							distances[0] = abs(i - powf(dx_*dx_ + y_*y_, 0.5f));
-							distances[1] = abs(i - powf(x_*x_ + dy_*dy_, 0.5f));
-							if ((distances[0] < 0.98f || distances[0] > 1.25f) && (distances[1] < 0.98f || distances[1] > 1.25f))
-								radians_new = atan2(dy_, dx_);
-							else if (distances[0] <= distances[1])
-								radians_new = atan2(y_, dx_);
-							else
-								radians_new = atan2(dy_, x_);
-
-							radians_new = fmod(radians_new + TWO_PI, TWO_PI);
-
-							x_ = roundf(cos(radians_new) * i);
-							y_ = roundf(sin(radians_new) * i);
-							if (!(x_ + x < 0 || x_ + x >= src.cols || y_ + y < 0 || y_ + y >= src.rows) && !src.get(Point(x_ + x, y_ + y)).R) {
-								distance = powf(x_*x_ + y_*y_, 0.5f);
+	void distanceTransform(const Mat& src, Mat& dst) {
+		for (int i = 0; i < src.rows; ++i) {
+			for (int j = 0; j < src.cols; ++j) {
+				if (!src.get(i, j).R && (!src.type == IM_8UC3 || (!src.get(i, j).G && !src.get(i, j).B)))
+					dst.set(i, j, Color(0));
+				else
+					dst.set(i, j, Color(-1));
+			}
+		}
+		for (int i = 0; i < src.rows; ++i) {
+			for (int j = 0; j < src.cols; ++j) {
+				if (!src.get(i, j).R && (!src.type == IM_8UC3 || (!src.get(i, j).G && !src.get(i, j).B)))
+					dst.set(i, j, Color(0));
+				if (!dst.get(i, j).R) {
+					for (int i_kernel = -1; i_kernel <= 1; ++i_kernel) {
+						for (int j_kernel = -1; j_kernel <= 1; ++j_kernel) {
+							if (i_kernel + i >= 0 && i_kernel + i < src.rows && j_kernel + j >= 0 && j_kernel + j < src.rows) {
+								if (dst.get(i + i_kernel, j + j_kernel).R > abs(i_kernel) + abs(j_kernel)) {
+									dst.set(i + i_kernel, j + j_kernel, Color(abs(i_kernel) + abs(j_kernel)));
+								}
 							}
-
-							if (radians_new < radians)
-								break;
-
-							radians = radians_new;
 						}
 					}
-					dst.set(Point(x, y), Color(distance));
+				}
+			}
+		}
+		bool change = true;
+		while (change) {
+			change = false;
+			for (int i = 0; i < src.rows; ++i) {
+				for (int j = 0; j < src.cols; ++j) {
+					if (dst.get(i, j).R > 0) {
+						for (int i_kernel = -1; i_kernel <= 1; ++i_kernel) {
+							for (int j_kernel = -1; j_kernel <= 1; ++j_kernel) {
+								if (i_kernel + i >= 0 && i_kernel + i < src.rows && j_kernel + j >= 0 && j_kernel + j < src.rows) {
+									if (dst.get(i + i_kernel, j + j_kernel).R > dst.get(i, j).R + abs(i_kernel) + abs(j_kernel)) {
+										dst.set(i + i_kernel, j + j_kernel, Color(dst.get(i, j).R + abs(i_kernel) + abs(j_kernel)));
+										change = true;
+									}
+								}
+							}
+						}
+					}
 				}
 			}
 		}

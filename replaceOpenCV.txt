@@ -4,11 +4,9 @@ create(size, type, color)
 line
 minMaxLoc
 GausianBlur
-DistanceTransform
 CreateCircle  		synthetische cirkel/vierkant/driehoek
 BGRtoHSV
-GetContourArea
-GetMinRotatedRect(contour)
+GetMinRotatedRect
 drawFilledContours
 
 *inRange (threshold) (les 3)
@@ -17,6 +15,7 @@ drawFilledContours
 *Copy
 *CalcHist
 *morpologyEx (*Dilate, *Erode, Open, Close)
+*GetContourArea
 
 Klaar:
 GetRotationMatrix2D
@@ -24,3 +23,4 @@ wrapAffine
 fillConvexPoly
 Point
 Point2f
+DistanceTransform

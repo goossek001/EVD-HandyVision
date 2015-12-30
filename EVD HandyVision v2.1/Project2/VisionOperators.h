@@ -62,6 +62,8 @@ namespace vision {
 		void set(Point index, Color color);
 	};
 
+	void fill(Mat& img, Color color);
+
 	void bitwise_and(Mat& src1, Mat& src2, Mat& dst);
 	void bitwise_or(const Mat& src1, const Mat& src2, Mat& dst);
 	void bitwise_xor(const Mat& src1, const Mat& src2, Mat& dst);
@@ -86,8 +88,5 @@ namespace vision {
 
 	void drawRect(const Mat& src, Mat& dst, const RotatadRect& rect, const Color& color = Color(1));
 
-	enum DistanceType {
-		Pythagoras
-	};
-	void distanceTransform(const Mat& src, Mat& dst, DistanceType type);
+	void distanceTransform(const Mat& src, Mat& dst);
 }
