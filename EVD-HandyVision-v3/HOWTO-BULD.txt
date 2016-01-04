@@ -1,0 +1,8 @@
+Select HandyVisionAndroid and open command window here
+Path will look like : C:\Users\Eigenaar\Desktop\EVD-sourcecode\EVD-HandyVision-v3  OR SO
+
+
+PASTE THIS TO BUILD C:\Users\Eigenaar\Desktop\EVD-sourcecode\EVD-HandyVision-v3\android-ndk-r10e\ndk-build.cmd
+
+AFTER BUILD ->  copy all the libs found under libs(made by the build)
+		and paste this in jniLibs (u've created in app>src>main>jniLibs)
