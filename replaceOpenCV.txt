@@ -1,31 +1,26 @@
-<<<<<<< HEAD
 * zit in les van hugo
 
 create(size, type, color)
-=======
-create(size, type, color)
-inRange (threshold)
-Copy
-
->>>>>>> ce262189f4bed8ec7871a17d2c4da12df978516e
-GetRotationMatrix2D
-wrapAffine
-fillConvexPoly
 line
-Point
-Point2f
-CalcHist
 minMaxLoc
 GausianBlur
-DistanceTransform
 CreateCircle  		synthetische cirkel/vierkant/driehoek
 BGRtoHSV
-GetContourArea
-GetMinRotatedRect(contour)
+GetMinRotatedRect
 drawFilledContours
 
 *inRange (threshold) (les 3)
 *findContours  (les 6)
 *fillHoles  (les 5)
 *Copy
-morpologyEx (*Dilate, *Erode, Open, Close)
+*CalcHist
+*morpologyEx (*Dilate, *Erode, Open, Close)
+*GetContourArea
+
+Klaar:
+GetRotationMatrix2D
+wrapAffine
+fillConvexPoly
+Point
+Point2f
+DistanceTransform

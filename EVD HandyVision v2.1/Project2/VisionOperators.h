@@ -6,12 +6,16 @@ namespace vision {
 
 		Point();
 		Point(int x, int y);
+		Point operator+(const Point& other) const;
+		Point operator-(const Point& other) const;
 	};
 	struct Point2f {
 		float x, y;
 
 		Point2f();
 		Point2f(float x, float y);
+		Point2f operator+(const Point2f& other) const;
+		Point2f operator-(const Point2f& other) const;
 	};
 
 	struct Color {
@@ -19,6 +23,12 @@ namespace vision {
 
 		Color(float R, float G = 0, float B = 0, float A = 0);
 		Color(const Color& other);
+	};
+
+	struct RotatadRect {
+		Point center;
+		Point size;
+		float angle;	//In degrees
 	};
 
 	enum ImageType {
@@ -52,6 +62,8 @@ namespace vision {
 		void set(Point index, Color color);
 	};
 
+	void fill(Mat& img, Color color);
+
 	void bitwise_and(Mat& src1, Mat& src2, Mat& dst);
 	void bitwise_or(const Mat& src1, const Mat& src2, Mat& dst);
 	void bitwise_xor(const Mat& src1, const Mat& src2, Mat& dst);
@@ -61,7 +73,8 @@ namespace vision {
 
 	Mat getRotationMatrix2D(Point center, float angle);
 	void warpAffine(const Mat& src, Mat& dst, const Mat& R, Point size = Point(-1, -1));
-	void warpAffine(const Point2f& src, Point2f& dst, const Mat& R);
+	void warpAffine(const Point2f src, Point2f& dst, const Mat& R);
+	void warpAffine(const Point& src, Point& dst, const Mat& R);
 
 	enum Mor
 	{
@@ -72,4 +85,8 @@ namespace vision {
 	};
 
 	void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, Mat& kernel);
+
+	void drawRect(const Mat& src, Mat& dst, const RotatadRect& rect, const Color& color = Color(1));
+
+	void distanceTransform(const Mat& src, Mat& dst);
 }

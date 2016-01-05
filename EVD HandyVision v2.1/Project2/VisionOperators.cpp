@@ -3,6 +3,7 @@
 
 namespace vision {
 #define PI 3.14159265359f
+#define TWO_PI 6.28318530718f
 
 	Point::Point() {
 		x = 0;
@@ -12,6 +13,12 @@ namespace vision {
 		this->x = x;
 		this->y = y;
 	}
+	Point Point::operator+(const Point& other) const {
+		return Point(x + other.x, y + other.y);
+	}
+	Point Point::operator-(const Point& other) const {
+		return Point(x - other.x, y - other.y);
+	}
 	Point2f::Point2f() {
 		x = 0;
 		y = 0;
@@ -19,6 +26,12 @@ namespace vision {
 	Point2f::Point2f(float x, float y) {
 		this->x = x;
 		this->y = y;
+	}
+	Point2f Point2f::operator+(const Point2f& other) const {
+		return Point2f(x + other.x, y + other.y);
+	}
+	Point2f Point2f::operator-(const Point2f& other) const {
+		return Point2f(x - other.x, y - other.y);
 	}
 
 	Color::Color(float R, float G, float B, float A) {
@@ -89,12 +102,12 @@ namespace vision {
 		int length = bytesPerPixel(type) * rows * cols;
 		data = new unsigned char[length];
 
-		unsigned char* src = other.data;
-		unsigned char* dst = this->data;
+		unsigned char* pSrc = other.data;
+		unsigned char* pDst = this->data;
 
 		++length;
 		while (--length)
-			*(dst++) = *(src++);
+			*(pDst++) = *(pSrc++);
 	}
 
 	void Mat::create(int rows, int cols, ImageType type) {
@@ -250,7 +263,33 @@ namespace vision {
 		}
 	}
 
-	Mat getRotationMatrix2D(Point center, float angle) {
+	void fill(Mat& img, Color color) {
+		unsigned char* pImg = (unsigned char*)img.data;
+		int i = img.rows * img.cols + 1;
+		while (--i) {
+			switch (img.type) {
+			default:
+				throw "ERROR";
+			case IM_8UC1:
+				*(pImg++) = color.R;
+				break;
+			case IM_8UC3:
+				*(pImg++) = color.R;
+				*(pImg++) = color.G;
+				*(pImg++) = color.B;
+				break;
+			case IM_32SC1:
+				unsigned int i = *reinterpret_cast<unsigned int*>(&color.R);
+				*(pImg++) = i >> 24;
+				*(pImg++) = (i >> 16) & 0xff;
+				*(pImg++) = (i >> 8) & 0xff;
+				*(pImg++) = i & 0xff;
+				break;
+			}
+		}
+	}
+
+	Mat getRotationMatrix2D(Point2f center, float angle) {
 		angle *= PI / 180;
 
 		Mat R(3, 3, IM_32SC1);
@@ -265,6 +304,9 @@ namespace vision {
 
 		return R;
 	}
+	Mat getRotationMatrix2D(Point center, float angle) {
+		return getRotationMatrix2D(Point2f(center.x, center.y), angle);
+	}
 
 	void warpAffine(const Mat& src, Mat& dst, const Mat& R, Point size) {
 		if (size.x < 0)
@@ -275,27 +317,30 @@ namespace vision {
 		Mat result(size.x, size.y, src.type);
 		Point offset(size.x - src.cols, size.y - src.rows);
 
-		for (int i = 0; i < result.rows; ++i) {
-			for (int j = 0; j < result.cols; ++j) {
+		for (int i = 0; i < src.rows; ++i) {
+			for (int j = 0; j < src.cols; ++j) {
 				int x = j - offset.x;
 				int y = i - offset.y;
 				int xDst = roundf(x * R.get(Point(0, 0)).R + y * R.get(Point(0, 1)).R + R.get(Point(0, 2)).R);
 				int yDst = roundf(x * R.get(Point(1, 0)).R + y * R.get(Point(1, 1)).R + R.get(Point(1, 2)).R);
 
-				if (xDst >= 0 && xDst < src.cols && yDst >= 0 && yDst < src.rows) {
-					result.set(i, j, src.get(Point(xDst, yDst)));
-				}
-				else {
-					result.set(i, j, Color(0));
+				if (xDst >= 0 && xDst < result.cols && yDst >= 0 && yDst < result.rows) {
+					result.set(Point(xDst, yDst), src.get(i, j));
 				}
 			}
 		}
 		dst.copyFrom(result);
 	}
 
-	void warpAffine(const Point2f& src, Point2f& dst, const Mat& R) {
+	void warpAffine(const Point2f src, Point2f& dst, const Mat& R) {
 		dst.x = src.x * R.get(Point(0, 0)).R + src.y * R.get(Point(0, 1)).R + R.get(Point(0, 2)).R;
 		dst.y = src.x * R.get(Point(1, 0)).R + src.y * R.get(Point(1, 1)).R + R.get(Point(1, 2)).R;
+	}
+	void warpAffine(const Point& src, Point& dst, const Mat& R) {
+		Point2f p(src.x, src.y);
+		warpAffine(p, p, R);
+		dst.x = roundf(p.x);
+		dst.y = roundf(p.y);
 	}
 
 	void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, int kernel)
@@ -310,40 +355,40 @@ namespace vision {
 
 		switch (EDOC) {
 		case ERODE:
-		for (Rows = HalfKernel; Rows < (src.rows - HalfKernel); Rows++){         // loop voor te behandele pixel  PAKT RAND NIET MEE
-			for (Columns = (HalfKernel); Columns < (src.cols - HalfKernel); Columns++){
-				MaskRow = Rows;
-				MaskColumns = Columns;
+			for (Rows = HalfKernel; Rows < (src.rows - HalfKernel); Rows++){         // loop voor te behandele pixel  PAKT RAND NIET MEE
+				for (Columns = (HalfKernel); Columns < (src.cols - HalfKernel); Columns++){
+					MaskRow = Rows;
+					MaskColumns = Columns;
 
-				for (MaskRow - HalfKernel; MaskRow < (src.rows + HalfKernel); MaskRow++) {                    // Loop door masker
-					for (MaskColumns - HalfKernel; MaskColumns < (src.cols + HalfKernel); MaskColumns++) {
-						if (src.get(MaskRow, MaskColumns).R == 0){				// als de data in deze rij en colom 0 is
-							dst.set(Rows, Columns, 0);						// maak de dstdata ook 0
+					for (MaskRow - HalfKernel; MaskRow < (src.rows + HalfKernel); MaskRow++) {                    // Loop door masker
+						for (MaskColumns - HalfKernel; MaskColumns < (src.cols + HalfKernel); MaskColumns++) {
+							if (src.get(MaskRow, MaskColumns).R == 0){				// als de data in deze rij en colom 0 is
+								dst.set(Rows, Columns, 0);						// maak de dstdata ook 0
+							}
 						}
 					}
 				}
 			}
-		}
 
-		break;
+			break;
 
-	case DILATE:
-		for (Rows = HalfKernel; Rows < (src.rows - HalfKernel); Rows++){         // loop voor te behandele pixel  PAKT RAND NIET MEE
-			for (Columns = (HalfKernel); Columns < (src.cols - HalfKernel); Columns++){
-				MaskRow = Rows;
-				MaskColumns = Columns;
+		case DILATE:
+			for (Rows = HalfKernel; Rows < (src.rows - HalfKernel); Rows++){         // loop voor te behandele pixel  PAKT RAND NIET MEE
+				for (Columns = (HalfKernel); Columns < (src.cols - HalfKernel); Columns++){
+					MaskRow = Rows;
+					MaskColumns = Columns;
 
-				for (MaskRow - HalfKernel; MaskRow < (src.rows + HalfKernel); MaskRow++) {                    // Loop door masker
-					for (MaskColumns - HalfKernel; MaskColumns < (src.cols + HalfKernel); MaskColumns++) {
-						if (src.get(MaskRow, MaskColumns).R == 1){				// als de data in deze rij en colom 1 is
-							dst.set(Rows, Columns, 1);						// maak de dstdata ook 1
+					for (MaskRow - HalfKernel; MaskRow < (src.rows + HalfKernel); MaskRow++) {                    // Loop door masker
+						for (MaskColumns - HalfKernel; MaskColumns < (src.cols + HalfKernel); MaskColumns++) {
+							if (src.get(MaskRow, MaskColumns).R == 1){				// als de data in deze rij en colom 1 is
+								dst.set(Rows, Columns, 1);						// maak de dstdata ook 1
+							}
 						}
 					}
 				}
 			}
-		}
 
-		break;
+			break;
 
 		case OPEN:
 			// #warning create the Open function VisionOperators.cpp
@@ -352,6 +397,72 @@ namespace vision {
 		case CLOSE:
 			// #warning create the Close function VisionOperators.cpp
 			break;
+		}
+	}
+
+	void drawRect(const Mat& src, Mat& dst, const RotatadRect& rect, const Color& color) {
+		Mat R = getRotationMatrix2D(rect.center, rect.angle);
+		Point2f extends(rect.size.x * 0.5f, rect.size.y * 0.5f);
+		Point bottomRight = Point(roundf(rect.center.x - extends.x), roundf(rect.center.y - extends.y));
+		Point topLeft = Point(roundf(rect.center.x + extends.x), roundf(rect.center.y + extends.y));
+		if (&src != &dst)
+			dst.copyFrom(src);
+
+		for (int x = bottomRight.x; x < topLeft.x; ++x) {
+			for (int y = bottomRight.y; y < topLeft.y; ++y) {
+				Point p(x, y);
+				warpAffine(p, p, R);
+				if (p.x >= 0 && p.x < dst.cols && p.y >= 0 && p.y < dst.rows)
+					dst.set(p, color);
+			}
+		}
+	}
+
+	void distanceTransform(const Mat& src, Mat& dst) {
+		for (int i = 0; i < src.rows; ++i) {
+			for (int j = 0; j < src.cols; ++j) {
+				if (!src.get(i, j).R && (!src.type == IM_8UC3 || (!src.get(i, j).G && !src.get(i, j).B)))
+					dst.set(i, j, Color(0));
+				else
+					dst.set(i, j, Color(-1));
+			}
+		}
+		for (int i = 0; i < src.rows; ++i) {
+			for (int j = 0; j < src.cols; ++j) {
+				if (!src.get(i, j).R && (!src.type == IM_8UC3 || (!src.get(i, j).G && !src.get(i, j).B)))
+					dst.set(i, j, Color(0));
+				if (!dst.get(i, j).R) {
+					for (int i_kernel = -1; i_kernel <= 1; ++i_kernel) {
+						for (int j_kernel = -1; j_kernel <= 1; ++j_kernel) {
+							if (i_kernel + i >= 0 && i_kernel + i < src.rows && j_kernel + j >= 0 && j_kernel + j < src.rows) {
+								if (dst.get(i + i_kernel, j + j_kernel).R > abs(i_kernel) + abs(j_kernel)) {
+									dst.set(i + i_kernel, j + j_kernel, Color(abs(i_kernel) + abs(j_kernel)));
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		bool change = true;
+		while (change) {
+			change = false;
+			for (int i = 0; i < src.rows; ++i) {
+				for (int j = 0; j < src.cols; ++j) {
+					if (dst.get(i, j).R > 0) {
+						for (int i_kernel = -1; i_kernel <= 1; ++i_kernel) {
+							for (int j_kernel = -1; j_kernel <= 1; ++j_kernel) {
+								if (i_kernel + i >= 0 && i_kernel + i < src.rows && j_kernel + j >= 0 && j_kernel + j < src.rows) {
+									if (dst.get(i + i_kernel, j + j_kernel).R > dst.get(i, j).R + abs(i_kernel) + abs(j_kernel)) {
+										dst.set(i + i_kernel, j + j_kernel, Color(dst.get(i, j).R + abs(i_kernel) + abs(j_kernel)));
+										change = true;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 }
