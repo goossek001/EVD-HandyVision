@@ -5,7 +5,6 @@ line
 minMaxLoc
 GausianBlur
 CreateCircle  		synthetische cirkel/vierkant/driehoek
-BGRtoHSV
 GetMinRotatedRect
 drawFilledContours
 
@@ -24,3 +23,4 @@ fillConvexPoly
 Point
 Point2f
 DistanceTransform
+BGRtoHSV

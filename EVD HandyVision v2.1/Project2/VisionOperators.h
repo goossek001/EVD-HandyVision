@@ -89,4 +89,6 @@ namespace vision {
 	void drawRect(const Mat& src, Mat& dst, const RotatadRect& rect, const Color& color = Color(1));
 
 	void distanceTransform(const Mat& src, Mat& dst);
+
+	void rgbtohsv(const Mat& src, Mat& dst);
 }

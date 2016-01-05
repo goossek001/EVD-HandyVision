@@ -133,8 +133,8 @@ namespace vision {
 			return Color(*loc);
 		case IM_8UC3:
 			r = *loc;
-			g = ++(*loc);
-			b = ++(*loc);
+			g = *(++loc);
+			b = *(++loc);
 
 			return Color(r, g, b);
 		case IM_32SC1:
@@ -160,12 +160,12 @@ namespace vision {
 		default:
 			throw "get(i, j) is missing the implementation for type '???'";
 		case IM_8UC1:
-			*loc = color.R;
+			*loc = (unsigned char)color.R;
 			break;
 		case IM_8UC3:
-			*loc = color.R;
-			*(++loc) = color.G;
-			*(++loc) = color.B;
+			*loc = (unsigned char)color.R;
+			*(++loc) = (unsigned char)color.G;
+			*(++loc) = (unsigned char)color.B;
 			break;
 		case IM_32SC1:
 			unsigned int i = *reinterpret_cast<unsigned int*>(&color.R);
@@ -317,12 +317,12 @@ namespace vision {
 		Mat result(size.x, size.y, src.type);
 		Point offset(size.x - src.cols, size.y - src.rows);
 
-		for (int i = 0; i < src.rows; ++i) {
-			for (int j = 0; j < src.cols; ++j) {
+		for (unsigned int i = 0; i < src.rows; ++i) {
+			for (unsigned int j = 0; j < src.cols; ++j) {
 				int x = j - offset.x;
 				int y = i - offset.y;
-				int xDst = roundf(x * R.get(Point(0, 0)).R + y * R.get(Point(0, 1)).R + R.get(Point(0, 2)).R);
-				int yDst = roundf(x * R.get(Point(1, 0)).R + y * R.get(Point(1, 1)).R + R.get(Point(1, 2)).R);
+				int xDst = (int)roundf(x * R.get(Point(0, 0)).R + y * R.get(Point(0, 1)).R + R.get(Point(0, 2)).R);
+				int yDst = (int)roundf(x * R.get(Point(1, 0)).R + y * R.get(Point(1, 1)).R + R.get(Point(1, 2)).R);
 
 				if (xDst >= 0 && xDst < result.cols && yDst >= 0 && yDst < result.rows) {
 					result.set(Point(xDst, yDst), src.get(i, j));
@@ -337,10 +337,10 @@ namespace vision {
 		dst.y = src.x * R.get(Point(1, 0)).R + src.y * R.get(Point(1, 1)).R + R.get(Point(1, 2)).R;
 	}
 	void warpAffine(const Point& src, Point& dst, const Mat& R) {
-		Point2f p(src.x, src.y);
+		Point2f p((float)src.x, (float)src.y);
 		warpAffine(p, p, R);
-		dst.x = roundf(p.x);
-		dst.y = roundf(p.y);
+		dst.x = (int)roundf(p.x);
+		dst.y = (int)roundf(p.y);
 	}
 
 	void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, int kernel)
@@ -403,13 +403,13 @@ namespace vision {
 	void drawRect(const Mat& src, Mat& dst, const RotatadRect& rect, const Color& color) {
 		Mat R = getRotationMatrix2D(rect.center, rect.angle);
 		Point2f extends(rect.size.x * 0.5f, rect.size.y * 0.5f);
-		Point bottomRight = Point(roundf(rect.center.x - extends.x), roundf(rect.center.y - extends.y));
-		Point topLeft = Point(roundf(rect.center.x + extends.x), roundf(rect.center.y + extends.y));
+		Point bottomRight = Point((int)roundf(rect.center.x - extends.x), roundf(rect.center.y - extends.y));
+		Point topLeft = Point((int)roundf(rect.center.x + extends.x), roundf(rect.center.y + extends.y));
 		if (&src != &dst)
 			dst.copyFrom(src);
 
-		for (int x = bottomRight.x; x < topLeft.x; ++x) {
-			for (int y = bottomRight.y; y < topLeft.y; ++y) {
+		for (unsigned int x = bottomRight.x; x < topLeft.x; ++x) {
+			for (unsigned int y = bottomRight.y; y < topLeft.y; ++y) {
 				Point p(x, y);
 				warpAffine(p, p, R);
 				if (p.x >= 0 && p.x < dst.cols && p.y >= 0 && p.y < dst.rows)
@@ -419,24 +419,24 @@ namespace vision {
 	}
 
 	void distanceTransform(const Mat& src, Mat& dst) {
-		for (int i = 0; i < src.rows; ++i) {
-			for (int j = 0; j < src.cols; ++j) {
+		for (unsigned int i = 0; i < src.rows; ++i) {
+			for (unsigned int j = 0; j < src.cols; ++j) {
 				if (!src.get(i, j).R && (!src.type == IM_8UC3 || (!src.get(i, j).G && !src.get(i, j).B)))
 					dst.set(i, j, Color(0));
 				else
 					dst.set(i, j, Color(-1));
 			}
 		}
-		for (int i = 0; i < src.rows; ++i) {
-			for (int j = 0; j < src.cols; ++j) {
+		for (unsigned int i = 0; i < src.rows; ++i) {
+			for (unsigned int j = 0; j < src.cols; ++j) {
 				if (!src.get(i, j).R && (!src.type == IM_8UC3 || (!src.get(i, j).G && !src.get(i, j).B)))
 					dst.set(i, j, Color(0));
 				if (!dst.get(i, j).R) {
 					for (int i_kernel = -1; i_kernel <= 1; ++i_kernel) {
 						for (int j_kernel = -1; j_kernel <= 1; ++j_kernel) {
 							if (i_kernel + i >= 0 && i_kernel + i < src.rows && j_kernel + j >= 0 && j_kernel + j < src.rows) {
-								if (dst.get(i + i_kernel, j + j_kernel).R > abs(i_kernel) + abs(j_kernel)) {
-									dst.set(i + i_kernel, j + j_kernel, Color(abs(i_kernel) + abs(j_kernel)));
+								if (dst.get(i + i_kernel, j + j_kernel).R >(unsigned int)abs(i_kernel) + (unsigned int)abs(j_kernel)) {
+									dst.set(i + i_kernel, j + j_kernel, Color(abs(i_kernel) + (unsigned int)abs(j_kernel)));
 								}
 							}
 						}
@@ -447,8 +447,8 @@ namespace vision {
 		bool change = true;
 		while (change) {
 			change = false;
-			for (int i = 0; i < src.rows; ++i) {
-				for (int j = 0; j < src.cols; ++j) {
+			for (unsigned int i = 0; i < src.rows; ++i) {
+				for (unsigned int j = 0; j < src.cols; ++j) {
 					if (dst.get(i, j).R > 0) {
 						for (int i_kernel = -1; i_kernel <= 1; ++i_kernel) {
 							for (int j_kernel = -1; j_kernel <= 1; ++j_kernel) {
@@ -463,6 +463,61 @@ namespace vision {
 					}
 				}
 			}
+		}
+	}
+
+	void rgbtohsv(const Mat& src, Mat& dst) {
+		unsigned char h, s, v;
+		unsigned char r, g, b;
+		unsigned char max, min, delta;
+		int i;
+		unsigned char* pSrc;
+		unsigned char* pDst;
+		int temp;
+
+		if (src.type != dst.type || src.cols != src.cols || src.rows != src.rows)
+			dst.create(src.rows, src.cols, src.type);
+
+		pSrc = (unsigned char*)src.data;
+		pDst = (unsigned char*)dst.data;
+		i = src.rows * src.cols + 1;
+
+		while (--i) {
+			r = *(pSrc++);
+			g = *(pSrc++);
+			b = *(pSrc++);
+
+			max = std::max(std::max(r, g), b);
+			min = std::min(std::min(r, g), b);
+			delta = max - min;
+
+			//Calculate h
+			if (!delta)
+				h = 0;
+			else {
+				if (max == r)
+					temp = (int)(60.0f / 360.0f*255.0f * (g / 255.0f - b / 255.0f) / (delta / 255.0f));
+				else if (max == g)
+					temp = (int)(60.0f / 360.0f*255.0f * ((b / 255.0f - g / 255.0f) / (delta / 255.0f) + 2.0f));
+				else
+					temp = (int)(60.0f / 360.0f*255.0f * ((r / 255.0f - g / 255.0f) / (delta / 255.0f) + 4.0f));
+				if (temp < 0)
+					temp += 360;
+				h = (unsigned char)temp;
+			}
+
+			//Calculate s
+			if (!max)
+				s = 0;
+			else
+				s = delta * 255 / max;
+
+			v = max;
+
+			//Save pixel color in the data of dst
+			*(pDst++) = h;
+			*(pDst++) = s;
+			*(pDst++) = v;
 		}
 	}
 }
