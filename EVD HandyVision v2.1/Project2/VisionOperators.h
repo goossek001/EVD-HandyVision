@@ -37,6 +37,10 @@ namespace vision {
 		IM_32SC1
 	};
 
+	enum ConnectionType {
+		FOUR,
+		EIGHT
+	};
 
 	int bytesPerPixel(ImageType type);
 
@@ -91,4 +95,6 @@ namespace vision {
 	void distanceTransform(const Mat& src, Mat& dst);
 
 	void rgbtohsv(const Mat& src, Mat& dst);
+
+	int labelBlobs(const Mat& src, Mat& dst, ConnectionType connected);
 }

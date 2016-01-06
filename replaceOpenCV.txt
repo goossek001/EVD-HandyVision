@@ -24,3 +24,4 @@ Point
 Point2f
 DistanceTransform
 BGRtoHSV
+LabelBlobs

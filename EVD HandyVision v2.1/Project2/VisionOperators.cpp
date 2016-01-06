@@ -520,4 +520,155 @@ namespace vision {
 			*(pDst++) = v;
 		}
 	}
+
+	int labelBlobs(const Mat& src, Mat& dst, ConnectionType connected) {
+		unsigned char* pSrc;
+		unsigned char* pDst;
+		unsigned char i, j, q, a;
+		unsigned char lowestNeightborVal, pixelVal, labelVal;
+		int blobCount;
+		unsigned char connectionCount;
+		bool needIteration;
+		Point p;
+
+		// Init variables
+		connectionCount = (connected == FOUR ? 4 : 8);
+		blobCount = 0;
+
+		if (dst.type != src.type || dst.cols != src.cols || dst.rows != src.rows)
+			dst.create(src.rows, src.cols, src.type);
+
+		//Change all non zero pixels to value 255
+
+		pSrc = (unsigned char*)src.data;
+		pDst = (unsigned char*)dst.data;
+		i = src.cols * src.rows + 1;
+		while (--i) {
+			lowestNeightborVal = (*pSrc & 0xff) ? 255 : 0;
+			if ((*pSrc >> 8) & 0xff)
+				lowestNeightborVal |= ((*pSrc >> 8) & 0xff) ? (255 << 8) : 0;
+			if ((*pSrc >> 16) & 0xff)
+				lowestNeightborVal |= ((*pSrc >> 16) & 0xff) ? (255 << 16) : 0;
+			if (*pSrc >> 24)
+				lowestNeightborVal |= (*pSrc >> 24) ? (255 << 24) : 0;
+			*pDst = lowestNeightborVal;
+
+			++pSrc; ++pDst;
+		}
+
+		// Label the blobs
+
+		do {
+			needIteration = 0;
+			for (i = 0; i < dst.rows; ++i) {
+				for (j = 0; j < dst.cols; ++j) {
+					lowestNeightborVal = dst.get(i, j).R;
+					//Look for the  neighbor with the lowest non-zero value
+					for (q = 0; q < connectionCount; ++q) {
+						switch (q) {
+						case 0:
+							p.x = -1;
+							p.y = 0;
+							break;
+						case 1:
+							p.x = 1;
+							p.y = 0;
+							break;
+						case 2:
+							p.x = 0;
+							p.y = -1;
+							break;
+						case 3:
+							p.x = 0;
+							p.y = 1;
+							break;
+						case 4:
+							p.x = -1;
+							p.y = -1;
+							break;
+						case 5:
+							p.x = 1;
+							p.y = -1;
+							break;
+						case 6:
+							p.x = -1;
+							p.y = 1;
+							break;
+						case 7:
+							p.x = 1;
+							p.y = 1;
+							break;
+						}
+						p.x += j;
+						p.y += i;
+						if (p.x >= 0 && p.x < dst.cols && p.y >= 0 && p.y < dst.rows &&
+							dst.get(p.y, p.x).R && dst.get(p.y, p.x).R < lowestNeightborVal)
+							lowestNeightborVal = dst.get(p.y, p.x).R;
+					}
+					// Label the pixel
+
+					if (lowestNeightborVal == 255 && blobCount < 254)
+						lowestNeightborVal = ++blobCount;
+					if (dst.get(i, j).R != lowestNeightborVal) {
+						if (dst.get(i, j).R != 255) { //Found a connection between two labels
+							//Merge the two connected labels, by lowering the pixels value of all pixels with the same or higher value as the higher label
+							labelVal = dst.get(i, j).R;
+							a = dst.cols * dst.rows + 1;
+							pDst = (unsigned char*)dst.data;
+							while (--a)  {
+								pixelVal = (*pDst) & 0xff;
+								if (pixelVal >= labelVal && pixelVal != 255) {
+									*pDst ^= pixelVal;
+									if (pixelVal == labelVal) {
+										*pDst |= lowestNeightborVal;
+									}
+									else {
+										*pDst |= pixelVal - 1;
+									}
+								}
+								pixelVal = (*pDst >> 8) & 0xff;
+								if (pixelVal >= labelVal && pixelVal != 255) {
+									*pDst ^= pixelVal << 8;
+									if (pixelVal == labelVal) {
+										*pDst |= lowestNeightborVal << 8;
+									}
+									else {
+										*pDst |= (pixelVal - 1) << 8;
+									}
+								}
+								pixelVal = (*pDst >> 16) & 0xff;
+								if (pixelVal >= labelVal && pixelVal != 255) {
+									*pDst ^= pixelVal << 16;
+									if (pixelVal == labelVal) {
+										*pDst |= lowestNeightborVal << 16;
+									}
+									else {
+										*pDst |= (pixelVal - 1) << 16;
+									}
+								}
+								pixelVal = (*pDst >> 24);
+								if (pixelVal >= labelVal && pixelVal != 255) {
+									*pDst ^= pixelVal << 24;
+									if (pixelVal == labelVal) {
+										*pDst |= lowestNeightborVal << 24;
+									}
+									else {
+										*pDst |= (pixelVal - 1) << 24;
+									}
+								}
+								++pDst;
+							}
+							--blobCount;
+						}
+						else
+							dst.set(i, j, Color(lowestNeightborVal));
+
+						needIteration = 1; //A nother iteration might be needed because changes where made and so the labeling was not perfect yet
+					}
+				}
+			}
+		} while (needIteration);
+
+		return blobCount;
+	}
 }
