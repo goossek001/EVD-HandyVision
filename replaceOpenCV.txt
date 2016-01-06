@@ -1,17 +1,11 @@
 * zit in les van hugo
 
-create(size, type, color)
-line
 minMaxLoc
 GausianBlur
 CreateCircle  		synthetische cirkel/vierkant/driehoek
 GetMinRotatedRect
-drawFilledContours
 
 *inRange (threshold) (les 3)
-*findContours  (les 6)
-*fillHoles  (les 5)
-*Copy
 *CalcHist
 *morpologyEx (*Dilate, *Erode, Open, Close)
 *GetContourArea
@@ -25,3 +19,4 @@ Point2f
 DistanceTransform
 BGRtoHSV
 LabelBlobs
+fillHoles

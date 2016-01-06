@@ -524,10 +524,10 @@ namespace vision {
 	int labelBlobs(const Mat& src, Mat& dst, ConnectionType connected) {
 		unsigned char* pSrc;
 		unsigned char* pDst;
-		unsigned char i, j, q, a;
-		unsigned char lowestNeightborVal, pixelVal, labelVal;
+		unsigned int i, j, q, a;
+		unsigned int lowestNeightborVal, pixelVal, labelVal;
 		int blobCount;
-		unsigned char connectionCount;
+		unsigned int connectionCount;
 		bool needIteration;
 		Point p;
 
@@ -670,5 +670,184 @@ namespace vision {
 		} while (needIteration);
 
 		return blobCount;
+	}
+
+#define QUEUESIZE 256
+	// Mark all pixels that are zero and can be connected with the outer edge with other pixels with value zero
+	void vMarkConnectedEmptySpace(Mat& img,
+		unsigned int connectionCount,
+		Point pos,
+		Point* queue,
+		unsigned int* queStart,
+		unsigned int* queEnd,
+		unsigned int queSize,
+		unsigned int* needIteration) {
+		Point p;
+		unsigned int i;
+
+		*needIteration = 0;
+
+		if (img.get(pos.y, pos.x).R == 2) { //Check that the pixel is marked as 'waiting for processing'
+			//Add the position to the queue
+			queue[*queEnd] = pos;
+			if (++(*queEnd) >= queSize)
+				*queEnd = 0;
+			//Process the objects that are in the queue
+			while (1) {
+				for (i = 0; i < connectionCount; ++i) { //Loop through the pixels around the pixel that is being processed
+					switch (i) {
+					case 0:
+						p.x = -1;
+						p.y = 0;
+						break;
+					case 1:
+						p.x = 1;
+						p.y = 0;
+						break;
+					case 2:
+						p.x = 0;
+						p.y = -1;
+						break;
+					case 3:
+						p.x = 0;
+						p.y = 1;
+						break;
+					case 4:
+						p.x = -1;
+						p.y = -1;
+						break;
+					case 5:
+						p.x = 1;
+						p.y = -1;
+						break;
+					case 6:
+						p.x = -1;
+						p.y = 1;
+						break;
+					case 7:
+						p.x = 1;
+						p.y = 1;
+						break;
+					}
+					p.x += queue[*queStart].x;
+					p.y += queue[*queStart].y;
+
+					//When the neighbor pixel has value zero it will be queued to be processed in the futher
+					if (p.x > 0 && p.x < img.cols - 1 &&
+						p.y > 0 && p.y < img.rows - 1 &&
+						!img.get(p.y, p.x).R) {
+						if (*queStart != *queEnd) {
+							queue[*queEnd] = p;
+							if (++(*queEnd) >= queSize)
+								*queEnd = 0;
+						}
+						else {    //The queue is full
+							*needIteration = 1;
+							img.set(p.y, p.x, Color(2));
+						}
+					}
+				}
+				//Change the processed pixel value
+				//  to processed when all zero value neighbors where added to the queue
+				//  to need to be processed when the queue was to small
+				img.set(queue[*queStart].y, queue[*queStart].x, Color(*needIteration ? 2 : 3));
+
+				//Remove the processed pixel from the queue
+				if (++(*queStart) >= queSize)
+					*queStart = 0;
+				//Leave the loop when all pixels has been processed
+				if (*queStart == *queEnd)
+					break;
+			}
+		}
+	}
+
+	// ----------------------------------------------------------------------------
+	void fillHoles(const Mat& src, Mat& dst, ConnectionType connected) {
+		Point queue[QUEUESIZE];
+		unsigned int queStart, queEnd;
+		unsigned int queSize;
+		unsigned int i, j;
+		unsigned int needIteration, needIterationTemp;
+		unsigned int connectionCount;
+		unsigned char* pDst;
+		Point v;
+
+		// Init variables
+
+		connectionCount = (connected == FOUR ? 4 : 8);
+
+		queStart = 0; queEnd = 0; queSize = QUEUESIZE;
+		needIteration = 0;
+
+		if (&src != &dst)
+			dst.copyFrom(src);
+
+		//Loop through all edge pixels and mark all pixels that are connected to the edge through zero value pixels
+
+		//Loop through the pixels on the top and bottom side
+		for (i = 0; i < dst.rows; ++i) {
+			if (!dst.get(i, 0).R) {
+				dst.set(i, 0, Color(2));
+				v.x = 0;
+				v.y = i;
+				vMarkConnectedEmptySpace(dst, connectionCount, v, queue, &queStart, &queEnd, queSize, &needIterationTemp);
+				if (needIterationTemp)
+					needIteration = 1;
+			}
+			if (!dst.get(i, dst.cols - 1).R) {
+				dst.set(i, dst.rows - 1, Color(2));
+				v.x = dst.cols - 1;
+				v.y = i;
+				vMarkConnectedEmptySpace(dst, connectionCount, v, queue, &queStart, &queEnd, queSize, &needIterationTemp);
+				if (needIterationTemp)
+					needIteration = 1;
+			}
+		}
+		//Loop through the pixels on the right and left side
+		for (i = 0; i < src.cols; ++i) {
+			if (!dst.get(0, i).R) {
+				dst.set(0, i, Color(2));
+				v.x = i;
+				v.y = 0;
+				vMarkConnectedEmptySpace(dst, connectionCount, v, queue, &queStart, &queEnd, queSize, &needIterationTemp);
+				if (needIterationTemp)
+					needIteration = 1;
+			}
+			if (!dst.get(dst.rows - 1, i).R) {
+				dst.set(dst.rows - 1, i, Color(2));
+				v.x = i;
+				v.y = dst.rows - 1;
+				vMarkConnectedEmptySpace(dst, connectionCount, v, queue, &queStart, &queEnd, queSize, &needIterationTemp);
+				if (needIterationTemp)
+					needIteration = 1;
+			}
+		}
+
+		//Process the pixels that couldn't be processed because of a to small queue size
+		while (needIteration) {
+			for (i = 0; i < dst.rows; ++i) {
+				for (j = 0; j < dst.cols; ++j) {
+					v.x = j;
+					v.y = i;
+					vMarkConnectedEmptySpace(dst, connectionCount, v, queue, &queStart, &queEnd, queSize, &needIteration);
+				}
+			}
+		}
+
+		//Set zero pixels that aren't connected to the edge(value 0) to 1 and those who are(value > 1) to 0
+		i = dst.rows * dst.cols + 1;
+		pDst = (unsigned char*)dst.data;
+		while (--i) {
+			if (*pDst != 1) {
+				if (*pDst)
+					*pDst = 0;
+				else
+					*pDst = 1;
+			}
+			++pDst;
+		}
+
+		return;
 	}
 }
