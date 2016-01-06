@@ -762,7 +762,6 @@ namespace vision {
 		}
 	}
 
-	// ----------------------------------------------------------------------------
 	void fillHoles(const Mat& src, Mat& dst, ConnectionType connected) {
 		Point queue[QUEUESIZE];
 		unsigned int queStart, queEnd;
@@ -846,6 +845,31 @@ namespace vision {
 					*pDst = 1;
 			}
 			++pDst;
+		}
+
+		return;
+	}
+
+	void histogram(const Mat& src, unsigned char* hist, int *sum) {
+		unsigned int i;
+		unsigned char *h, *pSrc;
+		unsigned int val;
+
+		*sum = 0;
+		pSrc = (unsigned char*)src.data;
+		h = hist;
+
+		i = 257;
+		while (--i)
+			*h++ = 0;
+
+
+		i = 257;
+		h = h;
+		i = src.cols * src.rows + 1;
+		while (--i) {
+			(*sum) += *pSrc;
+			++(hist[*pSrc++]);
 		}
 
 		return;

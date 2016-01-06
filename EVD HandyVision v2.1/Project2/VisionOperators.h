@@ -98,4 +98,5 @@ namespace vision {
 
 	int labelBlobs(const Mat& src, Mat& dst, ConnectionType connected);
 	void fillHoles(const Mat& src, Mat& dst, ConnectionType connected);
+	void histogram(const Mat& src, unsigned char* hist, int *sum);
 }

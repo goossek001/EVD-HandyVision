@@ -5,10 +5,9 @@ GausianBlur
 CreateCircle  		synthetische cirkel/vierkant/driehoek
 GetMinRotatedRect
 
-*inRange (threshold) (les 3)
 *CalcHist
-*morpologyEx (*Dilate, *Erode, Open, Close)
 *GetContourArea
+*morpologyEx (*Dilate, *Erode, Open, Close)
 
 Klaar:
 GetRotationMatrix2D
@@ -20,3 +19,4 @@ DistanceTransform
 BGRtoHSV
 LabelBlobs
 fillHoles
+threshold
