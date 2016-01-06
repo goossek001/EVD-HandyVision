@@ -521,6 +521,29 @@ namespace vision {
 		}
 	}
 
+	void minMaxLoc(const Mat& src, int* min, Point* minLoc, int* max, Point* maxLoc) {
+		unsigned int i, j, val;
+
+		*min = src.get(0, 0).R;
+		*minLoc = Point(0, 0);
+		*max = src.get(0, 0).R;
+		*maxLoc = Point(0, 0);
+
+		for (int i = 1; i < src.rows; ++i) {
+			for (int j = 1; j < src.cols; ++j) {
+				val = src.get(i, j).R;
+				if (val < *min) {
+					*min = val;
+					*minLoc = Point(j, i);
+				}
+				else if (val > *max) {
+					*max = val;
+					*maxLoc = Point(j, i);
+				}
+			}
+		}
+	}
+
 	int labelBlobs(const Mat& src, Mat& dst, ConnectionType connected) {
 		unsigned char* pSrc;
 		unsigned char* pDst;

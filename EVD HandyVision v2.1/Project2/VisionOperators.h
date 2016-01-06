@@ -96,6 +96,8 @@ namespace vision {
 
 	void rgbtohsv(const Mat& src, Mat& dst);
 
+	void minMaxLoc(const Mat& src, int* min, Point* minLoc, int* max, Point* maxLoc);
+
 	int labelBlobs(const Mat& src, Mat& dst, ConnectionType connected);
 	void fillHoles(const Mat& src, Mat& dst, ConnectionType connected);
 	void histogram(const Mat& src, unsigned char* hist, int *sum);

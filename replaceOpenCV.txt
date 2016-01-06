@@ -1,11 +1,9 @@
 * zit in les van hugo
 
-minMaxLoc
 GausianBlur
 CreateCircle  		synthetische cirkel/vierkant/driehoek
 GetMinRotatedRect
 
-*CalcHist
 *GetContourArea
 *morpologyEx (*Dilate, *Erode, Open, Close)
 
@@ -20,3 +18,5 @@ BGRtoHSV
 LabelBlobs
 fillHoles
 threshold
+CalcHist
+minMaxLoc
