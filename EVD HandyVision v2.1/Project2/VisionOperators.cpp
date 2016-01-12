@@ -900,9 +900,9 @@ namespace vision {
 
 	void blobAnalyse(const Mat& img, const int blobcount, BlobInfo* pBlobInfo)
 	{
-		register int i, j, q, val;
-		register Rect_aabb* boundingRects;
-		register Point p;
+		int i, j, q, val;
+		Rect_aabb* boundingRects;
+		Point p;
 
 		// Init variables
 
@@ -988,5 +988,153 @@ namespace vision {
 		}
 
 		free(boundingRects);
+	}
+
+	bool inBound(const Mat& img, int i, int j) {
+		return i >= 0 && j >= 0 && i < img.rows && j < img.cols;
+	}
+
+	bool inBound(const Mat& img, Point point) {
+		return inBound(img, point.y, point.x);
+	}
+
+	int neighbourCount(const Mat& img, const unsigned char blobnr, int i, int j) {
+		Point p;
+		int neighbourCount = 0;
+
+		int q = 4;
+		while (q--) {
+			switch (q) {
+			case 3:
+				p = Point(1, 0);
+				break;
+			case 2:
+				p = Point(-1, 0);
+				break;
+			case 1:
+				p = Point(0, 1);
+				break;
+			case 0:
+				p = Point(0, -1);
+				break;
+			case 7:
+				p = Point(1, 1);
+				break;
+			case 6:
+				p = Point(-1, 1);
+				break;
+			case 5:
+				p = Point(1, -1);
+				break;
+			case 4:
+				p = Point(-1, -1);
+				break;
+			}
+			p.x += j;
+			p.y += i;
+
+			if (inBound(img, p) && img.get(i, j).R == blobnr)
+				++neighbourCount;
+		}
+		return neighbourCount;
+	}
+
+	int neighbourCount(const Mat& img, const unsigned char blobnr, Point p) {
+		return neighbourCount(img, blobnr, p.y, p.x);
+	}
+
+	int findIndex(const std::vector<Point>& v, const Point& p) {
+		int i = v.size();
+		while (i--)
+		if (v[i].x == p.x && v[i].y == p.y)
+			return i;
+		return -1;
+	}
+
+	std::vector<Point> findContour(const Mat& img, const unsigned char blobnr) {
+		std::vector<Point> convexHull;
+		std::vector<Point> queue;
+		int i, j;
+		Point p, p2;
+
+		//Find the blob / his edge 
+		i = img.rows;
+		while (i--) {
+			j = img.cols;
+			while (j--) {
+				if (img.get(i, j).R == blobnr) {
+					queue.push_back(Point(j, i));
+					i = 0; j = 0;
+				}
+			}
+		}
+
+		//Loop through the edge of the blob
+		while (queue.size()) {
+			convexHull.push_back(queue[queue.size() - 1]);
+			queue.pop_back();
+			i = 4;
+			while (i--) {
+				switch (i) {
+				case 3:
+					p = Point(1, 0);
+					break;
+				case 2:
+					p = Point(-1, 0);
+					break;
+				case 1:
+					p = Point(0, 1);
+					break;
+				case 0:
+					p = Point(0, -1);
+					break;
+				}
+				p.x += convexHull[convexHull.size() - 1].x;
+				p.y += convexHull[convexHull.size() - 1].y;
+
+				if (inBound(img, p) && img.get(p).R == blobnr && (convexHull.size() <= 1 || (p.x != convexHull[convexHull.size() - 2].x || p.y != convexHull[convexHull.size() - 2].y))) {
+					// Check if the pixel has a neigbour
+					j = 8;
+					while (j--) {
+						switch (j) {
+						case 7:
+							p2 = Point(1, 0);
+							break;
+						case 6:
+							p2 = Point(-1, 0);
+							break;
+						case 5:
+							p2 = Point(0, 1);
+							break;
+						case 4:
+							p2 = Point(0, -1);
+							break;
+						case 3:
+							p2 = Point(1, 1);
+							break;
+						case 2:
+							p2 = Point(-1, 1);
+							break;
+						case 1:
+							p2 = Point(1, -1);
+							break;
+						case 0:
+							p2 = Point(-1, -1);
+							break;
+						}
+						p2.x += p.x;
+						p2.y += p.y;
+
+						if (!inBound(img, p2) || img.get(p2).R != blobnr) {
+							if (findIndex(convexHull, p) == -1 && findIndex(queue, p) == -1)
+								queue.push_back(p);
+
+							j = 0;
+						}
+					}
+				}
+			}
+		}
+		return convexHull;
 	}
 }
