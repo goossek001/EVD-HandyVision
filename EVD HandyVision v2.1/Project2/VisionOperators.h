@@ -37,6 +37,10 @@ namespace vision {
 		IM_32SC1
 	};
 
+	enum ConnectionType {
+		FOUR,
+		EIGHT
+	};
 
 	int bytesPerPixel(ImageType type);
 
@@ -89,4 +93,29 @@ namespace vision {
 	void drawRect(const Mat& src, Mat& dst, const RotatadRect& rect, const Color& color = Color(1));
 
 	void distanceTransform(const Mat& src, Mat& dst);
+
+	void rgbtohsv(const Mat& src, Mat& dst);
+
+	void minMaxLoc(const Mat& src, int* min, Point* minLoc, int* max, Point* maxLoc);
+
+	int labelBlobs(const Mat& src, Mat& dst, ConnectionType connected);
+	void fillHoles(const Mat& src, Mat& dst, ConnectionType connected);
+	void histogram(const Mat& src, unsigned char* hist, int *sum);
+
+	struct BlobInfo {
+		int height;
+		int width;
+		int nof_pixels;
+		float    perimeter;
+	};
+	struct Rect_aabb {
+		Point bottomLeft;
+		Point topRight;
+	};
+	struct Rect_oob {
+		Point bottomLeft;
+		Point topRight;
+		float radians;
+	};
+	void blobAnalyse(const Mat& img, const int blobcount, BlobInfo* pBlobInfo);
 }

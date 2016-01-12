@@ -1,21 +1,11 @@
 * zit in les van hugo
 
-create(size, type, color)
-line
-minMaxLoc
 GausianBlur
 CreateCircle  		synthetische cirkel/vierkant/driehoek
-BGRtoHSV
 GetMinRotatedRect
-drawFilledContours
 
-*inRange (threshold) (les 3)
-*findContours  (les 6)
-*fillHoles  (les 5)
-*Copy
-*CalcHist
-*morpologyEx (*Dilate, *Erode, Open, Close)
 *GetContourArea
+*morpologyEx (*Dilate, *Erode, Open, Close)
 
 Klaar:
 GetRotationMatrix2D
@@ -24,3 +14,9 @@ fillConvexPoly
 Point
 Point2f
 DistanceTransform
+BGRtoHSV
+LabelBlobs
+fillHoles
+threshold
+CalcHist
+minMaxLoc
