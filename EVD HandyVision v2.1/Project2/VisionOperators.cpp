@@ -897,4 +897,96 @@ namespace vision {
 
 		return;
 	}
+
+	void blobAnalyse(const Mat& img, const int blobcount, BlobInfo* pBlobInfo)
+	{
+		register int i, j, q, val;
+		register Rect_aabb* boundingRects;
+		register Point p;
+
+		// Init variables
+
+		boundingRects = (Rect_aabb*)malloc(32 * blobcount);
+
+		i = blobcount;
+		while (i--) {
+			boundingRects[i].bottomLeft.x = img.cols;
+			boundingRects[i].topRight.x = 0;
+			boundingRects[i].bottomLeft.y = img.rows;
+			boundingRects[i].topRight.y = 0;
+
+			pBlobInfo[i].nof_pixels = 0;
+			pBlobInfo[i].perimeter = 0;
+		}
+
+		//Loop through all pixels and adjust a blob info everytime a labeled is found
+		i = img.rows;
+		while (i--) {
+			j = img.cols;
+			while (j--) {
+				val = img.get(i, j).R;
+				if (img.get(i, j).R && img.get(i, j).R <= blobcount) {  //A labeled pixel is found
+					--val;		//Go from blob nummer to his index int the blobinfo array
+
+					// Adjust the number of pixels
+
+					++(pBlobInfo[val].nof_pixels);
+
+					// Adjust the bounding rect
+
+					if (j < boundingRects[val].bottomLeft.x)
+						boundingRects[val].bottomLeft.x = j;
+					if (j > boundingRects[val].topRight.x)
+						boundingRects[val].topRight.x = j;
+					if (i < boundingRects[val].bottomLeft.y)
+						boundingRects[val].bottomLeft.y = i;
+					if (i > boundingRects[val].topRight.y)
+						boundingRects[val].topRight.y = i;
+
+					//Adjust the perimeter
+
+					val = 0;
+					q = img.rows;
+					while (q--) {
+						switch (q) {
+						case 0:
+							p.x = -1;
+							p.y = 0;
+							break;
+						case 1:
+							p.x = 1;
+							p.y = 0;
+							break;
+						case 2:
+							p.x = 0;
+							p.y = -1;
+							break;
+						case 3:
+							p.x = 0;
+							p.y = 1;
+							break;
+						}
+						p.x += j;
+						p.y += i;
+
+						if (!(p.x >= 0 && p.x < img.cols && p.y >= 0 && p.y < img.rows) ||
+							img.get(p.y, p.x).R != img.get(i, j).R)
+							++val;
+					}
+					if (val)
+						pBlobInfo[(int)img.get(i, j).R - 1].perimeter += (val == 1 ? 1.0f : (val == 2 ? 1.414214f : 2.236068f));
+				}
+			}
+
+		}
+
+		//Calulate the height and width of the blob
+		i = blobcount;
+		while (i--) {
+			pBlobInfo[i].width = boundingRects[i].topRight.x - boundingRects[i].bottomLeft.x + 1;
+			pBlobInfo[i].height = boundingRects[i].topRight.y - boundingRects[i].bottomLeft.y + 1;
+		}
+
+		free(boundingRects);
+	}
 }

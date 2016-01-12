@@ -101,4 +101,21 @@ namespace vision {
 	int labelBlobs(const Mat& src, Mat& dst, ConnectionType connected);
 	void fillHoles(const Mat& src, Mat& dst, ConnectionType connected);
 	void histogram(const Mat& src, unsigned char* hist, int *sum);
+
+	struct BlobInfo {
+		int height;
+		int width;
+		int nof_pixels;
+		float    perimeter;
+	};
+	struct Rect_aabb {
+		Point bottomLeft;
+		Point topRight;
+	};
+	struct Rect_oob {
+		Point bottomLeft;
+		Point topRight;
+		float radians;
+	};
+	void blobAnalyse(const Mat& img, const int blobcount, BlobInfo* pBlobInfo);
 }
