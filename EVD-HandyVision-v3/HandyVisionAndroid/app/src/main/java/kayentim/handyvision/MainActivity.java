@@ -1,15 +1,23 @@
+//***************************************************************************************
+// Open CameraFeed, take picture and store this in the shared lib.
+// Autors:	Tim Rijssemus
+// Date:	December 2015
+// Version: 1.00
+//***************************************************************************************
+
 package kayentim.handyvision;
 
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -18,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private CameraView mCameraView = null;
 
     static {
-        System.loadLibrary("ndktest"); // load the module name from Android.mk
+        System.loadLibrary("SharedLib"); // load the module name from Android.mk
     }
 
     @Override
@@ -26,24 +34,39 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-        try{
-            mCamera = Camera.open();//you can use open(int) to use different cameras
-        } catch (Exception e){
+        try {
+            mCamera = Camera.open();        // Opens back camera
+        } catch (Exception e) {
             Log.d("ERROR", "Failed to get camera: " + e.getMessage());
         }
 
-        if(mCamera != null) {
-            mCameraView = new CameraView(this, mCamera);//create a SurfaceView to show camera data
-            FrameLayout camera_view = (FrameLayout)findViewById(R.id.camera_view);
-            camera_view.addView(mCameraView);//add the SurfaceView to the layout
+        if (mCamera != null) {
+            mCameraView = new CameraView(this, mCamera);            //create a SurfaceView to show camera data
+            FrameLayout camera_view = (FrameLayout) findViewById(R.id.camera_view);
+            camera_view.addView(mCameraView);                       //add the SurfaceView to the layout
         }
 
-        // make a snapshot or so and proces this in native file
-        ((TextView)findViewById(R.id.text_sign)).setText(helloWorld());  // this must set the text in the image.
+        // makes a snapshot
+        new CountDownTimer(3000,1500){
+
+            @Override
+            public void onFinish() {
+                mCamera.takePicture(null, null, mPicture);
+                Log.d("MyCameraApp", "I TOOK A PICTURE!!!!!!");
+                mCamera.startPreview();
+            }
+
+            @Override
+            public void onTick(long millisUntilFinished) {
+
+            }
+        }.start();
+
+                //TODO Place the text in the screen
+        ((TextView) findViewById(R.id.text_sign)).setText(helloWorld());  // this must set the text in the image.
 
         //btn to close the application
-        ImageButton imgClose = (ImageButton)findViewById(R.id.imgClose);
+        ImageButton imgClose = (ImageButton) findViewById(R.id.imgClose);
         imgClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -53,6 +76,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Picture Callback for sending the picture data to c file.
+     */
+    Camera.PictureCallback mPicture = new Camera.PictureCallback() {
+        @Override
+        public void onPictureTaken(byte[] data, Camera camera) {
+            //TODO send this data to cpp file.
+        }
+    };
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -60,18 +93,4 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 }

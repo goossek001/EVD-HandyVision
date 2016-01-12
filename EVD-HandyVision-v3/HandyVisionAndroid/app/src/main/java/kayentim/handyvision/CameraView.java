@@ -2,30 +2,38 @@ package kayentim.handyvision;
 
 import android.content.Context;
 import android.hardware.Camera;
+import android.os.Environment;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 
     private SurfaceHolder mHolder;
     private Camera mCamera;
 
-    public CameraView(Context context, Camera camera){
+    public CameraView(Context context, Camera camera) {
         super(context);
 
-        mCamera=camera;
+        this.mCamera = camera;
         mCamera.setDisplayOrientation(90);
+        Camera.Parameters parameters = mCamera.getParameters();                     // new
+        parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);  // Set the auto-focus mode to "continuous"
         mHolder = getHolder();
         mHolder.addCallback(this);
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_NORMAL);
     }
 
     @Override
-    public void surfaceCreated(SurfaceHolder surfaceHolder){
-        try{
+    public void surfaceCreated(SurfaceHolder surfaceHolder) {
+        try {
             //when the surface is created, we can set the camera to draw images in this surfaceholder
             mCamera.setPreviewDisplay(surfaceHolder);
             mCamera.startPreview();
@@ -35,19 +43,19 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     @Override
-    public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i2, int i3){
+    public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i2, int i3) {
 //before changing the application orientation, you need to stop the preview, rotate and then start it again
-        if(mHolder.getSurface() == null)//check if the surface is ready to receive camera data
+        if (mHolder.getSurface() == null)//check if the surface is ready to receive camera data
             return;
 
-        try{
+        try {
             mCamera.stopPreview();
-        } catch (Exception e){
+        } catch (Exception e) {
             //this will happen when you are trying the camera if it's not running
         }
 
         //now, recreate the camera preview
-        try{
+        try {
             mCamera.setPreviewDisplay(mHolder);
             mCamera.startPreview();
         } catch (IOException e) {
@@ -56,10 +64,12 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     @Override
-    public void surfaceDestroyed(SurfaceHolder surfaceHolder){
+    public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
         //our app has only one screen, so we'll destroy the camera in the surface
         //if you are using with more screens, please move this code your activity
         mCamera.stopPreview();
         mCamera.release();
     }
+
+
 }
