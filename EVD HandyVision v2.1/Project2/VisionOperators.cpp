@@ -1053,9 +1053,11 @@ namespace vision {
 
 	std::vector<Point> findContour(const Mat& img, const unsigned char blobnr) {
 		std::vector<Point> convexHull;
-		std::vector<Point> queue;
 		int i, j;
 		Point p, p2;
+		bool l;
+		int neighbours;
+		int neighbourID;
 
 		//Find the blob / his edge 
 		i = img.rows;
@@ -1063,16 +1065,15 @@ namespace vision {
 			j = img.cols;
 			while (j--) {
 				if (img.get(i, j).R == blobnr) {
-					queue.push_back(Point(j, i));
+					convexHull.push_back(Point(j + 1, i));
 					i = 0; j = 0;
 				}
 			}
 		}
 
 		//Loop through the edge of the blob
-		while (queue.size()) {
-			convexHull.push_back(queue[queue.size() - 1]);
-			queue.pop_back();
+		l = true;
+		while (l) {
 			i = 4;
 			while (i--) {
 				switch (i) {
@@ -1092,45 +1093,59 @@ namespace vision {
 				p.x += convexHull[convexHull.size() - 1].x;
 				p.y += convexHull[convexHull.size() - 1].y;
 
-				if (inBound(img, p) && img.get(p).R == blobnr && (convexHull.size() <= 1 || (p.x != convexHull[convexHull.size() - 2].x || p.y != convexHull[convexHull.size() - 2].y))) {
+				if ((!inBound(img, p) || img.get(p).R != blobnr) && (convexHull.size() <= 1 || (p.x != convexHull[convexHull.size() - 2].x || p.y != convexHull[convexHull.size() - 2].y))) {
 					// Check if the pixel has a neigbour
+					neighbours = 0;
 					j = 8;
 					while (j--) {
 						switch (j) {
 						case 7:
 							p2 = Point(1, 0);
+							neighbourID = 1;
 							break;
 						case 6:
 							p2 = Point(-1, 0);
+							neighbourID = 2;
 							break;
 						case 5:
 							p2 = Point(0, 1);
+							neighbourID = 4;
 							break;
 						case 4:
 							p2 = Point(0, -1);
+							neighbourID = 8;
 							break;
 						case 3:
 							p2 = Point(1, 1);
+							neighbourID = 16;
 							break;
 						case 2:
 							p2 = Point(-1, 1);
+							neighbourID = 32;
 							break;
 						case 1:
 							p2 = Point(1, -1);
+							neighbourID = 64;
 							break;
 						case 0:
 							p2 = Point(-1, -1);
+							neighbourID = 128;
 							break;
 						}
 						p2.x += p.x;
 						p2.y += p.y;
 
-						if (!inBound(img, p2) || img.get(p2).R != blobnr) {
-							if (findIndex(convexHull, p) == -1 && findIndex(queue, p) == -1)
-								queue.push_back(p);
-
-							j = 0;
+						if (inBound(img, p2) && img.get(p2).R == blobnr) {
+							neighbours |= neighbourID;
 						}
+					}
+					if (neighbours && !((neighbours & 1) && (neighbours & 2)) && !((neighbours & 4) && (neighbours & 8))) {
+						if (p.x == convexHull[0].x && p.y == convexHull[0].y) {
+							l = false;
+							i = 0;
+						}
+						else
+							convexHull.push_back(p);
 					}
 				}
 			}
