@@ -1,6 +1,5 @@
 #include "VisionOperators.h"
 #include <algorithm>
-
 namespace vision {
 #define PI 3.14159265359f
 #define TWO_PI 6.28318530718f
@@ -1010,6 +1009,17 @@ namespace vision {
 
 	bool inBound(const Mat& img, Point point) {
 		return inBound(img, point.y, point.x);
+	}
+
+	void Rect_obb::vertices(Point arr[4]) {
+		arr[0] = bottomLeft;
+		arr[2] = topRight;
+
+		Point2f p = Point2f(cos(radians), sin(radians));
+		int i = dotProd(bottomLeft - topRight, p);
+
+		arr[1] = bottomLeft + p;
+		arr[3] = topRight - p;
 	}
 
 	int neighbourCount(const Mat& img, const unsigned char blobnr, int i, int j) {

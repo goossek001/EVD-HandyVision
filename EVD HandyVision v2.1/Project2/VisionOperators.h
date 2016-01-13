@@ -123,6 +123,8 @@ namespace vision {
 		Point bottomLeft;
 		Point topRight;
 		float radians;
+
+		void vertices(Point arr[4]);
 	};
 	void blobAnalyse(const Mat& img, const int blobcount, BlobInfo* blobInfo);
 	bool inBound(const Mat& img, int i, int j);
