@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 
 namespace vision {
 	struct Point {
@@ -117,5 +118,10 @@ namespace vision {
 		Point topRight;
 		float radians;
 	};
-	void blobAnalyse(const Mat& img, const int blobcount, BlobInfo* pBlobInfo);
+	void blobAnalyse(const Mat& img, const int blobcount, BlobInfo* blobInfo);
+	bool inBound(const Mat& img, int i, int j);
+	bool inBound(const Mat& img, Point point);
+	int neighbourCount(const Mat& img, const unsigned char blobnr, int i, int j);
+	int neighbourCount(const Mat& img, const unsigned char blobnr, Point p);
+	std::vector<Point> findContour(const Mat& img, const unsigned char blobnr);
 }
