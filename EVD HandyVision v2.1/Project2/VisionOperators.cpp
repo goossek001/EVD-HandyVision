@@ -1,5 +1,6 @@
 #include "VisionOperators.h"
 #include <algorithm>
+#include <iostream>
 
 namespace vision {
 #define PI 3.14159265359f
@@ -9,9 +10,16 @@ namespace vision {
 		x = 0;
 		y = 0;
 	}
+	Point::Point(const Point2f& v) {
+		this->x = roundf(v.x);
+		this->y = roundf(v.y);
+	}
 	Point::Point(int x, int y) {
 		this->x = x;
 		this->y = y;
+	}
+	Point Point::operator*(const int& i) const {
+		return Point(x * i, y * i);
 	}
 	Point Point::operator+(const Point& other) const {
 		return Point(x + other.x, y + other.y);
@@ -23,9 +31,16 @@ namespace vision {
 		x = 0;
 		y = 0;
 	}
+	Point2f::Point2f(const Point& p) {
+		this->x = p.x;
+		this->y = p.y;
+	}
 	Point2f::Point2f(float x, float y) {
 		this->x = x;
 		this->y = y;
+	}
+	Point2f Point2f::operator*(const int& i) const {
+		return Point2f(x * i, y * i);
 	}
 	Point2f Point2f::operator+(const Point2f& other) const {
 		return Point2f(x + other.x, y + other.y);
@@ -1075,7 +1090,6 @@ namespace vision {
 		l = true;
 		while (l) {
 			i = 4;
-			std::cout << std::endl << convexHull[convexHull.size() - 1].x << ", " << convexHull[convexHull.size() - 1].y << std::endl;
 			while (i--) {
 				switch (i) {
 				case 3:
@@ -1152,5 +1166,90 @@ namespace vision {
 			}
 		}
 		return convexHull;
+	}
+
+	void convertToConvexHull(std::vector<Point>& contour) {
+		bool l;
+		int i;
+		Point p1, p2, p3;
+		float radians;
+
+		l = true;
+		while (l) {
+			l = false;
+			i = contour.size();
+
+			while (i--) {
+				p1 = contour[i ? i - 1 : contour.size() - 1];
+				p2 = contour[i];
+				p3 = contour[i == contour.size() - 1 ? 0 : i + 1];
+
+				radians = atan2(p1.y - p2.y, p1.x - p2.x);
+				radians -= atan2(p1.y - p3.y, p1.x - p3.x);
+				radians = fmod(radians + TWO_PI, TWO_PI);
+
+				if (radians <= PI) {
+					contour.erase(contour.begin() + i);
+					l = true;
+					if (i)
+						--i;
+				}
+			}
+		}
+	}
+
+	float dotProd(Point2f v1, Point2f v2) {
+		return v1.x * v2.x + v1.y * v2.y;
+	}
+
+	Rect_obb findOMBB(const std::vector<Point>& convexHull) {
+		Rect_obb rect, OMBB;
+		int surface, smallestSurface;
+		float radians;
+		int min_x, max_x, min_y, max_y;
+		int min_x_realcoord, max_x_realcoord, min_y_realcoord, max_y_realcoord;
+		Point2f xAx, yAx;
+		int i, j;
+		float dot;
+
+		smallestSurface = INT_MAX;
+
+		i = convexHull.size();
+		while (--i) {
+			radians = atan2(convexHull[i - 1].y - convexHull[i].y, convexHull[i - 1].x - convexHull[i].x);
+
+			xAx = Point2f(cos(radians), sin(radians));
+			yAx = Point2f(-xAx.y, xAx.x);
+
+			min_x = dotProd(xAx, convexHull[0]);
+			max_x = dotProd(xAx, convexHull[0]);
+			min_y = dotProd(yAx, convexHull[0]);
+			max_y = dotProd(yAx, convexHull[0]);
+
+			j = convexHull.size();
+			while (--j) {
+				dot = dotProd(xAx, convexHull[j]);
+				if (dot < min_x)
+					min_x = dot;
+				else if (dot > max_x)
+					max_x = dot;
+
+				dot = dotProd(yAx, convexHull[j]);
+				if (dot < min_y)
+					min_y = dot;
+				else if (dot > max_y)
+					max_y = dot;
+			}
+			surface = (max_x - min_x) * (max_y - min_y);
+			if (smallestSurface > surface) {
+				OMBB.radians = radians;
+				OMBB.bottomLeft = xAx * min_x + yAx * min_y;
+				OMBB.topRight = xAx * max_x + yAx * max_y;
+
+				smallestSurface = surface;
+			}
+		}
+
+		return OMBB;
 	}
 }
