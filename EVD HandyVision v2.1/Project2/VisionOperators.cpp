@@ -1075,6 +1075,7 @@ namespace vision {
 		l = true;
 		while (l) {
 			i = 4;
+			std::cout << std::endl << convexHull[convexHull.size() - 1].x << ", " << convexHull[convexHull.size() - 1].y << std::endl;
 			while (i--) {
 				switch (i) {
 				case 3:
@@ -1142,10 +1143,10 @@ namespace vision {
 					if (neighbours && !((neighbours & 1) && (neighbours & 2)) && !((neighbours & 4) && (neighbours & 8))) {
 						if (p.x == convexHull[0].x && p.y == convexHull[0].y) {
 							l = false;
-							i = 0;
 						}
 						else
 							convexHull.push_back(p);
+						i = 0;
 					}
 				}
 			}
