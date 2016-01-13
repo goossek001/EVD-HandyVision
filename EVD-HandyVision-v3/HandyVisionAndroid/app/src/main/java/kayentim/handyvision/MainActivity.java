@@ -21,7 +21,7 @@ import android.widget.ImageButton;
 
 public class MainActivity extends AppCompatActivity {
 
-    public native String helloWorld();   //create the native functioncall
+    public native String getPicture(byte[] data);   //create the native functioncall
     private Camera mCamera = null;
     private CameraView mCameraView = null;
 
@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) { // creates the app, setting up camera ect.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -46,25 +46,6 @@ public class MainActivity extends AppCompatActivity {
             camera_view.addView(mCameraView);                       //add the SurfaceView to the layout
         }
 
-        // makes a snapshot
-        new CountDownTimer(3000,1500){
-
-            @Override
-            public void onFinish() {
-                mCamera.takePicture(null, null, mPicture);
-                Log.d("MyCameraApp", "I TOOK A PICTURE!!!!!!");
-                mCamera.startPreview();
-            }
-
-            @Override
-            public void onTick(long millisUntilFinished) {
-
-            }
-        }.start();
-
-                //TODO Place the text in the screen
-        ((TextView) findViewById(R.id.text_sign)).setText(helloWorld());  // this must set the text in the image.
-
         //btn to close the application
         ImageButton imgClose = (ImageButton) findViewById(R.id.imgClose);
         imgClose.setOnClickListener(new View.OnClickListener() {
@@ -76,21 +57,47 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+     @Override
+     protected void onStart() {
+        super.onStart();
+        Log.d("MainAct:", "On Start .....");
+
+         // makes a snapshot every 3000 secs
+         new CountDownTimer(3000, 1500) {
+
+             @Override
+             public void onFinish() {
+                 mCamera.takePicture(null, null, mPicture);
+                 Log.d("MyCameraApp", "I TOOK A PICTURE!!!!!!");
+                 mCamera.startPreview();
+             }
+
+             @Override
+             public void onTick(long millisUntilFinished) {
+
+             }
+         }.start();
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d("MainAct:", "On Destroy .....");
+    }
+
     /**
      * Picture Callback for sending the picture data to c file.
      */
     Camera.PictureCallback mPicture = new Camera.PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
-            //TODO send this data to cpp file.
+            Log.d("MyCameraApp", "data");
+            // TODO send this data to native file.
+            ((TextView) findViewById(R.id.text_sign)).setText(getPicture(data));
         }
     };
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
 
 }

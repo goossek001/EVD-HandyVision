@@ -8,19 +8,18 @@
 #include<jni.h>
 #include<string.h>
 
+
 extern "C" {
+	/**
+     * getPicture receives the camera data from MainActivity
+     * Returns the string with handsign
+     */
+	jstring Java_kayentim_handyvision_MainActivity_getPicture(JNIEnv* env, jobject obj){
 
-	jstring Java_kayentim_handyvision_MainActivity_helloWorld(JNIEnv* env, jobject obj){
-		int * foo;
-		foo = new int [5];
-		int i = 5;
+		// TODO USE EVERYTHING YOU GOT AND TRANSLATE THIS PICTURE!
 
-		for (n=0; n<i; n++)
-		{
-			foo[n];
-		}
-		delete foo;
-		return env->NewStringUTF("hello world");
+		return env->NewStringUTF("HelloWorld_2");
+
 	}
 }
 /*
