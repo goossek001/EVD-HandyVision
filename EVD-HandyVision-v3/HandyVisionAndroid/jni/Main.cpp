@@ -16,7 +16,7 @@ extern "C" {
      */
 	jstring Java_kayentim_handyvision_MainActivity_getPicture(JNIEnv* env, jobject obj){
 
-		// TODO USE EVERYTHING YOU GOT AND TRANSLATE THIS PICTURE!
+		// TODO: USE EVERYTHING YOU GOT AND TRANSLATE THIS PICTURE!
 
 		return env->NewStringUTF("HelloWorld_2");
 
