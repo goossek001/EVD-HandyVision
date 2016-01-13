@@ -9,14 +9,14 @@ package kayentim.handyvision;
 
 import android.hardware.Camera;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.util.Log;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.view.Menu;
 import android.widget.TextView;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -46,6 +46,10 @@ public class MainActivity extends AppCompatActivity {
             camera_view.addView(mCameraView);                       //add the SurfaceView to the layout
         }
 
+        MyTimerTask myTask = new MyTimerTask();
+        Timer myTimer = new Timer();
+        myTimer.schedule(myTask, 3000, 1000);       // timer to take pictures (first will be made at the 3th sec, every following sec follows another picture)
+
         //btn to close the application
         ImageButton imgClose = (ImageButton) findViewById(R.id.imgClose);
         imgClose.setOnClickListener(new View.OnClickListener() {
@@ -57,29 +61,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-     @Override
-     protected void onStart() {
-        super.onStart();
-        Log.d("MainAct:", "On Start .....");
-
-         // makes a snapshot every 3000 secs
-         new CountDownTimer(3000, 1500) {
-
-             @Override
-             public void onFinish() {
-                 mCamera.takePicture(null, null, mPicture);
-                 Log.d("MyCameraApp", "I TOOK A PICTURE!!!!!!");
-                 mCamera.startPreview();
-             }
-
-             @Override
-             public void onTick(long millisUntilFinished) {
-
-             }
-         }.start();
+    class MyTimerTask extends TimerTask {
+        public void run() {
+            mCamera.takePicture(null, null, mPicture);
+            Log.d("MyCameraApp", "I TOOK A PICTURE!!!!!!");
+            mCamera.startPreview();
+        }
     }
-
 
     @Override
     protected void onDestroy() {
@@ -93,9 +81,8 @@ public class MainActivity extends AppCompatActivity {
     Camera.PictureCallback mPicture = new Camera.PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
-            Log.d("MyCameraApp", "data");
-            // TODO send this data to native file.
-            ((TextView) findViewById(R.id.text_sign)).setText(getPicture(data));
+            Log.d("MyCameraApp", "picture data send");
+            ((TextView) findViewById(R.id.text_sign)).setText(getPicture(data));    // sends data to native file, and set the text on screen
         }
     };
 
