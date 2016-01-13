@@ -2,11 +2,14 @@
 #include <vector>
 
 namespace vision {
+	struct Point2f;
 	struct Point {
 		int x, y;
 
 		Point();
+		Point(const Point2f& p);
 		Point(int x, int y);
+		Point operator*(const int& i) const;
 		Point operator+(const Point& other) const;
 		Point operator-(const Point& other) const;
 	};
@@ -14,10 +17,13 @@ namespace vision {
 		float x, y;
 
 		Point2f();
+		Point2f(const Point& p);
 		Point2f(float x, float y);
+		Point2f operator*(const int& i) const;
 		Point2f operator+(const Point2f& other) const;
 		Point2f operator-(const Point2f& other) const;
 	};
+	float dotProd(Point2f v1, Point2f v2);
 
 	struct Color {
 		float R, G, B, A;
@@ -113,7 +119,7 @@ namespace vision {
 		Point bottomLeft;
 		Point topRight;
 	};
-	struct Rect_oob {
+	struct Rect_obb {
 		Point bottomLeft;
 		Point topRight;
 		float radians;
@@ -124,4 +130,6 @@ namespace vision {
 	int neighbourCount(const Mat& img, const unsigned char blobnr, int i, int j);
 	int neighbourCount(const Mat& img, const unsigned char blobnr, Point p);
 	std::vector<Point> findContour(const Mat& img, const unsigned char blobnr);
+	void convertToConvexHull(std::vector<Point>& contour);
+	Rect_obb findOMBB(const std::vector<Point>& convexHull);
 }
