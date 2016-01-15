@@ -12,7 +12,7 @@
 extern "C" {
 	/**
      * getPicture receives the camera data from MainActivity
-     * Returns the string with handsign
+     * Returns the string with hand sign
      */
 	jstring Java_kayentim_handyvision_MainActivity_getPicture(JNIEnv* env, jobject obj){
 
