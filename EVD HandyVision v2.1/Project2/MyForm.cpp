@@ -4,6 +4,8 @@
 #include "HandReconisionTools.h"
 #include "Math.h"
 
+#include "VisionOperators.h"
+
 using namespace System;
 using namespace System::Windows::Forms;
 using namespace ASDF;
