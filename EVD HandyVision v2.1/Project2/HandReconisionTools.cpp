@@ -71,7 +71,8 @@ void biggestColorBlob(const Mat& src, Mat& dst, const Mat& mask) {
 void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
 		int H_min, int H_max,
 		int S_min, int S_max,
-		int V_min, int V_max) {
+		int V_min, int V_max,
+		int S_size, int V_size) {
 	/*cv::Point H = cv::Point(0.9 * 255, 0.2 * 255);
 	cv::Point S = cv::Point(0.35 * 255, 0.95*255);
 	cv::Point V = cv::Point(0.15 * 255, 0.75 * 255);*/
@@ -80,13 +81,13 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
 	cv::Point S = cv::Point(S_min, S_max);
 	cv::Point V = cv::Point(V_min, V_max);
 
-	int size = 128;
-	int extend = size / 2;
+	cv::Point size = cv::Point(S_size, V_size);
+	cv::Point extend = cv::Point(size.x / 2, size.y / 2);
 	cv::Point center = cv::Point(S.x + (S.y - S.x) / 2,
 		V.x + (V.y - V.x) / 2);
 
-	float sranges[] = { center.x - extend, center.x + extend };
-	float vranges[] = { center.y - extend, center.y + extend };
+	float sranges[] = { center.x - extend.x, center.x + extend.x };
+	float vranges[] = { center.y - extend.y, center.y + extend.y };
 
 	cv::MatND hist;
 	double maxVal;
@@ -94,7 +95,7 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
 	for (int i = 0; i < 10; ++i) {
 
 		const float* ranges[] = { sranges, vranges };
-		int histSize[] = { size, size };
+		int histSize[] = { size.x, size.x };
 		int channels[] = { 1, 2 };
 		calcHist(&src, 1, channels, Mat(), // do not use mask
 			hist, 2, histSize, ranges,
@@ -115,26 +116,26 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
 		avarage.x += sranges[0];
 		avarage.y += vranges[0];
 
-		sranges[0] = avarage.x - extend;
-		sranges[1] = avarage.x + extend;
-		vranges[0] = avarage.y - extend;
-		vranges[1] = avarage.y + extend;
+		sranges[0] = avarage.x - extend.x;
+		sranges[1] = avarage.x + extend.x;
+		vranges[0] = avarage.y - extend.y;
+		vranges[1] = avarage.y + extend.y;
 
 		if (sranges[0] < S.x) {
 			sranges[0] = S.x;
-			sranges[1] = S.x + size;
+			sranges[1] = S.x + size.x;
 		}
 		if (sranges[1] > S.y) {
 			sranges[1] = S.y;
-			sranges[0] = S.y - size;
+			sranges[0] = S.y - size.x;
 		}
 		if (vranges[0] < V.x) {
 			vranges[0] = V.x;
-			vranges[1] = V.x + size;
+			vranges[1] = V.x + size.y;
 		}
 		if (vranges[1] > V.y) {
 			vranges[1] = V.y;
-			vranges[0] = V.y - size;
+			vranges[0] = V.y - size.y;
 		}
 
 

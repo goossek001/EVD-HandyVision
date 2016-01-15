@@ -72,8 +72,6 @@ namespace ASDF {
 	private: System::Windows::Forms::Panel^  panel1;
 	private: System::Windows::Forms::Label^  label1;
 	private: System::Windows::Forms::Label^  label2;
-
-
 	private: System::Windows::Forms::TrackBar^  trackBar1;
 	private: System::Windows::Forms::TrackBar^  trackBar2;
 	private: System::Windows::Forms::Label^  label5;
@@ -94,28 +92,41 @@ namespace ASDF {
 	private: System::Windows::Forms::Label^  label14;
 	private: System::Windows::Forms::Label^  label15;
 	private: System::Windows::Forms::Label^  label16;
+	private: System::Windows::Forms::TrackBar^  trackBar7;
+	private: System::Windows::Forms::Label^  label17;
+	private: System::Windows::Forms::Label^  label18;
+	private: System::Windows::Forms::TrackBar^  trackBar8;
+	private: System::Windows::Forms::Label^  label19;
+	private: System::Windows::Forms::Label^  label20;
+	private: System::Windows::Forms::Label^  label21;
 			 /// <summary>
 		/// Required designer variable.
 		/// </summary>
 		System::ComponentModel::Container ^components;
 
 	void TrackBar1_ValueChanged(Object^ sender, EventArgs^ e) {
-		label10->Text = trackBar1->Value.ToString();
+		label11->Text = trackBar1->Value.ToString();
 	}
 	void TrackBar2_ValueChanged(Object^ sender, EventArgs^ e) {
-		label11->Text = trackBar2->Value.ToString();
+		label12->Text = trackBar2->Value.ToString();
 	}
 	void TrackBar3_ValueChanged(Object^ sender, EventArgs^ e) {
-		label12->Text = trackBar3->Value.ToString();
+		label13->Text = trackBar3->Value.ToString();
 	}
 	void TrackBar4_ValueChanged(Object^ sender, EventArgs^ e) {
-		label13->Text = trackBar4->Value.ToString();
+		label14->Text = trackBar4->Value.ToString();
 	}
 	void TrackBar5_ValueChanged(Object^ sender, EventArgs^ e) {
-		label14->Text = trackBar5->Value.ToString();
+		label15->Text = trackBar5->Value.ToString();
 	}
 	void TrackBar6_ValueChanged(Object^ sender, EventArgs^ e) {
-		label15->Text = trackBar6->Value.ToString();
+		label16->Text = trackBar6->Value.ToString();
+	}
+	void TrackBar7_ValueChanged(Object^ sender, EventArgs^ e) {
+		label17->Text = trackBar7->Value.ToString();
+	}
+	void TrackBar8_ValueChanged(Object^ sender, EventArgs^ e) {
+		label18->Text = trackBar8->Value.ToString();
 	}
 
 	void InitTrackBars() {
@@ -131,6 +142,10 @@ namespace ASDF {
 		this->Controls->Add(this->trackBar5);
 		trackBar6->ValueChanged += gcnew System::EventHandler(this, &MyForm::TrackBar6_ValueChanged);
 		this->Controls->Add(this->trackBar6);
+		trackBar7->ValueChanged += gcnew System::EventHandler(this, &MyForm::TrackBar7_ValueChanged);
+		this->Controls->Add(this->trackBar7);
+		trackBar8->ValueChanged += gcnew System::EventHandler(this, &MyForm::TrackBar8_ValueChanged);
+		this->Controls->Add(this->trackBar8);
 	}
 	delegate int GetBarDelegate();
 		
@@ -152,6 +167,12 @@ namespace ASDF {
 	int GetBar6() {
 		return trackBar6->Value;
 	}
+	int GetBar7() {
+		return trackBar7->Value;
+	}
+	int GetBar8() {
+		return trackBar8->Value;
+	}
 
 
 #pragma region Windows Form Designer generated code
@@ -171,5 +192,7 @@ namespace ASDF {
 	}
 	private: System::Void label2_Click(System::Object^  sender, System::EventArgs^  e) {
 	}
-	};
+	private: System::Void trackBar1_Scroll(System::Object^  sender, System::EventArgs^  e) {
+	}
+};
 }

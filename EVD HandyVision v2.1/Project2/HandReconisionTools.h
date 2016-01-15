@@ -29,7 +29,8 @@ void biggestColorBlob(const Mat& src, Mat& dst, const Mat& mask = Mat());
 void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
 	int H_min, int H_max,
 	int S_min, int S_max,
-	int V_min, int V_max);
+	int V_min, int V_max,
+	int S_size, int V_size);
 void CannyHandFilter(const Mat& src, Mat& dst);
 void getPalmCenter(const Mat& src, cv::Point& palmCenter, float& palmRadius);
 void createPalmMask(const Mat& src, Mat& dst, cv::Point palmCenter, float palmRadius);

@@ -16,8 +16,10 @@ namespace cv {
 				inRange(src, lowerbound, upperbound, dst);
 			}
 			else {
-				inRange(src, 0, lowerbound, dst);
-				inRange(dst, upperbound, 255, dst);
+				Mat temp;
+				inRange(src, lowerbound, 255, temp);
+				inRange(src, 0, upperbound, dst);
+				bitwise_or(dst, temp, dst);
 			}
 	}
 
