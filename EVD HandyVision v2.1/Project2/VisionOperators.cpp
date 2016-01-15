@@ -1,7 +1,5 @@
 #include "VisionOperators.h"
 #include <algorithm>
-#include <iostream>
-
 namespace vision {
 #define PI 3.14159265359f
 #define TWO_PI 6.28318530718f
@@ -1013,6 +1011,17 @@ namespace vision {
 		return inBound(img, point.y, point.x);
 	}
 
+	void Rect_obb::vertices(Point arr[4]) {
+		arr[0] = bottomLeft;
+		arr[2] = topRight;
+
+		Point2f p = Point2f(cos(radians), sin(radians));
+		int i = dotProd(bottomLeft - topRight, p);
+
+		arr[1] = bottomLeft + p;
+		arr[3] = topRight - p;
+	}
+
 	int neighbourCount(const Mat& img, const unsigned char blobnr, int i, int j) {
 		Point p;
 		int neighbourCount = 0;
@@ -1092,16 +1101,16 @@ namespace vision {
 			i = 4;
 			while (i--) {
 				switch (i) {
-				case 3:
+				case 2:
 					p = Point(1, 0);
 					break;
-				case 2:
+				case 0:
 					p = Point(-1, 0);
 					break;
-				case 1:
+				case 3:
 					p = Point(0, 1);
 					break;
-				case 0:
+				case 1:
 					p = Point(0, -1);
 					break;
 				}
@@ -1185,7 +1194,7 @@ namespace vision {
 				p3 = contour[i == contour.size() - 1 ? 0 : i + 1];
 
 				radians = atan2(p1.y - p2.y, p1.x - p2.x);
-				radians -= atan2(p1.y - p3.y, p1.x - p3.x);
+				radians -= atan2(p2.y - p3.y, p2.x - p3.x);
 				radians = fmod(radians + TWO_PI, TWO_PI);
 
 				if (radians <= PI) {
