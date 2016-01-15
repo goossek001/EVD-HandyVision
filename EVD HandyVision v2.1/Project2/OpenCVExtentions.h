@@ -21,5 +21,4 @@ namespace cv {
 	void rotateImage(const cv::Mat& src, cv::Mat& dst, float angle);
 	void applyRectangleMask(const cv::Mat& src, cv::Mat& dst, RotatedRect boundingRect);
 	void getContour(cv::Mat& src, cv::Mat& dst);
-
 }

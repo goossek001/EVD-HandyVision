@@ -39,9 +39,8 @@ namespace ASDF {
 			backgroundWorker->RunWorkerAsync();
 
 			InitializeComponent();
-			//
-			//TODO: Add the constructor code here
-			//
+
+			InitTrackBars();
 		}
 		int DetermenGesture(std::string windowName, cv::Mat& srcBGR);
 		int main_photo();
@@ -72,10 +71,88 @@ namespace ASDF {
 
 	private: System::Windows::Forms::Panel^  panel1;
 	private: System::Windows::Forms::Label^  label1;
+	private: System::Windows::Forms::Label^  label2;
+
+
+	private: System::Windows::Forms::TrackBar^  trackBar1;
+	private: System::Windows::Forms::TrackBar^  trackBar2;
+	private: System::Windows::Forms::Label^  label5;
+	private: System::Windows::Forms::Label^  label6;
+	private: System::Windows::Forms::Label^  label3;
+	private: System::Windows::Forms::Label^  label4;
+	private: System::Windows::Forms::TrackBar^  trackBar3;
+	private: System::Windows::Forms::TrackBar^  trackBar4;
+	private: System::Windows::Forms::Label^  label7;
+	private: System::Windows::Forms::Label^  label8;
+	private: System::Windows::Forms::Label^  label9;
+	private: System::Windows::Forms::TrackBar^  trackBar5;
+	private: System::Windows::Forms::TrackBar^  trackBar6;
+	private: System::Windows::Forms::Label^  label10;
+	private: System::Windows::Forms::Label^  label11;
+	private: System::Windows::Forms::Label^  label12;
+	private: System::Windows::Forms::Label^  label13;
+	private: System::Windows::Forms::Label^  label14;
+	private: System::Windows::Forms::Label^  label15;
+	private: System::Windows::Forms::Label^  label16;
 			 /// <summary>
 		/// Required designer variable.
 		/// </summary>
 		System::ComponentModel::Container ^components;
+
+	void TrackBar1_ValueChanged(Object^ sender, EventArgs^ e) {
+		label10->Text = trackBar1->Value.ToString();
+	}
+	void TrackBar2_ValueChanged(Object^ sender, EventArgs^ e) {
+		label11->Text = trackBar2->Value.ToString();
+	}
+	void TrackBar3_ValueChanged(Object^ sender, EventArgs^ e) {
+		label12->Text = trackBar3->Value.ToString();
+	}
+	void TrackBar4_ValueChanged(Object^ sender, EventArgs^ e) {
+		label13->Text = trackBar4->Value.ToString();
+	}
+	void TrackBar5_ValueChanged(Object^ sender, EventArgs^ e) {
+		label14->Text = trackBar5->Value.ToString();
+	}
+	void TrackBar6_ValueChanged(Object^ sender, EventArgs^ e) {
+		label15->Text = trackBar6->Value.ToString();
+	}
+
+	void InitTrackBars() {
+		trackBar1->ValueChanged += gcnew System::EventHandler(this, &MyForm::TrackBar1_ValueChanged);
+		this->Controls->Add(this->trackBar1);
+		trackBar2->ValueChanged += gcnew System::EventHandler(this, &MyForm::TrackBar2_ValueChanged);
+		this->Controls->Add(this->trackBar2);
+		trackBar3->ValueChanged += gcnew System::EventHandler(this, &MyForm::TrackBar3_ValueChanged);
+		this->Controls->Add(this->trackBar3);
+		trackBar4->ValueChanged += gcnew System::EventHandler(this, &MyForm::TrackBar4_ValueChanged);
+		this->Controls->Add(this->trackBar4);
+		trackBar5->ValueChanged += gcnew System::EventHandler(this, &MyForm::TrackBar5_ValueChanged);
+		this->Controls->Add(this->trackBar5);
+		trackBar6->ValueChanged += gcnew System::EventHandler(this, &MyForm::TrackBar6_ValueChanged);
+		this->Controls->Add(this->trackBar6);
+	}
+	delegate int GetBarDelegate();
+		
+	int GetBar1() {
+		return trackBar1->Value;
+	}
+	int GetBar2() {
+		return trackBar2->Value;
+	}
+	int GetBar3() {
+		return trackBar3->Value;
+	}
+	int GetBar4() {
+		return trackBar4->Value;
+	}
+	int GetBar5() {
+		return trackBar5->Value;
+	}
+	int GetBar6() {
+		return trackBar6->Value;
+	}
+
 
 #pragma region Windows Form Designer generated code
 		/// <summary>
@@ -85,12 +162,14 @@ namespace ASDF {
 		void InitializeComponent(void);
 #pragma endregion
 	private: System::Void MyForm_Load(System::Object^  sender, System::EventArgs^  e) {
-
 	}
 	private: System::Void panel1_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e) {
-					
 	}
 	private: System::Void label1_Click(System::Object^  sender, System::EventArgs^  e) {
+	}
+	private: System::Void label5_Click(System::Object^  sender, System::EventArgs^  e) {
+	}
+	private: System::Void label2_Click(System::Object^  sender, System::EventArgs^  e) {
 	}
 	};
 }
