@@ -2,17 +2,11 @@ package kayentim.handyvision;
 
 import android.content.Context;
 import android.hardware.Camera;
-import android.os.Environment;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 
