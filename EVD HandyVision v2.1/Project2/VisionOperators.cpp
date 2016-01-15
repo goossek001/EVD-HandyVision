@@ -1,5 +1,8 @@
 #include "VisionOperators.h"
 #include <algorithm>
+#include <iostream>
+
+
 namespace vision {
 #define PI 3.14159265359f
 #define TWO_PI 6.28318530718f
@@ -64,12 +67,47 @@ namespace vision {
 			return 1;
 		case IM_8UC3:
 			return 3;
-		case IM_32SC1:
+		case IM_32FC1:
 			return 4;
 		}
 	}
 
 	Mat::Mat() : Mat(0, 0, IM_8UC1) {}
+
+	ImageType convertType(int type) {
+		switch (type) {
+		default:
+			throw "Unknown image type";
+		case CV_8UC1:
+			return IM_8UC1;
+		case CV_8UC3:
+			return IM_8UC3;
+		case CV_32FC1:
+			return IM_32FC1;
+		}
+	}
+	int convertType(ImageType type) {
+		switch (type) {
+		default:
+			throw "Unknown image type";
+		case IM_8UC1:
+			return CV_8UC1;
+		case IM_8UC3:
+			return CV_8UC3;
+		case IM_32FC1:
+			return CV_32FC1;
+		}
+	}
+	Mat::Mat(const cv::Mat& cvMat) : Mat(cvMat.rows, cvMat.cols, convertType(cvMat.type())) {
+		memcpy(data, cvMat.data, rows*cols * bytesPerPixel(type));
+	}
+
+	Mat::operator cv::Mat() {
+		cv::Mat cvMat(rows, cols, convertType(type));
+		memcpy(cvMat.data, data, rows*cols * bytesPerPixel(type));
+
+		return cvMat;
+	}
 
 	Mat::Mat(const Mat& other) {
 		this->rows = other.rows;
@@ -150,7 +188,7 @@ namespace vision {
 			b = *(++loc);
 
 			return Color(r, g, b);
-		case IM_32SC1:
+		case IM_32FC1:
 			unsigned int i;
 			i = ((unsigned int)*loc << 24);
 			i |= ((unsigned int)*(++loc) << 16);
@@ -180,7 +218,7 @@ namespace vision {
 			*(++loc) = (unsigned char)color.G;
 			*(++loc) = (unsigned char)color.B;
 			break;
-		case IM_32SC1:
+		case IM_32FC1:
 			unsigned int i = *reinterpret_cast<unsigned int*>(&color.R);
 			*loc = i >> 24;
 			*(++loc) = (i >> 16) & 0xff;
@@ -291,7 +329,7 @@ namespace vision {
 				*(pImg++) = color.G;
 				*(pImg++) = color.B;
 				break;
-			case IM_32SC1:
+			case IM_32FC1:
 				unsigned int i = *reinterpret_cast<unsigned int*>(&color.R);
 				*(pImg++) = i >> 24;
 				*(pImg++) = (i >> 16) & 0xff;
@@ -305,7 +343,7 @@ namespace vision {
 	Mat getRotationMatrix2D(Point2f center, float angle) {
 		angle *= PI / 180;
 
-		Mat R(3, 3, IM_32SC1);
+		Mat R(3, 3, IM_32FC1);
 		R.set(Point(0, 0), Color(cos(angle)));
 		R.set(Point(0, 1), Color(-sin(angle)));
 		R.set(Point(1, 1), Color(cos(angle)));

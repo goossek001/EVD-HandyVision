@@ -68,10 +68,17 @@ void biggestColorBlob(const Mat& src, Mat& dst, const Mat& mask) {
 	
 }
 
-void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst) {
-	cv::Point H = cv::Point(0.9 * 255, 0.2 * 255);
+void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
+		int H_min, int H_max,
+		int S_min, int S_max,
+		int V_min, int V_max) {
+	/*cv::Point H = cv::Point(0.9 * 255, 0.2 * 255);
 	cv::Point S = cv::Point(0.35 * 255, 0.95*255);
-	cv::Point V = cv::Point(0.15 * 255, 0.75 * 255);
+	cv::Point V = cv::Point(0.15 * 255, 0.75 * 255);*/
+
+	cv::Point H = cv::Point(H_min, H_max);
+	cv::Point S = cv::Point(S_min, S_max);
+	cv::Point V = cv::Point(V_min, V_max);
 
 	int size = 128;
 	int extend = size / 2;

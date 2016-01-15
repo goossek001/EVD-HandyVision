@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <opencv2/opencv.hpp>
 
 namespace vision {
 	struct Point2f;
@@ -41,7 +42,7 @@ namespace vision {
 	enum ImageType {
 		IM_8UC1,
 		IM_8UC3,
-		IM_32SC1
+		IM_32FC1
 	};
 
 	enum ConnectionType {
@@ -58,6 +59,8 @@ namespace vision {
 		ImageType type;
 
 		Mat();
+		Mat(const cv::Mat& cvMat);
+		operator cv::Mat();
 		Mat(int rows, int cols, ImageType type);
 		Mat(Point size, ImageType type);
 		Mat::Mat(const Mat& other);
