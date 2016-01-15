@@ -1299,4 +1299,29 @@ namespace vision {
 
 		return OMBB;
 	}
+
+	void createCircle(const Mat& src, Mat& dst, const int diameter, const int value, int xCoordinate, int yCoordinate)
+	{
+		unsigned char* pDst = dst.data;
+		dst.create(src.rows, src.cols, src.type);
+
+		int straal = diameter / 2 + 1;         
+		int Maskx, Masky = 0;
+		double a, b, c = 0;
+
+		for (Maskx = (xCoordinate - straal); Maskx <= (xCoordinate + straal); Maskx++){         
+			for (Masky = (yCoordinate - straal); Masky <= (yCoordinate + straal); Masky++){
+
+				a = pow((xCoordinate - Maskx), 2);
+				b = pow((yCoordinate - Masky), 2);
+				c = sqrt(a + b);
+
+				if (c - straal <= 1){
+					dst.set(Maskx, Masky, value);
+				}
+			}
+		}
+	}
+
+
 }
