@@ -88,7 +88,7 @@ void MyForm::InitializeComponent(void) {
 	this->label2->AutoSize = true;
 	this->label2->Location = System::Drawing::Point(637, 51);
 	this->label2->Name = L"label2";
-	this->label2->Size = System::Drawing::Size(18, 16);
+	this->label2->Size = System::Drawing::Size(15, 13);
 	this->label2->TabIndex = 3;
 	this->label2->Text = L"H";
 	this->label2->Click += gcnew System::EventHandler(this, &MyForm::label2_Click);
@@ -100,7 +100,7 @@ void MyForm::InitializeComponent(void) {
 	this->trackBar2->Name = L"trackBar2";
 	this->trackBar2->Size = System::Drawing::Size(408, 45);
 	this->trackBar2->TabIndex = 7;
-	this->trackBar2->Value = 51;
+	this->trackBar2->Value = 80;
 	// 
 	// trackBar1
 	// 
@@ -109,7 +109,7 @@ void MyForm::InitializeComponent(void) {
 	this->trackBar1->Name = L"trackBar1";
 	this->trackBar1->Size = System::Drawing::Size(408, 45);
 	this->trackBar1->TabIndex = 8;
-	this->trackBar1->Value = 229;
+	this->trackBar1->Value = 195;
 	this->trackBar1->Scroll += gcnew System::EventHandler(this, &MyForm::trackBar1_Scroll);
 	// 
 	// label5
@@ -117,7 +117,7 @@ void MyForm::InitializeComponent(void) {
 	this->label5->AutoSize = true;
 	this->label5->Location = System::Drawing::Point(679, 12);
 	this->label5->Name = L"label5";
-	this->label5->Size = System::Drawing::Size(29, 16);
+	this->label5->Size = System::Drawing::Size(23, 13);
 	this->label5->TabIndex = 9;
 	this->label5->Text = L"min";
 	this->label5->Click += gcnew System::EventHandler(this, &MyForm::label5_Click);
@@ -127,7 +127,7 @@ void MyForm::InitializeComponent(void) {
 	this->label6->AutoSize = true;
 	this->label6->Location = System::Drawing::Point(679, 74);
 	this->label6->Name = L"label6";
-	this->label6->Size = System::Drawing::Size(33, 16);
+	this->label6->Size = System::Drawing::Size(26, 13);
 	this->label6->TabIndex = 10;
 	this->label6->Text = L"max";
 	// 
@@ -136,7 +136,7 @@ void MyForm::InitializeComponent(void) {
 	this->label3->AutoSize = true;
 	this->label3->Location = System::Drawing::Point(679, 200);
 	this->label3->Name = L"label3";
-	this->label3->Size = System::Drawing::Size(33, 16);
+	this->label3->Size = System::Drawing::Size(26, 13);
 	this->label3->TabIndex = 15;
 	this->label3->Text = L"max";
 	// 
@@ -145,7 +145,7 @@ void MyForm::InitializeComponent(void) {
 	this->label4->AutoSize = true;
 	this->label4->Location = System::Drawing::Point(679, 138);
 	this->label4->Name = L"label4";
-	this->label4->Size = System::Drawing::Size(29, 16);
+	this->label4->Size = System::Drawing::Size(23, 13);
 	this->label4->TabIndex = 14;
 	this->label4->Text = L"min";
 	// 
@@ -156,7 +156,7 @@ void MyForm::InitializeComponent(void) {
 	this->trackBar3->Name = L"trackBar3";
 	this->trackBar3->Size = System::Drawing::Size(408, 45);
 	this->trackBar3->TabIndex = 13;
-	this->trackBar3->Value = 89;
+	this->trackBar3->Value = 33;
 	// 
 	// trackBar4
 	// 
@@ -165,14 +165,14 @@ void MyForm::InitializeComponent(void) {
 	this->trackBar4->Name = L"trackBar4";
 	this->trackBar4->Size = System::Drawing::Size(408, 45);
 	this->trackBar4->TabIndex = 12;
-	this->trackBar4->Value = 243;
+	this->trackBar4->Value = 241;
 	// 
 	// label7
 	// 
 	this->label7->AutoSize = true;
 	this->label7->Location = System::Drawing::Point(637, 177);
 	this->label7->Name = L"label7";
-	this->label7->Size = System::Drawing::Size(17, 16);
+	this->label7->Size = System::Drawing::Size(14, 13);
 	this->label7->TabIndex = 11;
 	this->label7->Text = L"S";
 	// 
@@ -181,7 +181,7 @@ void MyForm::InitializeComponent(void) {
 	this->label8->AutoSize = true;
 	this->label8->Location = System::Drawing::Point(679, 326);
 	this->label8->Name = L"label8";
-	this->label8->Size = System::Drawing::Size(33, 16);
+	this->label8->Size = System::Drawing::Size(26, 13);
 	this->label8->TabIndex = 20;
 	this->label8->Text = L"max";
 	// 
@@ -190,7 +190,7 @@ void MyForm::InitializeComponent(void) {
 	this->label9->AutoSize = true;
 	this->label9->Location = System::Drawing::Point(679, 264);
 	this->label9->Name = L"label9";
-	this->label9->Size = System::Drawing::Size(29, 16);
+	this->label9->Size = System::Drawing::Size(23, 13);
 	this->label9->TabIndex = 19;
 	this->label9->Text = L"min";
 	// 
@@ -201,7 +201,7 @@ void MyForm::InitializeComponent(void) {
 	this->trackBar5->Name = L"trackBar5";
 	this->trackBar5->Size = System::Drawing::Size(408, 45);
 	this->trackBar5->TabIndex = 18;
-	this->trackBar5->Value = 38;
+	this->trackBar5->Value = 30;
 	// 
 	// trackBar6
 	// 
@@ -210,14 +210,14 @@ void MyForm::InitializeComponent(void) {
 	this->trackBar6->Name = L"trackBar6";
 	this->trackBar6->Size = System::Drawing::Size(408, 45);
 	this->trackBar6->TabIndex = 17;
-	this->trackBar6->Value = 192;
+	this->trackBar6->Value = 222;
 	// 
 	// label10
 	// 
 	this->label10->AutoSize = true;
 	this->label10->Location = System::Drawing::Point(637, 303);
 	this->label10->Name = L"label10";
-	this->label10->Size = System::Drawing::Size(17, 16);
+	this->label10->Size = System::Drawing::Size(14, 13);
 	this->label10->TabIndex = 16;
 	this->label10->Text = L"V";
 	// 
@@ -226,7 +226,7 @@ void MyForm::InitializeComponent(void) {
 	this->label11->AutoSize = true;
 	this->label11->Location = System::Drawing::Point(933, 38);
 	this->label11->Name = L"label11";
-	this->label11->Size = System::Drawing::Size(18, 16);
+	this->label11->Size = System::Drawing::Size(15, 13);
 	this->label11->TabIndex = 21;
 	this->label11->Text = L"H";
 	// 
@@ -235,7 +235,7 @@ void MyForm::InitializeComponent(void) {
 	this->label12->AutoSize = true;
 	this->label12->Location = System::Drawing::Point(933, 100);
 	this->label12->Name = L"label12";
-	this->label12->Size = System::Drawing::Size(18, 16);
+	this->label12->Size = System::Drawing::Size(15, 13);
 	this->label12->TabIndex = 22;
 	this->label12->Text = L"H";
 	// 
@@ -244,7 +244,7 @@ void MyForm::InitializeComponent(void) {
 	this->label13->AutoSize = true;
 	this->label13->Location = System::Drawing::Point(933, 156);
 	this->label13->Name = L"label13";
-	this->label13->Size = System::Drawing::Size(18, 16);
+	this->label13->Size = System::Drawing::Size(15, 13);
 	this->label13->TabIndex = 24;
 	this->label13->Text = L"H";
 	// 
@@ -253,7 +253,7 @@ void MyForm::InitializeComponent(void) {
 	this->label14->AutoSize = true;
 	this->label14->Location = System::Drawing::Point(933, 215);
 	this->label14->Name = L"label14";
-	this->label14->Size = System::Drawing::Size(18, 16);
+	this->label14->Size = System::Drawing::Size(15, 13);
 	this->label14->TabIndex = 23;
 	this->label14->Text = L"H";
 	// 
@@ -262,7 +262,7 @@ void MyForm::InitializeComponent(void) {
 	this->label15->AutoSize = true;
 	this->label15->Location = System::Drawing::Point(933, 280);
 	this->label15->Name = L"label15";
-	this->label15->Size = System::Drawing::Size(18, 16);
+	this->label15->Size = System::Drawing::Size(15, 13);
 	this->label15->TabIndex = 26;
 	this->label15->Text = L"H";
 	// 
@@ -271,7 +271,7 @@ void MyForm::InitializeComponent(void) {
 	this->label16->AutoSize = true;
 	this->label16->Location = System::Drawing::Point(933, 343);
 	this->label16->Name = L"label16";
-	this->label16->Size = System::Drawing::Size(18, 16);
+	this->label16->Size = System::Drawing::Size(15, 13);
 	this->label16->TabIndex = 25;
 	this->label16->Text = L"H";
 	// 
@@ -290,7 +290,7 @@ void MyForm::InitializeComponent(void) {
 	this->label17->AutoSize = true;
 	this->label17->Location = System::Drawing::Point(933, 414);
 	this->label17->Name = L"label17";
-	this->label17->Size = System::Drawing::Size(18, 16);
+	this->label17->Size = System::Drawing::Size(15, 13);
 	this->label17->TabIndex = 28;
 	this->label17->Text = L"H";
 	// 
@@ -299,7 +299,7 @@ void MyForm::InitializeComponent(void) {
 	this->label18->AutoSize = true;
 	this->label18->Location = System::Drawing::Point(933, 465);
 	this->label18->Name = L"label18";
-	this->label18->Size = System::Drawing::Size(18, 16);
+	this->label18->Size = System::Drawing::Size(15, 13);
 	this->label18->TabIndex = 30;
 	this->label18->Text = L"H";
 	// 
@@ -318,7 +318,7 @@ void MyForm::InitializeComponent(void) {
 	this->label19->AutoSize = true;
 	this->label19->Location = System::Drawing::Point(691, 458);
 	this->label19->Name = L"label19";
-	this->label19->Size = System::Drawing::Size(17, 16);
+	this->label19->Size = System::Drawing::Size(14, 13);
 	this->label19->TabIndex = 31;
 	this->label19->Text = L"V";
 	// 
@@ -327,7 +327,7 @@ void MyForm::InitializeComponent(void) {
 	this->label20->AutoSize = true;
 	this->label20->Location = System::Drawing::Point(691, 396);
 	this->label20->Name = L"label20";
-	this->label20->Size = System::Drawing::Size(17, 16);
+	this->label20->Size = System::Drawing::Size(14, 13);
 	this->label20->TabIndex = 32;
 	this->label20->Text = L"S";
 	// 
@@ -336,7 +336,7 @@ void MyForm::InitializeComponent(void) {
 	this->label21->AutoSize = true;
 	this->label21->Location = System::Drawing::Point(637, 425);
 	this->label21->Name = L"label21";
-	this->label21->Size = System::Drawing::Size(34, 16);
+	this->label21->Size = System::Drawing::Size(27, 13);
 	this->label21->TabIndex = 33;
 	this->label21->Text = L"Size";
 	// 
@@ -453,7 +453,7 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	cv::cvtColor(srcBGR, srcHSV, CV_BGR2HSV);
 
 	// Skin color filter
-	cv::GaussianBlur(srcHSV, srcHSV, cv::Size(7, 7), 0, 0);
+	cv::GaussianBlur(srcHSV, srcHSV, cv::Size(11, 11), 0, 0);
 
 	int H_min=0, H_max=100, S_min=0, S_max=100, V_min=0, V_max=100, S_size = 128, V_size = 128;
 	if (this->trackBar1->InvokeRequired) {
