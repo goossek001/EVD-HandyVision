@@ -95,7 +95,8 @@ namespace vision {
 		ERODE = 0,
 		DILATE = 1,
 		OPEN = 2,
-		CLOSE = 3
+		CLOSE = 3,
+		GAUSSIAN = 4
 	};
 
 	void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, Mat& kernel);

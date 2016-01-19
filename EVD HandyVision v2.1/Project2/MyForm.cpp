@@ -458,7 +458,6 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	vision::Mat srcHSV;
 	vision::bgrtohsv(srcBGR, srcHSV);
 	cvSrcHSV = srcHSV;
-	//cv::cvtColor(cvSrcBGR, cvSrcHSV, CV_BGR2HSV);
 
 	// Skin color filter
 	cv::GaussianBlur(cvSrcHSV, cvSrcHSV, cv::Size(11, 11), 0, 0);
