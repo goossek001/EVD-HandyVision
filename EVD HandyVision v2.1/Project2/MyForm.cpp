@@ -10,6 +10,7 @@ using namespace System;
 using namespace System::Windows::Forms;
 using namespace ASDF;
 
+/*
 void MyForm::DoWork(Object^ sender, DoWorkEventArgs^ e) {
 	main_video();
 }
@@ -387,7 +388,6 @@ void MyForm::InitializeComponent(void) {
 	this->PerformLayout();
 
 }
-
 MyForm::~MyForm() {
 	if (components)
 	{
@@ -395,13 +395,16 @@ MyForm::~MyForm() {
 	}
 	delete backgroundWorker;
 }
-[STAThread]
+[STAThread]*/
+
 int main() {
-	Application::EnableVisualStyles();
+	/*Application::EnableVisualStyles();
 	Application::SetCompatibleTextRenderingDefault(false);
 
 	MyForm form;
-	Application::Run(%form); 
+	Application::Run(%form); */
+	MyForm form;
+	form.main_photo();
 
 	return 0;
 }
@@ -416,7 +419,7 @@ int MyForm::main_photo() {
 	int r = DetermenGesture("MyVideo", srcBGR);
 
 	//Wait until a key is pressed to kill the program
-	//cv::waitKey(0);
+	cv::waitKey(0);
 
 	return r;
 }
@@ -446,81 +449,39 @@ int MyForm::main_video() {
 	return 0;
 }
 
-int MyForm::DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
-	cv::Mat srcHSV, srcBinair, palmMask, fingerMask;
+int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
+	cv::Mat cvSrcHSV, cvSrcBinair, cvPalmMask, cvFingerMask;
+
+	vision::Mat srcBGR = vision::Mat(cvSrcBGR);
 
 	initHashTable();
-	cv::cvtColor(srcBGR, srcHSV, CV_BGR2HSV);
+	vision::Mat srcHSV;
+	vision::bgrtohsv(srcBGR, srcHSV);
+	cvSrcHSV = srcHSV;
+	//cv::cvtColor(cvSrcBGR, cvSrcHSV, CV_BGR2HSV);
 
 	// Skin color filter
-	cv::GaussianBlur(srcHSV, srcHSV, cv::Size(11, 11), 0, 0);
+	cv::GaussianBlur(cvSrcHSV, cvSrcHSV, cv::Size(11, 11), 0, 0);
 
-	int H_min=0, H_max=100, S_min=0, S_max=100, V_min=0, V_max=100, S_size = 128, V_size = 128;
-	if (this->trackBar1->InvokeRequired) {
-		GetBarDelegate^ d = gcnew GetBarDelegate(this, &MyForm::GetBar1);
-		H_min = (int) this->Invoke(d, gcnew array<Object^> { });
-	} else 
-		H_min = GetBar1();
-	if (this->trackBar2->InvokeRequired) {
-		GetBarDelegate^ d = gcnew GetBarDelegate(this, &MyForm::GetBar2);
-		H_max = (int) this->Invoke(d, gcnew array<Object^> { });
-	}
-	else
-		H_max = GetBar2();
-	if (this->trackBar3->InvokeRequired) {
-		GetBarDelegate^ d = gcnew GetBarDelegate(this, &MyForm::GetBar3);
-		S_min = (int) this->Invoke(d, gcnew array<Object^> { });
-	}
-	else
-		S_min = GetBar3();
-	if (this->trackBar4->InvokeRequired) {
-		GetBarDelegate^ d = gcnew GetBarDelegate(this, &MyForm::GetBar4);
-		S_max = (int) this->Invoke(d, gcnew array<Object^> { });
-	}
-	else
-		S_max = GetBar4();
-	if (this->trackBar5->InvokeRequired) {
-		GetBarDelegate^ d = gcnew GetBarDelegate(this, &MyForm::GetBar5);
-		V_min = (int) this->Invoke(d, gcnew array<Object^> { });
-	}
-	else
-		V_min = GetBar5();
-	if (this->trackBar6->InvokeRequired) {
-		GetBarDelegate^ d = gcnew GetBarDelegate(this, &MyForm::GetBar6);
-		V_max = (int) this->Invoke(d, gcnew array<Object^> { });
-	}
-	else
-		V_max = GetBar6();
-	if (this->trackBar7->InvokeRequired) {
-		GetBarDelegate^ d = gcnew GetBarDelegate(this, &MyForm::GetBar7);
-		S_size = (int) this->Invoke(d, gcnew array<Object^> { });
-	}
-	else
-		S_size = GetBar7();
-	if (this->trackBar8->InvokeRequired) {
-		GetBarDelegate^ d = gcnew GetBarDelegate(this, &MyForm::GetBar8);
-		V_size = (int) this->Invoke(d, gcnew array<Object^> { });
-	}
-	else
-		V_size = GetBar8();
-
-
-	adaptiveHSVSkinColorFilter(srcHSV, srcBinair, H_min, H_max, S_min, S_max, V_min, V_max, S_size, V_size);
+	int H_min = 195, H_max = 80, S_min = 33, S_max = 241, V_min = 30, V_max = 222, S_size = 128, V_size = 128;
+	adaptiveHSVSkinColorFilter(cvSrcHSV, cvSrcBinair, H_min, H_max, S_min, S_max, V_min, V_max, S_size, V_size);
 
 	Mat kernel = Mat::ones(cv::Point(5, 5), CV_8UC1);
-	cv::morphologyEx(srcBinair, srcBinair, CV_MOP_CLOSE, kernel);
-	cv::fillHoles(srcBinair, srcBinair);
+
+	cv::morphologyEx(cvSrcBinair, cvSrcBinair, CV_MOP_CLOSE, kernel);
+	
+	cv::fillHoles(cvSrcBinair, cvSrcBinair);
 
 	// find palm
 	cv::Point palmCenter;
 	float palmRadius;
-	getPalmCenter(srcBinair, palmCenter, palmRadius);
-	createPalmMask(srcBinair, palmMask, palmCenter, palmRadius);
+	getPalmCenter(cvSrcBinair, palmCenter, palmRadius);
+	createPalmMask(cvSrcBinair, cvPalmMask, palmCenter, palmRadius);
 
 	// find wrist
 	cv::Line wristLine;
 	bool foundWrist = false;
-	findWrist(srcBinair, wristLine, foundWrist, palmCenter, palmRadius);
+	findWrist(cvSrcBinair, wristLine, foundWrist, palmCenter, palmRadius);
 	if (!foundWrist)
 		return 1;
 
@@ -535,11 +496,11 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	float handAngle = std::atan2(handOrientation.y, handOrientation.x);
 
 	// find the fingers
-	createFingerMask(srcBinair, fingerMask, palmMask, wristCenter, handOrientation);
-	std::vector<cv::RotatedRect> boundingBoxesFingers = getBoundingBoxes(fingerMask);
+	createFingerMask(cvSrcBinair, cvFingerMask, cvPalmMask, wristCenter, handOrientation);
+	std::vector<cv::RotatedRect> boundingBoxesFingers = getBoundingBoxes(cvFingerMask);
 
 	//TODO: determen the direction of the thumb
-	ThumbDirection thumbDirection = ThumbDirection::Left;
+	ThumbDirection thumbDirection = ThumbDirection::Right;
 
 	// find the thumb
 	cv::RotatedRect* fingers[5];
@@ -552,7 +513,7 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	// find the palm line
 	cv::Line palmLine;
 	bool foundPalm = true;
-	findPalmLine(srcBinair, palmLine, foundPalm, wristLine, palmRadius, handOrientation, thumbIndex >= 0);
+	findPalmLine(cvSrcBinair, palmLine, foundPalm, wristLine, palmRadius, handOrientation, thumbIndex >= 0);
 	if (!foundPalm)
 		return 1;
 	if (thumbDirection == ThumbDirection::Right) {
@@ -568,15 +529,17 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 
 	std::string gesture = deteremenGesture(GestureType::DutchCounting, fingersStretch);
 
+
+
 	//cv::line(srcBinair, palmLine.lineStart(), palmLine.lineEnd(), cv::Scalar(150));
 	//cv::line(srcBinair, wristLine.lineStart(), wristLine.lineEnd(), cv::Scalar(50));
 	
-	//Mat finalImage(srcBGR);
-	//if (gesture.size() > 0)
-	//	cv::putText(finalImage, gesture, cv::Point(0.05f*finalImage.cols, 0.95f*finalImage.rows), 2, 0.006f*finalImage.rows, cv::Scalar(100, 0, 0), 8);
-	//imshow(windowName, finalImage);
+	Mat finalImage(cvSrcBGR);
+	if (gesture.size() > 0)
+		cv::putText(finalImage, gesture, cv::Point(0.05f*finalImage.cols, 0.95f*finalImage.rows), 2, 0.006f*finalImage.rows, cv::Scalar(255, 255, 255), 8);
+	imshow(windowName, finalImage);
 
-	String^ str = gcnew System::String(gesture.c_str());
+	/*String^ str = gcnew System::String(gesture.c_str());
 	if (this->label1->InvokeRequired) {
 		SetTextDelegate^ d = gcnew SetTextDelegate(this, &MyForm::SetText);
 		this->Invoke(d, gcnew array<Object^> { str });
@@ -595,7 +558,7 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 		this->Invoke(d, gcnew array<Object^> { img });
 	} else {
 		SetImage(img);
-	}
+	}*/
 
 	return 0;
 }

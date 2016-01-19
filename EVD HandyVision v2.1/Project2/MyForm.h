@@ -17,13 +17,13 @@ namespace ASDF {
 	/// <summary>
 	/// Summary for MyForm
 	/// </summary>
-	public ref class MyForm : public System::Windows::Forms::Form
+	public /*ref*/ class MyForm //: public System::Windows::Forms::Form
 	{
 	public:
-		MyForm(void)
+		MyForm(/*void*/)
 		{
 
-			this->components = gcnew System::ComponentModel::Container();
+			/*this->components = gcnew System::ComponentModel::Container();
 			this->Size = System::Drawing::Size(300, 300);
 			this->Text = L"MyForm";
 			this->Padding = System::Windows::Forms::Padding(0);
@@ -40,12 +40,12 @@ namespace ASDF {
 
 			InitializeComponent();
 
-			InitTrackBars();
+			InitTrackBars();*/
 		}
 		int DetermenGesture(std::string windowName, cv::Mat& srcBGR);
 		int main_photo();
 		int main_video();
-		void SetText(String^ str) {
+		/*void SetText(String^ str) {
 			label1->Text = str;
 			this->label1->Font = (gcnew System::Drawing::Font(this->label1->Font->FontFamily, 20, this->label1->Font->Style, this->label1->Font->Unit,
 				this->label1->Font->GdiCharSet));
@@ -193,6 +193,6 @@ namespace ASDF {
 	private: System::Void label2_Click(System::Object^  sender, System::EventArgs^  e) {
 	}
 	private: System::Void trackBar1_Scroll(System::Object^  sender, System::EventArgs^  e) {
-	}
+	}*/
 };
 }

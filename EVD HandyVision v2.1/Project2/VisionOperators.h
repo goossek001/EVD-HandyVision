@@ -104,7 +104,7 @@ namespace vision {
 
 	void distanceTransform(const Mat& src, Mat& dst);
 
-	void rgbtohsv(const Mat& src, Mat& dst);
+	void bgrtohsv(const Mat& src, Mat& dst);
 
 	void minMaxLoc(const Mat& src, int* min, Point* minLoc, int* max, Point* maxLoc);
 
