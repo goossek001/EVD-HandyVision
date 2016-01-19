@@ -451,26 +451,27 @@ int MyForm::main_video() {
 
 int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	cv::Mat cvSrcHSV, cvSrcBinair, cvPalmMask, cvFingerMask;
+	initHashTable();
 
 	vision::Mat srcBGR = vision::Mat(cvSrcBGR);
+	vision::morphologyEx(srcBGR, srcBGR, vision::GAUSSIAN, 11);
 
-	initHashTable();
 	vision::Mat srcHSV;
 	vision::bgrtohsv(srcBGR, srcHSV);
-	cvSrcHSV = srcHSV;
-	//cv::cvtColor(cvSrcBGR, cvSrcHSV, CV_BGR2HSV);
+	cvSrcHSV = srcHSV;		//TEMP!!!! ASDF
 
 	// Skin color filter
-	cv::GaussianBlur(cvSrcHSV, cvSrcHSV, cv::Size(11, 11), 0, 0);
-
 	int H_min = 195, H_max = 80, S_min = 33, S_max = 241, V_min = 30, V_max = 222, S_size = 128, V_size = 128;
 	adaptiveHSVSkinColorFilter(cvSrcHSV, cvSrcBinair, H_min, H_max, S_min, S_max, V_min, V_max, S_size, V_size);
 
-	Mat kernel = Mat::ones(cv::Point(5, 5), CV_8UC1);
+	vision::Mat srcBinair = vision::Mat(cvSrcBinair);		//TEMP!!!! ASDF
 
-	cv::morphologyEx(cvSrcBinair, cvSrcBinair, CV_MOP_CLOSE, kernel);
+	vision::setSelectedValue(srcBinair, srcBinair, 255, 1);	//TEMP!!!! ASDF
+
+	vision::morphologyEx(srcBinair, srcBinair, vision::CLOSE, 5);
 	
-	cv::fillHoles(cvSrcBinair, cvSrcBinair);
+	vision::fillHoles(srcBinair, srcBinair, vision::FOUR);
+	cvSrcBinair = srcBinair;		//TEMP!!!! ASDF
 
 	// find palm
 	cv::Point palmCenter;
