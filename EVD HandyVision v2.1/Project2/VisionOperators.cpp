@@ -442,11 +442,66 @@ namespace vision {
 			break;
 
 		case OPEN:
-			// #warning create the Open function VisionOperators.cpp
+			for (Rows = HalfKernel; Rows < (src.rows - HalfKernel); Rows++){         // loop voor te behandele pixel  PAKT RAND NIET MEE
+				for (Columns = (HalfKernel); Columns < (src.cols - HalfKernel); Columns++){
+					MaskRow = Rows;
+					MaskColumns = Columns;
+
+					for (MaskRow - HalfKernel; MaskRow < (src.rows + HalfKernel); MaskRow++) {                    // Loop door masker
+						for (MaskColumns - HalfKernel; MaskColumns < (src.cols + HalfKernel); MaskColumns++) {
+							if (src.get(MaskRow, MaskColumns).R == 0){				// als de data in deze rij en colom 0 is
+								dst.set(Rows, Columns, 0);						// maak de dstdata ook 0
+							}
+						}
+					}
+				}
+			}
+
+			for (Rows = HalfKernel; Rows < (src.rows - HalfKernel); Rows++){         // loop voor te behandele pixel  PAKT RAND NIET MEE
+				for (Columns = (HalfKernel); Columns < (src.cols - HalfKernel); Columns++){
+					MaskRow = Rows;
+					MaskColumns = Columns;
+
+					for (MaskRow - HalfKernel; MaskRow < (src.rows + HalfKernel); MaskRow++) {                    // Loop door masker
+						for (MaskColumns - HalfKernel; MaskColumns < (src.cols + HalfKernel); MaskColumns++) {
+							if (src.get(MaskRow, MaskColumns).R == 1){				// als de data in deze rij en colom 1 is
+								dst.set(Rows, Columns, 1);						// maak de dstdata ook 1
+							}
+						}
+					}
+				}
+			}
 			break;
 
 		case CLOSE:
-			// #warning create the Close function VisionOperators.cpp
+			for (Rows = HalfKernel; Rows < (src.rows - HalfKernel); Rows++){         // loop voor te behandele pixel  PAKT RAND NIET MEE
+				for (Columns = (HalfKernel); Columns < (src.cols - HalfKernel); Columns++){
+					MaskRow = Rows;
+					MaskColumns = Columns;
+
+					for (MaskRow - HalfKernel; MaskRow < (src.rows + HalfKernel); MaskRow++) {                    // Loop door masker
+						for (MaskColumns - HalfKernel; MaskColumns < (src.cols + HalfKernel); MaskColumns++) {
+							if (src.get(MaskRow, MaskColumns).R == 1){				// als de data in deze rij en colom 1 is
+								dst.set(Rows, Columns, 1);						// maak de dstdata ook 1
+							}
+						}
+					}
+				}
+			}
+			for (Rows = HalfKernel; Rows < (src.rows - HalfKernel); Rows++){         // loop voor te behandele pixel  PAKT RAND NIET MEE
+				for (Columns = (HalfKernel); Columns < (src.cols - HalfKernel); Columns++){
+					MaskRow = Rows;
+					MaskColumns = Columns;
+
+					for (MaskRow - HalfKernel; MaskRow < (src.rows + HalfKernel); MaskRow++) {                    // Loop door masker
+						for (MaskColumns - HalfKernel; MaskColumns < (src.cols + HalfKernel); MaskColumns++) {
+							if (src.get(MaskRow, MaskColumns).R == 0){				// als de data in deze rij en colom 0 is
+								dst.set(Rows, Columns, 0);						// maak de dstdata ook 0
+							}
+						}
+					}
+				}
+			}
 			break;
 		}
 	}
