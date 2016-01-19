@@ -1363,4 +1363,24 @@ namespace vision {
 
 		return OMBB;
 	}
+
+	void setSelectedValue(const Mat& src, Mat& dst, int selected, int newVal) {
+		unsigned int i;
+		unsigned char *pSrc;
+		unsigned char *pDst;
+
+		dst.rows = src.rows;
+		dst.cols = src.cols;
+
+		i = src.cols * src.rows + 1;
+		pSrc = (unsigned char*)src.data;
+		pDst = (unsigned char*)dst.data;
+
+		while (--i) {
+			*pDst = *pSrc == selected ? newVal : *pSrc;
+			++pSrc; ++pDst;
+		}
+
+		return;
+	}
 }

@@ -140,4 +140,5 @@ namespace vision {
 	void convertToConvexHull(std::vector<Point>& contour);
 	Rect_obb findOMBB(const std::vector<Point>& convexHull);
 	void createCircle(const Mat& src, Mat& dst, const int diameter, const int value, int xCoordinate, int yCoordinate);
+	void setSelectedValue(const Mat& src, Mat& dst, int selected, int newVal);
 }

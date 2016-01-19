@@ -458,17 +458,20 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 
 	vision::Mat srcHSV;
 	vision::bgrtohsv(srcBGR, srcHSV);
-	cvSrcHSV = srcHSV;
+	cvSrcHSV = srcHSV;		//TEMP!!!! ASDF
 
 	// Skin color filter
 	int H_min = 195, H_max = 80, S_min = 33, S_max = 241, V_min = 30, V_max = 222, S_size = 128, V_size = 128;
 	adaptiveHSVSkinColorFilter(cvSrcHSV, cvSrcBinair, H_min, H_max, S_min, S_max, V_min, V_max, S_size, V_size);
 
-	Mat kernel = Mat::ones(cv::Point(5, 5), CV_8UC1);
+	vision::Mat srcBinair = vision::Mat(cvSrcBinair);		//TEMP!!!! ASDF
 
-	cv::morphologyEx(cvSrcBinair, cvSrcBinair, CV_MOP_CLOSE, kernel);
+	vision::setSelectedValue(srcBinair, srcBinair, 255, 1);	//TEMP!!!! ASDF
+
+	vision::morphologyEx(srcBinair, srcBinair, vision::CLOSE, 5);
 	
-	cv::fillHoles(cvSrcBinair, cvSrcBinair);
+	vision::fillHoles(srcBinair, srcBinair, vision::FOUR);
+	cvSrcBinair = srcBinair;		//TEMP!!!! ASDF
 
 	// find palm
 	cv::Point palmCenter;
