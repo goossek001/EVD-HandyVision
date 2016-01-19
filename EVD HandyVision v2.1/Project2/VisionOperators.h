@@ -29,6 +29,7 @@ namespace vision {
 	struct Color {
 		float R, G, B, A;
 
+		Color() {}
 		Color(float R, float G = 0, float B = 0, float A = 0);
 		Color(const Color& other);
 	};
@@ -99,7 +100,7 @@ namespace vision {
 		GAUSSIAN = 4
 	};
 
-	void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, Mat& kernel);
+	void morphologyEx(const Mat& src, Mat& dst, Mor EDOC, int kernel);
 
 	void drawRect(const Mat& src, Mat& dst, const RotatadRect& rect, const Color& color = Color(1));
 

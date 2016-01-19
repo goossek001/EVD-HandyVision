@@ -3,6 +3,7 @@
 #include <algorithm>
 
 namespace vision {
+#define e 2.7182818828
 #define PI 3.14159265359f
 #define TWO_PI 6.28318530718f
 
@@ -176,7 +177,7 @@ namespace vision {
 
 	Color Mat::get(int i, int j) const {
 		int pixelSize = bytesPerPixel(type);
-		unsigned char* loc = data + pixelSize * j + pixelSize * i * rows;
+		unsigned char* loc = data + pixelSize * j + pixelSize * i * cols;
 
 		float r, g, b;
 		switch (type) {
@@ -207,7 +208,7 @@ namespace vision {
 
 	void Mat::set(int i, int j, Color color) {
 		int pixelSize = bytesPerPixel(type);
-		unsigned char* loc = data + pixelSize * j + pixelSize * i * rows;
+		unsigned char* loc = data + pixelSize * j + pixelSize * i * cols;
 
 		switch (type) {
 		default:
@@ -466,6 +467,50 @@ namespace vision {
 			morphologyEx(src, dst, ERODE, kernel);
 			break;
 		case GAUSSIAN:
+			if (src.type != IM_8UC3)
+				throw "Gaussian blur can only be on image of type IM_8UC3";
+			Color color;
+			Point p;
+			Mat kernelMatrix(kernel, kernel, IM_32FC1);
+			float sigma = halfKernelSize * 2.0f;
+			i = kernel;
+			while (i--) {
+				j = kernel;
+				while (j--) {
+					p.x = j - halfKernelSize;
+					p.y = i - halfKernelSize;
+					kernelMatrix.set(i, j, Color(1.0f / (2.0f * PI*sigma*sigma) * pow(e, -(p.x*p.x + p.y*p.y) / (2.0f * sigma*sigma))));
+				}
+			}
+
+			Mat temp(src.rows, src.cols, src.type);
+			float count;
+			i = src.rows;
+			while (i--) {
+				j = src.cols;
+				while (j--) {
+					color = Color(0, 0, 0);
+					count = 0.0f;
+					i_mask = kernel;
+					while (i_mask--) {
+						j_mask = kernel;
+						while (j_mask--) {
+							p = Point(j + j_mask - halfKernelSize, i + i_mask - halfKernelSize);
+							if (p.y >= 0 && p.y < src.rows && p.x >= 0 && p.x < src.cols) {
+								color.R += kernelMatrix.get(i_mask, j_mask).R * src.get(p).R;
+								color.G += kernelMatrix.get(i_mask, j_mask).R * src.get(p).G;
+								color.B += kernelMatrix.get(i_mask, j_mask).R * src.get(p).B;
+								count += kernelMatrix.get(i_mask, j_mask).R;
+							}
+						}
+					}
+					color.R /= count;
+					color.G /= count;
+					color.B /= count;
+					temp.set(i, j, color);
+				}
+			}
+			dst.copyFrom(temp);
 			break;
 		}
 	}

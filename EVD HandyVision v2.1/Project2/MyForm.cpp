@@ -451,17 +451,16 @@ int MyForm::main_video() {
 
 int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	cv::Mat cvSrcHSV, cvSrcBinair, cvPalmMask, cvFingerMask;
+	initHashTable();
 
 	vision::Mat srcBGR = vision::Mat(cvSrcBGR);
+	vision::morphologyEx(srcBGR, srcBGR, vision::GAUSSIAN, 11);
 
-	initHashTable();
 	vision::Mat srcHSV;
 	vision::bgrtohsv(srcBGR, srcHSV);
 	cvSrcHSV = srcHSV;
 
 	// Skin color filter
-	cv::GaussianBlur(cvSrcHSV, cvSrcHSV, cv::Size(11, 11), 0, 0);
-
 	int H_min = 195, H_max = 80, S_min = 33, S_max = 241, V_min = 30, V_max = 222, S_size = 128, V_size = 128;
 	adaptiveHSVSkinColorFilter(cvSrcHSV, cvSrcBinair, H_min, H_max, S_min, S_max, V_min, V_max, S_size, V_size);
 
