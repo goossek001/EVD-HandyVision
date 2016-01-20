@@ -458,20 +458,18 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 
 	vision::Mat srcHSV;
 	vision::bgrtohsv(srcBGR, srcHSV);
-	cvSrcHSV = srcHSV;		//TEMP!!!! ASDF
+	cvSrcHSV = srcHSV;		//TEMP!
 
 	// Skin color filter
-	int H_min = 195, H_max = 80, S_min = 33, S_max = 241, V_min = 30, V_max = 222, S_size = 128, V_size = 128;
+	int H_min = 246, H_max = 38, S_min = 33, S_max = 241, V_min = 30, V_max = 222, S_size = 128, V_size = 128;
 	adaptiveHSVSkinColorFilter(cvSrcHSV, cvSrcBinair, H_min, H_max, S_min, S_max, V_min, V_max, S_size, V_size);
 
-	vision::Mat srcBinair = vision::Mat(cvSrcBinair);		//TEMP!!!! ASDF
-
-	vision::setSelectedValue(srcBinair, srcBinair, 255, 1);	//TEMP!!!! ASDF
+	vision::Mat srcBinair = vision::Mat(cvSrcBinair);		//TEMP!
 
 	vision::morphologyEx(srcBinair, srcBinair, vision::CLOSE, 5);
 	
 	vision::fillHoles(srcBinair, srcBinair, vision::FOUR);
-	cvSrcBinair = srcBinair;		//TEMP!!!! ASDF
+	cvSrcBinair = srcBinair;		//TEMP!
 
 	// find palm
 	cv::Point palmCenter;
@@ -486,6 +484,7 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	if (!foundWrist)
 		return 1;
 
+
 	cv::Point wristCenter = wristLine.position + wristLine.direction / 2;
 
 	if (palmCenter == wristCenter)
@@ -498,7 +497,7 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 
 	// find the fingers
 	createFingerMask(cvSrcBinair, cvFingerMask, cvPalmMask, wristCenter, handOrientation);
-	std::vector<cv::RotatedRect> boundingBoxesFingers = getBoundingBoxes(cvFingerMask);
+	std::vector<cv::RotatedRect> boundingBoxesFingers = vision::getBoundingBoxes(cvFingerMask);
 
 	//TODO: determen the direction of the thumb
 	ThumbDirection thumbDirection = ThumbDirection::Right;
@@ -530,12 +529,12 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 
 	std::string gesture = deteremenGesture(GestureType::DutchCounting, fingersStretch);
 
-
-
 	//cv::line(srcBinair, palmLine.lineStart(), palmLine.lineEnd(), cv::Scalar(150));
 	//cv::line(srcBinair, wristLine.lineStart(), wristLine.lineEnd(), cv::Scalar(50));
 	
-	Mat finalImage(cvSrcBGR);
+	vision::setSelectedValue(srcBinair, srcBinair, 1, 255);
+	Mat finalImage = srcBinair;
+	cv::line(finalImage, palmLine.lineStart(), palmLine.lineEnd(), cv::Scalar(150));
 	if (gesture.size() > 0)
 		cv::putText(finalImage, gesture, cv::Point(0.05f*finalImage.cols, 0.95f*finalImage.rows), 2, 0.006f*finalImage.rows, cv::Scalar(255, 255, 255), 8);
 	imshow(windowName, finalImage);

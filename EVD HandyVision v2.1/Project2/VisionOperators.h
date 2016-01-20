@@ -79,7 +79,7 @@ namespace vision {
 
 	void fill(Mat& img, Color color);
 
-	void bitwise_and(Mat& src1, Mat& src2, Mat& dst);
+	void bitwise_and(const Mat& src1, const Mat& src2, Mat& dst);
 	void bitwise_or(const Mat& src1, const Mat& src2, Mat& dst);
 	void bitwise_xor(const Mat& src1, const Mat& src2, Mat& dst);
 
@@ -136,9 +136,9 @@ namespace vision {
 	bool inBound(const Mat& img, Point point);
 	int neighbourCount(const Mat& img, const unsigned char blobnr, int i, int j);
 	int neighbourCount(const Mat& img, const unsigned char blobnr, Point p);
-	std::vector<Point> findContour(const Mat& img, const unsigned char blobnr);
-	void convertToConvexHull(std::vector<Point>& contour);
-	Rect_obb findOMBB(const std::vector<Point>& convexHull);
 	void createCircle(const Mat& src, Mat& dst, const int diameter, const int value, int xCoordinate, int yCoordinate);
 	void setSelectedValue(const Mat& src, Mat& dst, int selected, int newVal);
+	void split(const Mat& src, Mat channels[3]); 
+	Rect_obb findOMBB(const Mat& img, int blobNr);
+	void applyRectMask(const Mat& src, Mat& dst, Rect_obb rect);
 }

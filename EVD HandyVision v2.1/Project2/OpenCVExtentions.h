@@ -7,18 +7,18 @@
 
 #pragma once
 
-#include <opencv2/opencv.hpp>
+#include "VisionOperators.h"
 
-namespace cv {
+namespace vision {
 	void HSVThreshold(const Mat& src, Mat& dst,
 		double H_min, double H_max,
 		double S_min, double S_max,
 		double V_min, double V_max);
-	Point getCenterOfMass(const Mat& src);
-	void detectAndDrawContour(const Mat& src, Mat& dst, int mode, int method, int lineWidth = 1, int minAreaThreshold = 16);
+	//vision::Point getCenterOfMass(const Mat& src);
 	void fillHoles(const Mat& src, Mat& dst);
-	std::vector<cv::RotatedRect> getBoundingBoxes(const Mat& src);
+	//std::vector<vision::Rect_obb> getBoundingBoxes(const Mat& src);
+	std::vector<cv::RotatedRect> getBoundingBoxes(const cv::Mat& src);
 	void rotateImage(const cv::Mat& src, cv::Mat& dst, float angle);
-	void applyRectangleMask(const cv::Mat& src, cv::Mat& dst, RotatedRect boundingRect);
-	void getContour(cv::Mat& src, cv::Mat& dst);
+	void applyRectangleMask(const Mat& src, Mat& dst, vision::Rect_obb boundingRect);
+	void getBiggestBlob(const Mat& src, Mat& dst);
 }

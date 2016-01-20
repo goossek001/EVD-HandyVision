@@ -48,6 +48,8 @@ float length(cv::Point p) {
 
 
 void biggestColorBlob(const Mat& src, Mat& dst, const Mat& mask) {
+	throw "not implemented error";
+	/*
 	//Create histogram
 	float fullRange[2] = { 0, 255 };
 	const float* ranges[] = { fullRange, fullRange, fullRange };
@@ -65,7 +67,7 @@ void biggestColorBlob(const Mat& src, Mat& dst, const Mat& mask) {
 	//TODO: Caclulate distance between blobs (center to center)
 	//TODO: Merge blobs until two blobs are remaining, giving closer blobs prioritiy
 	//TODO: Determen wich blob is skin color, by analyising the blobs and determen wich shape is more likely to be a hand or a head
-	
+	*/
 }
 
 void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
@@ -162,19 +164,17 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
 				vRanges[1] = i + vranges[0];
 		}
 	}
-
-	cv::HSVThreshold(src, dst, H.x, H.y, sRanges[0], sRanges[1], vRanges[0], vRanges[1]);
+	vision::Mat vSrc = vision::Mat(src);
+	vision::Mat vDst;
+	vision::HSVThreshold(vSrc, vDst, H.x, H.y, sRanges[0], sRanges[1], vRanges[0], vRanges[1]);
+	dst = vDst;
 
 	//biggestColorBlob(src, dst, dst);
-
-	Mat temp;
-	cv::HSVThreshold(src, temp, H.x, H.y, S.x, S.y, V.x, V.y);
-	cv::imshow("fullRange", temp);
-	cv::imshow("binair", dst);
 }
 
 void CannyHandFilter(const Mat& src, Mat& dst) {
-	Mat channels[3];
+	throw "Not implemented error";
+	/*Mat channels[3];
 	split(src, channels);
 
 	Mat copy;
@@ -186,7 +186,7 @@ void CannyHandFilter(const Mat& src, Mat& dst) {
 	cv::morphologyEx(dst, dst, CV_MOP_DILATE, kernel);
 	cv::line(dst, cv::Point(1, 1), cv::Point(dst.cols - 2, 1), cv::Scalar(255));
 	cv::fillHoles(dst, dst);
-	cv::morphologyEx(dst, dst, CV_MOP_ERODE, kernel);
+	cv::morphologyEx(dst, dst, CV_MOP_ERODE, kernel);*/
 }
 
 /**
@@ -410,7 +410,7 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, 
 	Mat srcRotated;
 	float angle = atan2(handOrientation.y, handOrientation.x) + 0.5*PI;
 	cv::Point temp;
-	cv::rotateImage(srcBinair, srcRotated, angle);
+	vision::rotateImage(srcBinair, srcRotated, angle);
 	math::rotatePoint(srcBinair, wristLine.position, temp, angle);
 	cv::Point temp2;
 	math::rotatePoint(srcBinair, wristLine.lineEnd(), temp2, angle);
@@ -425,6 +425,13 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, 
 	//Look in horizontal lines to find the palm line, by counting the edges
 	while (height >= 0 && height < srcRotated.rows) {
 		std::vector<cv::Point> intersections = math::horizontalLineObjectIntersection(srcRotated, height);
+		for (int i = 1; i < intersections.size(); ++i) {
+			if (length(intersections[i - 1] - intersections[i]) < 3){
+				intersections.erase(intersections.begin() + i);
+				intersections.erase(intersections.begin() + i - 1);
+				i = 1;
+			}
+		}
 		int holes = intersections.size() / 2-1;
 
 		int index = -1;
@@ -437,7 +444,7 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, 
 				largestWidth = width;
 			}
 		}
-		if (holes >= 1 || largestWidth < 1.75f*palmRadius) {
+		if (holes >= 1 || largestWidth < 1.66f*palmRadius) {
 			if (index != -1) {
 				cv::Point v1;
 				cv::Point v2;
@@ -527,12 +534,14 @@ void areFingersStretched(cv::RotatedRect* fingers[5], bool(&out)[5], float palmR
 		if (i == 0)
 			multiplier = 0.24f;
 		else
-			multiplier = 0.5f;
+			multiplier = 0.68f;
 		out[i] = fingerLength >= multiplier * palmRadius;
 	}
 }
 
 void displayFingers(const Mat& img, cv::RotatedRect* fingers[5]) {
+	throw "Not implemented error";
+	/*
 	//Create a seperate image of each finger
 	Mat thumb, indexFinger, middleFinger, ringFinger, pinky;
 	Mat empty = Mat::zeros(img.size(), img.type());
@@ -566,6 +575,7 @@ void displayFingers(const Mat& img, cv::RotatedRect* fingers[5]) {
 	} else {
 		imshow("pinky", empty);
 	}
+	*/
 }
 
 std::string deteremenGesture(GestureType gestureType, bool fingers[5]) {

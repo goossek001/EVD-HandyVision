@@ -235,84 +235,62 @@ namespace vision {
 	}
 
 	void bitwise_and(const Mat& src1, const Mat& src2, Mat& dst) {
+		if (&src1 != &dst && &src2 != &dst)
+			dst.create(src1.rows, src1.cols, src1.type);
+
 		unsigned char* pSrc1 = src1.data;
 		unsigned char* pSrc2 = src2.data;
 		unsigned char* pDst = dst.data;
 
-		dst.create(src1.rows, src1.cols, src1.type);
-
 		int i = src1.rows * src1.cols * bytesPerPixel(src1.type) + 1;
-		while (--i) {
-			*pDst++ = *pSrc1++ & *pSrc2++;
-		}
+		while (--i) 
+			*(pDst++) = *(pSrc1++) & *(pSrc2++);
 	}
 
 	void bitwise_or(const Mat& src1, const Mat& src2, Mat& dst) {
+		if (&src1 != &dst && &src2 != &dst)
+			dst.create(src1.rows, src1.cols, src1.type);
+
 		unsigned char* pA = src1.data;
 		unsigned char* pB = src2.data;
 		unsigned char* pDst = dst.data;
 
-		dst.create(src1.rows, src1.cols, src1.type);
-
 		int i = src1.rows * src1.cols * bytesPerPixel(src1.type) + 1;
-		while (--i) {
-			*pDst++ = *pA++ | *pB++;
-		}
+		while (--i)
+			*(pDst++) = *(pA++) | *(pB++);
 	}
 
 	void bitwise_xor(const Mat& src1, const Mat& src2, Mat& dst) {
+		if (&src1 != &dst && &src2 != &dst)
+			dst.create(src1.rows, src1.cols, src1.type);
+
 		unsigned char* pA = src1.data;
 		unsigned char* pB = src2.data;
 		unsigned char* pDst = dst.data;
 
-		dst.create(src1.rows, src1.cols, src1.type);
-
 		int i = src1.rows * src1.cols * bytesPerPixel(src1.type) + 1;
-		while (--i) {
-			*pDst++ = *pA++ ^ *pB++;
-		}
+		while (--i)
+			*(pDst++) = *(pA++) ^ *(pB++);
 	}
 
 	void threshold(const Mat& src, Mat& dst, int lowerbound, int upperbound) {
+		if (src.rows != dst.rows || src.cols != dst.cols || src.type != dst.type)
+			dst.create(src.rows, src.cols, src.type);
+
 		unsigned char* pSrc = src.data;
 		unsigned char* pDst = dst.data;
-
-		dst.create(src.rows, src.cols, src.type);
 
 		int i = src.rows * src.cols * bytesPerPixel(src.type) + 1;
 		if (lowerbound <= upperbound) {
 			while (--i) {
-				*pDst++ = *pSrc >= lowerbound && *pSrc++ <= upperbound;
+				*pDst = (*pSrc >= lowerbound) && (*pSrc <= upperbound);
+				++pDst; ++pSrc;
 			}
 		}
 		else {
 			while (--i) {
-				*pDst++ = *pSrc >= lowerbound || *pSrc <= upperbound;
-				++pSrc;
-			}
-		}
-	}
-
-	void split(const Mat& src, Mat dst[]) {
-		switch (src.type)
-		{
-		default:
-			throw "Not implemented type";
-		case IM_8UC3:
-			struct ColorC3 {
-				unsigned char color[3];
-			};
-
-			for (int i = 0; i < 3; ++i) {
-				dst[i].create(src.rows, src.cols, IM_8UC1);
-
-				const ColorC3 *pSrc = reinterpret_cast<const ColorC3*>(src.data);
-				unsigned char *pDst = dst[i].data;
-				int j = src.rows * src.cols + 1;
-				while (--j) {
-					*pDst++ = (pSrc++)->color[i];
-				}
-				break;
+				*pDst = (*pSrc >= lowerbound) || (*pSrc <= upperbound);
+				++pDst; ++pSrc;
 			}
 		}
 	}
@@ -1364,6 +1342,12 @@ namespace vision {
 		return OMBB;
 	}
 
+	Rect_obb findOMBB(const Mat& img, int blobNr) {
+		std::vector<Point> contour = findContour(img, blobNr);
+		convertToConvexHull(contour);
+		return findOMBB(contour);
+	}
+
 	void setSelectedValue(const Mat& src, Mat& dst, int selected, int newVal) {
 		unsigned int i;
 		unsigned char *pSrc;
@@ -1382,5 +1366,95 @@ namespace vision {
 		}
 
 		return;
+	}
+
+	void split(const Mat& src, Mat channels[3]) {
+		if (src.type != IM_8UC3)
+			throw "image type is not supported";
+
+		channels[0].create(src.rows, src.cols, IM_8UC1);
+		channels[1].create(src.rows, src.cols, IM_8UC1);
+		channels[2].create(src.rows, src.cols, IM_8UC1);
+
+		unsigned char* pSrc = src.data;
+		unsigned char* pChan1 = channels[0].data;
+		unsigned char* pChan2 = channels[1].data;
+		unsigned char* pChan3 = channels[2].data;
+
+		unsigned int i = src.rows * src.cols + 1;
+		while (--i) {
+			*(pChan1++) = *(pSrc++);
+			*(pChan2++) = *(pSrc++);
+			*(pChan3++) = *(pSrc++);
+		}
+	}
+
+	/*void split(const Mat& src, Mat dst[]) {
+		switch (src.type)
+		{
+		default:
+			throw "Not implemented type";
+		case IM_8UC3:
+			struct ColorC3 {
+				unsigned char color[3];
+			};
+
+			for (int i = 0; i < 3; ++i) {
+				dst[i].create(src.rows, src.cols, IM_8UC1);
+
+				const ColorC3 *pSrc = reinterpret_cast<const ColorC3*>(src.data);
+				unsigned char *pDst = dst[i].data;
+				int j = src.rows * src.cols + 1;
+				while (--j) {
+					*pDst++ = (pSrc++)->color[i];
+				}
+				break;
+			}
+		}
+	}*/
+
+	void applyRectMask(const Mat& src, Mat& dst, Rect_obb rect) {
+		Mat temp(src.rows, src.cols, src.type);
+
+		//find aabb
+		int min_x, max_x, min_y, max_y;
+		if (rect.bottomLeft.x > rect.topRight.x) {
+			min_x = rect.topRight.x;
+			max_x = rect.bottomLeft.x;
+		}
+		else {
+			min_x = rect.bottomLeft.x;
+			max_x = rect.topRight.x;
+		}
+		if (rect.bottomLeft.y > rect.topRight.y) {
+			min_y = rect.topRight.y;
+			max_y = rect.bottomLeft.y;
+		}
+		else {
+			min_y = rect.bottomLeft.y;
+			max_y = rect.topRight.y;
+		}
+
+		//draw rect
+		Point2f d;
+		Point p1, p2;
+		bool v1, v2;
+		for (int x = min_x; x <= max_x; ++x) {
+			for (int y = min_y; y <= max_y; ++y) {
+				if (x >= 0 && x < src.cols && y >= 0 && y < src.rows) {
+					d = Point2f(cos(rect.radians), sin(rect.radians));
+					p1 = Point(x, y) - rect.bottomLeft;
+					p2 = Point(x, y) - rect.topRight;
+					v1 = dotProd(p1, d) >= 0 && dotProd(p2, d) <= 0;
+
+					d = Point2f(-d.y, d.x);
+					v2 = dotProd(p1, d) >= 0 && dotProd(p2, d) <= 0;
+
+					if (v1 && v2)
+						temp.set(y, x, src.get(y, x));
+				}
+			}
+		}
+		dst.copyFrom(temp);
 	}
 }

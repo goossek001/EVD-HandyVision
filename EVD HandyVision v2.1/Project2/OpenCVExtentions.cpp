@@ -10,78 +10,51 @@
 #include <limits>
 #include "VisionOperators.h"
 
-namespace cv {
-	void threshold(const Mat& src, Mat& dst, int lowerbound, int upperbound) {
-			if (lowerbound <= upperbound) {
-				inRange(src, lowerbound, upperbound, dst);
-			}
-			else {
-				Mat temp;
-				inRange(src, lowerbound, 255, temp);
-				inRange(src, 0, upperbound, dst);
-				bitwise_or(dst, temp, dst);
-			}
-	}
-
+namespace vision {
 	void HSVThreshold(const Mat& src, Mat& dst,
 		double H_min, double H_max,
 		double S_min, double S_max,
 		double V_min, double V_max) {
 		//Split into channels
-		cv::Mat channels[3];
-		cv::split(src, channels);
+		Mat channels[3];
+		split(src, channels);
 
 		//Apply thresholds
-		cv::threshold(channels[0], channels[0], H_min, H_max);
-		cv::threshold(channels[1], channels[1], S_min, S_max);
-		cv::threshold(channels[2], channels[2], V_min, V_max);
+		threshold(channels[0], channels[0], H_min, H_max);
+		threshold(channels[1], channels[1], S_min, S_max);
+		threshold(channels[2], channels[2], V_min, V_max);
+
+		fill(channels[1], Color(1));
 
 		//Combine threshold images
-		cv::bitwise_and(channels[0], channels[1], dst);
-		cv::bitwise_and(dst, channels[2], dst);
+		bitwise_and(channels[0], channels[1], dst);
+		bitwise_and(dst, channels[2], dst);
 	}
 
-	/**
-	Detect and the contour of objects
-	@param src: a 8 bit binair image
-	@param dst: output as a 8 bit binair image
-	*/
-	void detectAndDrawContour(const Mat& src, Mat& dst, int mode, int method, int lineWidth, int minAreaThreshold) {
-		Mat srcCopy;
-		src.copyTo(srcCopy);
-
-		//Detect contours
-		std::vector<cv::Vec4i> hierarchy;
-		std::vector<std::vector<cv::Point> > contours;
-		cv::findContours(srcCopy, contours, hierarchy, mode, method);
-
-		//Draw contours
-		dst.create(src.size(), CV_8UC1);
-		dst.setTo(cv::Scalar(0));
-		for (size_t i = 0; i<contours.size(); ++i)
-		if (contourArea(contours[i]) >= minAreaThreshold)
-			drawContours(dst, contours, i, cv::Scalar(255), lineWidth);
-	}
-
-	/**
-	Fill the holes inside the blobs
-	@param src: a 8 bit binair image
-	@param dst: output as a 8 bit binair image without holes
-	*/
-	void fillHoles(const Mat& src, Mat& dst) {
-		detectAndDrawContour(src, dst, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, -1);
-	}
+	///**
+	//Find a rotated bounding boxes for each blob
+	//@param src: a 8 bit binair image
+	//*/
+	//std::vector<Rect_obb> getBoundingBoxes(const Mat& src) {
+	//	std::vector<Rect_obb> boundingRects;
+	//	Mat temp;
+	//	int nrOfBlobs = labelBlobs(src, temp, FOUR);
+	//	for (int i = 1; i <= nrOfBlobs; ++i) {
+	//		boundingRects.push_back(findOMBB(src, i));
+	//	}
+	//	return boundingRects;
+	//}
 
 	/**
 	Find a rotated bounding boxes for each blob
 	@param src: a 8 bit binair image
 	*/
-	std::vector<cv::RotatedRect> getBoundingBoxes(const Mat& src) {
+	std::vector<cv::RotatedRect> getBoundingBoxes(const cv::Mat& src) {
 		int minAreaThreshold = 16;
 		std::vector<cv::Vec4i> hierarchy;
 		std::vector<std::vector<cv::Point> > contours;
 
-		Mat srcCopy;
+		cv::Mat srcCopy;
 		src.copyTo(srcCopy);
 
 		std::vector<cv::RotatedRect> boundingBoxes;
@@ -113,18 +86,8 @@ namespace cv {
 	@param dst			The src image after applying the mask
 	@param boundingRect: The shape of the mask
 	*/
-	void applyRectangleMask(const cv::Mat& src, cv::Mat& dst, RotatedRect boundingRect) {
-		Mat rectMask = Mat::zeros(src.size(), CV_8UC1);
-		Point2f vertices2f[4];
-		Point vertices[4];
-		boundingRect.points(vertices2f);
-		for (int i = 0; i < 4; i++) {
-			vertices[i] = vertices2f[i];
-			line(rectMask, vertices2f[i], vertices2f[(i + 1) % 4], Scalar(255));
-		}
-		cv::fillConvexPoly(rectMask, vertices, 4, cv::Scalar(255));
-
-		src.copyTo(dst, rectMask);
+	void applyRectangleMask(const Mat& src, Mat& dst, Rect_obb boundingRect) {
+		applyRectMask(src, dst, boundingRect);
 	}
 
 	/**
@@ -132,30 +95,23 @@ namespace cv {
 	@param src:			An binairy image
 	@param dst			The binairy src image after applying the mask and give only the biggest contour.
 	*/
-	void getContour(cv::Mat& src, cv::Mat& dst){
-
-		int largest_area = 0;
-		int largest_contour_index = 0;
-
-		cv::Mat contourOutput(src.rows, src.cols, CV_8UC1, Scalar::all(0));
-		cv::Mat contourImage = src.clone();
-
-		std::vector<std::vector<cv::Point> > contours;
-		std::vector<Vec4i> hierarchy;
-		cv::findContours(contourImage, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE); // Find the contours in the image
-
-		for (int i = 0; i< contours.size(); i++) // iterate through each contour. 
-		{
-			double a = contourArea(contours[i], false);  //  Find the area of contour
-			if (a>largest_area){
-				largest_area = a;
-				largest_contour_index = i;                //Store the index of largest contour
+	void getBiggestBlob(const Mat& src, Mat& dst){
+		BlobInfo* blobInfo;
+		Mat temp;
+		int nrOfBlobs = labelBlobs(src, temp, FOUR);
+		blobInfo = new BlobInfo[nrOfBlobs];
+		blobAnalyse(temp, nrOfBlobs, blobInfo);
+		int biggestBlob_id = 1;
+		int biggestBlob_perimeter = 0;
+		for (int i = 0; i < nrOfBlobs; ++i) {
+			if (blobInfo[i].perimeter > biggestBlob_perimeter) {
+				biggestBlob_perimeter = blobInfo[i].perimeter;
+				biggestBlob_id = i+1;
 			}
-
 		}
+		threshold(src, dst, biggestBlob_id, biggestBlob_id);
 
-		Scalar color(255, 255, 255);
-		cv::drawContours(contourOutput, contours, largest_contour_index, color, CV_FILLED, 8, hierarchy); // Draw the largest contour using previously stored index.
-		contourOutput.copyTo(dst);
+		delete[] blobInfo;
 	}
 }
+
