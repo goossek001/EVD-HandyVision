@@ -481,14 +481,17 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	cvPalmMask = palmMask;   //TEMP!
 
 	// find wrist
-	cv::Line wristLine;
+	vision::Line wristLine;
 	bool foundWrist = false;
-	findWrist(cvSrcBinair, wristLine, foundWrist, cvPalmCenter, palmRadius);
+	findWrist(srcBinair, wristLine, foundWrist, palmCenter, palmRadius);
 	if (!foundWrist)
 		return 1;
 
 
-	cv::Point wristCenter = wristLine.position + wristLine.direction / 2;
+	cv::Line cvWristLine(cv::Point(wristLine.position.x, wristLine.position.y), cv::Point(wristLine.direction.x, wristLine.direction.y));//TEMP!
+
+
+	cv::Point wristCenter = cvWristLine.position + cvWristLine.direction / 2;
 
 	if (cvPalmCenter == wristCenter)
 		return 1;
@@ -516,7 +519,7 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	// find the palm line
 	cv::Line palmLine;
 	bool foundPalm = true;
-	findPalmLine(cvSrcBinair, palmLine, foundPalm, wristLine, palmRadius, handOrientation, thumbIndex >= 0);
+	findPalmLine(cvSrcBinair, palmLine, foundPalm, cvWristLine, palmRadius, handOrientation, thumbIndex >= 0);
 	if (!foundPalm)
 		return 1;
 	if (thumbDirection == ThumbDirection::Right) {
@@ -537,7 +540,7 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	
 	Mat finalImage = srcBGR;
 	cv::line(finalImage, palmLine.lineStart(), palmLine.lineEnd(), cv::Scalar(150));
-	cv::line(finalImage, wristLine.lineStart(), wristLine.lineEnd(), cv::Scalar(0, 150));
+	cv::line(finalImage, cvWristLine.lineStart(), cvWristLine.lineEnd(), cv::Scalar(0, 150));
 	if (gesture.size() > 0)
 		cv::putText(finalImage, gesture, cv::Point(0.05f*finalImage.cols, 0.95f*finalImage.rows), 2, 0.006f*finalImage.rows, cv::Scalar(255, 255, 255), 8);
 	imshow(windowName, finalImage);

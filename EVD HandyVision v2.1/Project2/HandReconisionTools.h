@@ -35,7 +35,7 @@ void adaptiveHSVSkinColorFilter(const vision::Mat& src, vision::Mat& dst,
 void CannyHandFilter(const Mat& src, Mat& dst);
 void getPalmCenter(const vision::Mat& src, vision::Point& palmCenter, float& palmRadius);
 void createPalmMask(const vision::Mat& src, vision::Mat& dst, vision::Point palmCenter, float palmRadius);
-void findWrist(const Mat& src, cv::Line& wristOut, bool& foundWrist, cv::Point palmCenter, float palmRadius);
+void findWrist(const vision::Mat& src, vision::Line& wristOut, bool& foundWrist, vision::Point palmCenter, float palmRadius);
 void createFingerMask(const Mat& src, Mat& dst, Mat& palmMask, cv::Point wristCenter, cv::Point2f handOrientation);
 int getFindThumb(const std::vector<cv::RotatedRect>& fingers, cv::Point palmCenter, float handAngle, ThumbDirection thumbDirection);
 void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, cv::Line wristLine, float palmRadius, cv::Point2f handOrientation, bool isThumbVisible);

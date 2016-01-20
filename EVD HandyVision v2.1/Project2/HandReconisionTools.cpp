@@ -257,14 +257,14 @@ void getPalmCenter(const vision::Mat& _src, vision::Point& palmCenter, float& pa
 	@param pos:		The index of the pixel
 	@return:		True if all the 4 surrounding pixels are not null
 */
-bool isSurrounded(const Mat& src, cv::Point pos) {
+bool isSurrounded(const vision::Mat& src, vision::Point pos) {
 	bool isSurrounded = true;
 	for (int x = -1; x <= 1; x += 2) {
 		for (int y = -1; y <= 1; y += 2) {
-			cv::Point neighbour(pos.x + x, pos.y + y);
+			vision::Point neighbour(pos.x + x, pos.y + y);
 			if (neighbour.x >= 0 && neighbour.x < src.cols &&
 				neighbour.y >= 1 && neighbour.y < src.rows &&
-				!src.at<uchar>(neighbour)) 
+				!src.get(vision::Point(neighbour.x, neighbour.y)).R)
 			{
 				return false;
 			}
@@ -282,8 +282,8 @@ bool isSurrounded(const Mat& src, cv::Point pos) {
 	@param angleStart:	The start angle of the area that the algoritm will be eximinated by the algoritm
 	@param angleEnd:	The end angle of the area that the algoritm will be eximinated by the algoritm
 */
-void findLargestGap(const Mat& src, cv::Line& out, bool& foundLine, cv::Point center, float maxRadius, float angleStart, float angleEnd) {
-	cv::Point previousPoint;
+void findLargestGap(const vision::Mat& src, vision::Line& out, bool& foundLine, vision::Point center, float maxRadius, float angleStart, float angleEnd) {
+	vision::Point previousPoint;
 	float previousAngle;
 	float largestGap = -1;
 	float deltaAngle = PI / 180.0f;
@@ -291,12 +291,13 @@ void findLargestGap(const Mat& src, cv::Line& out, bool& foundLine, cv::Point ce
 	for (float angle = angleStart; angle < angleEnd; angle += deltaAngle) {
 		//Loop through all pixels in a line from center to the circle edge 
 		for (int radius = 0; radius < maxRadius; ++radius) {
-			cv::Point pixelPos = center + cv::Point(cos(angle) * radius, sin(angle) * radius);
+			vision::Point pixelPos = center + vision::Point(cos(angle) * radius, sin(angle) * radius);
 			//Check if the pixel is at the edge of the object
 			if (!isSurrounded(src, pixelPos)) {
 				if (largestGap == -1) {
 					largestGap = 0;
-				} else if (std::abs(previousAngle - angle) / deltaAngle - 1 > largestGap) {
+				}
+				else if (std::abs(previousAngle - angle) / deltaAngle - 1 > largestGap) {
 					//Found a area that has no holes
 					largestGap = std::abs(previousAngle - angle) / deltaAngle - 1;
 					out.position = previousPoint;
@@ -319,7 +320,7 @@ void findLargestGap(const Mat& src, cv::Line& out, bool& foundLine, cv::Point ce
 	@param palmCenter:	The center position of the palm
 	@param palmRadius:	The radius of the palm in pixels
 */
-void findWrist(const Mat& src, cv::Line& wristOut, bool& foundWrist, cv::Point palmCenter, float palmRadius) {
+void findWrist(const vision::Mat& src, vision::Line& wristOut, bool& foundWrist, vision::Point palmCenter, float palmRadius) {
 	//Look for the rough direction of the wrist by using a large radius. This is done to prefent part of the palm to be miss-inprentended as wrist
 	findLargestGap(src, wristOut, foundWrist, palmCenter, 1.75*palmRadius, 0, 3.0f*PI);
 
