@@ -11,8 +11,10 @@ namespace vision {
 		Point(const Point2f& p);
 		Point(int x, int y);
 		Point operator*(const int& i) const;
+		Point operator/(const int& i) const;
 		Point operator+(const Point& other) const;
 		Point operator-(const Point& other) const;
+		bool operator==(const Point& other) const;
 	};
 	struct Point2f {
 		float x, y;
@@ -21,6 +23,7 @@ namespace vision {
 		Point2f(const Point& p);
 		Point2f(float x, float y);
 		Point2f operator*(const int& i) const;
+		Point2f operator/(const int& i) const;
 		Point2f operator+(const Point2f& other) const;
 		Point2f operator-(const Point2f& other) const;
 	};

@@ -78,6 +78,12 @@ namespace vision {
 		cv::Mat r = cv::getRotationMatrix2D(pt, angle / PI * 180, 1.0);
 
 		cv::warpAffine(src, dst, r, cv::Size(len, len));
+	}void rotateImage(const vision::Mat& src, vision::Mat& dst, float angle) {
+		int len = std::max(src.cols, src.rows);
+		vision::Point2f pt(len / 2., len / 2.);
+		vision::Mat r = vision::getRotationMatrix2D(pt, angle / PI * 180);
+
+		vision::warpAffine(src, dst, r, vision::Point(len, len));
 	}
 
 	/**

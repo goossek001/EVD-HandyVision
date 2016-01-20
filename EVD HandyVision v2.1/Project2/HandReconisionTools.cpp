@@ -353,7 +353,11 @@ void createPalmMask(const vision::Mat& src, vision::Mat& dst, vision::Point palm
 	@param wristCenter:		The center position of the wrist
 	@param handOrientation:	The direction from wrist to fingers
 */
-void createFingerMask(const Mat& src, Mat& dst, Mat& palmMask, cv::Point wristCenter, cv::Point2f handOrientation) {
+void createFingerMask(const vision::Mat& _src, vision::Mat& _dst, vision::Mat& _palmMask, vision::Point _wristCenter, vision::Point2f _handOrientation) {
+	cv::Mat src = _src, dst = _dst, palmMask = _palmMask;//TEMP!
+	cv::Point wristCenter(_wristCenter.x, _wristCenter.y);//TEMP!
+	cv::Point2f handOrientation(_handOrientation.x, _handOrientation.y);//TEMP!
+
 	cv::Point2f rSize(src.rows + src.cols, src.rows + src.cols);
 	cv::Point2f rCenter = (cv::Point2f)wristCenter + 0.5f*rSize.x * handOrientation;
 	float rAngle = std::atan2(handOrientation.y, handOrientation.x) * 180 / PI;
@@ -373,6 +377,8 @@ void createFingerMask(const Mat& src, Mat& dst, Mat& palmMask, cv::Point wristCe
 	cv::bitwise_xor(src, palmMask, dst);
 	//Apply the finger mask that was made, using the bounding boxes of the fingers
 	cv::bitwise_and(dst, rectMask, dst);
+
+	_dst.copyFrom(vision::Mat(dst));//TEMP!
 }
 
 /**
@@ -383,7 +389,7 @@ void createFingerMask(const Mat& src, Mat& dst, Mat& palmMask, cv::Point wristCe
 	@param thumbDirection:			The direction the thumb points, relative to the hand
 	@return:						The index of the thumb in the list boundingBoxesFingers. Return -1 when the is no thumb in the list
 */
-int getFindThumb(const std::vector<cv::RotatedRect>& boundingBoxesFingers, cv::Point palmCenter, float handAngle, ThumbDirection thumbDirection) {
+int findThumb(const std::vector<cv::RotatedRect>& boundingBoxesFingers, vision::Point palmCenter, float handAngle, ThumbDirection thumbDirection) {
 	//Create a rotation matrix
 	float rotationMatrix[2][2] = {
 		{ cos(handAngle), -sin(handAngle) },
@@ -393,8 +399,9 @@ int getFindThumb(const std::vector<cv::RotatedRect>& boundingBoxesFingers, cv::P
 	//Loop through all fingers and determen if the finger is a thumb by look at its position the palm 
 	bool containsThumb = false;
 	for (int i = 0; i < boundingBoxesFingers.size(); ++i) {
-		cv::Point direction = boundingBoxesFingers[i].center - (cv::Point2f)palmCenter;
-		direction = cv::Point(
+		vision::Point2f center(boundingBoxesFingers[i].center.x, boundingBoxesFingers[i].center.y);
+		vision::Point direction = center - (vision::Point2f)palmCenter;
+		direction = vision::Point(
 			direction.x * rotationMatrix[0][0] + direction.y * rotationMatrix[1][0],
 			direction.x * rotationMatrix[0][1] + direction.y * rotationMatrix[1][1]
 		);
@@ -416,7 +423,13 @@ int getFindThumb(const std::vector<cv::RotatedRect>& boundingBoxesFingers, cv::P
 	@param handAngle:		The rotation of the hand
 	@param thumbDirection:	The direction the thumb is pointing relative to the hand			
 */
-void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, cv::Line wristLine, float palmRadius, cv::Point2f handOrientation, bool isThumbVisible) {
+void findPalmLine(const vision::Mat& _srcBinair, vision::Line& _palmLineOut, bool& foundPalm, vision::Line _wristLine, float palmRadius, vision::Point2f _handOrientation, bool isThumbVisible) {
+	//TEMP!
+	cv::Mat srcBinair = _srcBinair;
+	cv::Line palmLineOut(cv::Point(_palmLineOut.position.x, _palmLineOut.position.y), cv::Point(_palmLineOut.direction.x, _palmLineOut.direction.y));
+	cv::Line wristLine(cv::Point(_wristLine.position.x, _wristLine.position.y), cv::Point(_wristLine.direction.x, _wristLine.direction.y));
+	cv::Point2f handOrientation(_handOrientation.x, _handOrientation.y);
+	
 	//Rotate the image, making the handOrientation (0, -1) 
 	Mat srcRotated;
 	float angle = atan2(handOrientation.y, handOrientation.x) + 0.5*PI;
@@ -477,6 +490,10 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, 
 		} 
 		--height;
 	}
+
+	//TEMP!
+	_palmLineOut.position = vision::Point(palmLineOut.position.x, palmLineOut.position.y);
+	_palmLineOut.direction = vision::Point(palmLineOut.direction.x, palmLineOut.direction.y);
 }
 
 /**

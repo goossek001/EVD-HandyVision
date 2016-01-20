@@ -68,6 +68,11 @@ namespace math {
 		cv::Point2f pt(len / 2., len / 2.);
 		cv::Mat R = cv::getRotationMatrix2D(pt, angle / PI * 180, 1.0);
 		dstPoint = srcPoint * R;
+	}void rotatePoint(const vision::Mat& src, const vision::Point& srcPoint, vision::Point& dstPoint, float angle) {
+		int len = std::max(src.cols, src.rows);
+		vision::Point2f pt(len / 2., len / 2.);
+		vision::Mat R = vision::getRotationMatrix2D(pt, angle / PI * 180);
+		vision::warpAffine(srcPoint, dstPoint, R);
 	}
 
 	/**
@@ -79,6 +84,11 @@ namespace math {
 	*/
 	void rotateLine(const Mat& src, Line& srcLine, Line& dstLine, float angle) {
 		cv::Point lineEnd = srcLine.lineEnd();
+		rotatePoint(src, lineEnd, lineEnd, angle);
+		rotatePoint(src, srcLine.position, dstLine.position, angle);
+		dstLine.direction = lineEnd - dstLine.position;
+	}void rotateLine(const vision::Mat& src, vision::Line& srcLine, vision::Line& dstLine, float angle) {
+		vision::Point lineEnd = srcLine.lineEnd();
 		rotatePoint(src, lineEnd, lineEnd, angle);
 		rotatePoint(src, srcLine.position, dstLine.position, angle);
 		dstLine.direction = lineEnd - dstLine.position;
@@ -124,5 +134,29 @@ namespace math {
 			out.push_back(cv::Point(src.cols - 1, height));
 
 		return out;
+	}std::vector<vision::Point> horizontalLineObjectIntersection(const vision::Mat& src, int height) {
+		std::vector<vision::Point> out;
+		int x = 0;
+
+		int previousVal = 0;
+		// Loop through all points on the line to find the intersection points
+		while (x < src.cols) {
+			if ((src.get(vision::Point(x, height)).R == 0) != (previousVal == 0)) {
+				if (previousVal == 0)
+					out.push_back(vision::Point(x, height));
+				else
+					out.push_back(vision::Point(x - 1, height));	// x - 1 is used so the point will lay inside the object
+
+				previousVal = src.get(vision::Point(x, height)).R;
+			}
+
+			++x;
+		}
+		// The edge of the image is counted as edge of the object, when the object touches this point
+		if (out.size() % 2)
+			out.push_back(vision::Point(src.cols - 1, height));
+
+		return out;
+
 	}
 }

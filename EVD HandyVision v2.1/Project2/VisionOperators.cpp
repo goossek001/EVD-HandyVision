@@ -22,11 +22,17 @@ namespace vision {
 	Point Point::operator*(const int& i) const {
 		return Point(x * i, y * i);
 	}
+	Point Point::operator/(const int& i) const {
+		return Point(x / i, y / i);
+	}
 	Point Point::operator+(const Point& other) const {
 		return Point(x + other.x, y + other.y);
 	}
 	Point Point::operator-(const Point& other) const {
 		return Point(x - other.x, y - other.y);
+	}
+	bool Point::operator==(const Point& other) const {
+		return x == other.x && y == other.y;
 	}
 	Point2f::Point2f() {
 		x = 0;
@@ -42,6 +48,9 @@ namespace vision {
 	}
 	Point2f Point2f::operator*(const int& i) const {
 		return Point2f(x * i, y * i);
+	}
+	Point2f Point2f::operator/(const int& i) const {
+		return Point2f(x / i, y / i);
 	}
 	Point2f Point2f::operator+(const Point2f& other) const {
 		return Point2f(x + other.x, y + other.y);
