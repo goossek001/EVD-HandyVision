@@ -102,12 +102,12 @@ void adaptiveHSVSkinColorFilter(const vision::Mat& src, vision::Mat& dst,
 		vision::histgram2D(src, hist, channels, ranges);
 		vision::minMaxLoc(hist, &minVal, &maxVal, &minLoc, &maxLoc);
 
-		cv::Point2d avarage;
+		vision::Point2d avarage;
 		int count = 0;
 		for (int i = 0; i < hist.rows; ++i) {
 			for (int j = 0; j < hist.cols; ++j) {
 				if (hist.get(i,j).R >= maxVal * 0.1) {
-					avarage = (avarage * count + cv::Point2d(i, j)*hist.get(i, j).R) / (hist.get(i, j).R + count);
+					avarage = (avarage * count + vision::Point2d(i, j)*hist.get(i, j).R) / (hist.get(i, j).R + count);
 					count += hist.get(i, j).R;
 				}
 			}
@@ -508,8 +508,11 @@ void findPalmLine(const vision::Mat& _srcBinair, vision::Line& _palmLineOut, boo
 	@param ringFingerIndexOut:				The index of the ring finger in the list boundingBoxesFingers
 	@param pinkyIndexOut:					The index of the pink in the list boundingBoxesFingers
 */
-void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fingersOut)[5], const cv::Point& wristCenter, const cv::Point& handOrientation
-	, cv::Line palmLine) {
+void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fingersOut)[5], const vision::Point& _wristCenter, const vision::Point& _handOrientation
+	, vision::Line _palmLine) {
+	cv::Point wristCenter = cv::Point(wristCenter.x, wristCenter.y);
+	cv::Point handOrientation = cv::Point(_handOrientation.x, _handOrientation.y);
+	cv::Line palmLine = cv::Line(cv::Point(_palmLine.position.x, _palmLine.position.y), cv::Point(_palmLine.direction.x, _palmLine.direction.y));
 	float palmWidth = math::length(palmLine.direction);
 
 	//Mat img = Mat::zeros(cv::Size(640, 480), CV_8UC3);
@@ -529,7 +532,7 @@ void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fi
 			for (int j = 0; j < 4; ++j) {
 				cv::Point v1 = vertices[j];
 				cv::Point v2 = vertices[(j + 1) % 4];
-				cv::Point center = (cv::Point)(v1 + v2) / 2;
+				cv::Point center = (v1 + v2) / 2;
 				float distance = math::length(center - wristCenter);
 				if (distance < closestDistance) {
 					finger.position = center;
@@ -562,7 +565,7 @@ void areFingersStretched(cv::RotatedRect* fingers[5], bool(&out)[5], float palmR
 		if (i == 0)
 			multiplier = 0.24f;
 		else
-			multiplier = 0.68f;
+			multiplier = 0.66f;
 		out[i] = fingerLength >= multiplier * palmRadius;
 	}
 }

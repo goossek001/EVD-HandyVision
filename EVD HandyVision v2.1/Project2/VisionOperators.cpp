@@ -19,10 +19,10 @@ namespace vision {
 		this->x = x;
 		this->y = y;
 	}
-	Point Point::operator*(const int& i) const {
+	Point Point::operator*(const float& i) const {
 		return Point(x * i, y * i);
 	}
-	Point Point::operator/(const int& i) const {
+	Point Point::operator/(const float& i) const {
 		return Point(x / i, y / i);
 	}
 	Point Point::operator+(const Point& other) const {
@@ -38,6 +38,10 @@ namespace vision {
 		x = 0;
 		y = 0;
 	}
+	Point2f::Point2f(const Point2f& p) {
+		this->x = p.x;
+		this->y = p.y;
+	}
 	Point2f::Point2f(const Point& p) {
 		this->x = p.x;
 		this->y = p.y;
@@ -46,10 +50,10 @@ namespace vision {
 		this->x = x;
 		this->y = y;
 	}
-	Point2f Point2f::operator*(const int& i) const {
+	Point2f Point2f::operator*(const float& i) const {
 		return Point2f(x * i, y * i);
 	}
-	Point2f Point2f::operator/(const int& i) const {
+	Point2f Point2f::operator/(const float& i) const {
 		return Point2f(x / i, y / i);
 	}
 	Point2f Point2f::operator+(const Point2f& other) const {
@@ -57,6 +61,30 @@ namespace vision {
 	}
 	Point2f Point2f::operator-(const Point2f& other) const {
 		return Point2f(x - other.x, y - other.y);
+	}
+	Point2d::Point2d() {
+		x = 0;
+		y = 0;
+	}
+	Point2d::Point2d(const Point2d& p) {
+		this->x = p.x;
+		this->y = p.y;
+	}
+	Point2d::Point2d(double x, double y) {
+		this->x = x;
+		this->y = y;
+	}
+	Point2d Point2d::operator*(const double& i) const {
+		return Point2d(x * i, y * i);
+	}
+	Point2d Point2d::operator/(const double& i) const {
+		return Point2d(x / i, y / i);
+	}
+	Point2d Point2d::operator+(const Point2d& other) const {
+		return Point2d(x + other.x, y + other.y);
+	}
+	Point2d Point2d::operator-(const Point2d& other) const {
+		return Point2d(x - other.x, y - other.y);
 	}
 
 	Color::Color(float R, float G, float B, float A) {

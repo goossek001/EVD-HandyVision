@@ -450,13 +450,13 @@ int MyForm::main_video() {
 }
 
 int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
-	cv::Mat cvSrcHSV, cvSrcBinair, cvPalmMask, cvFingerMask;
+	vision::Mat srcHSV, csrcBinair, palmMask, fingerMask;
+	vision::Mat srcBGR = vision::Mat(cvSrcBGR);
+
 	initHashTable();
 
-	vision::Mat srcBGR = vision::Mat(cvSrcBGR);
 	vision::morphologyEx(srcBGR, srcBGR, vision::GAUSSIAN, 11);
 
-	vision::Mat srcHSV;
 	vision::bgrtohsv(srcBGR, srcHSV);
 
 	// Skin color filter
@@ -467,32 +467,23 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	vision::morphologyEx(srcBinair, srcBinair, vision::CLOSE, 5);
 	
 	vision::fillHoles(srcBinair, srcBinair, vision::FOUR);
-	cvSrcBinair = srcBinair;		//TEMP!
 
 	// find palm
 	vision::Point palmCenter;
 	float palmRadius;
-	getPalmCenter(cvSrcBinair, palmCenter, palmRadius);
+	getPalmCenter(srcBinair, palmCenter, palmRadius);
 
-	cv::Point cvPalmCenter(palmCenter.x, palmCenter.y);	//TEMP!
-
-	vision::Mat palmMask;
-	createPalmMask(cvSrcBinair, palmMask, palmCenter, palmRadius);
-	cvPalmMask = palmMask;   //TEMP!
+	createPalmMask(srcBinair, palmMask, palmCenter, palmRadius);
 
 	// find wrist
 	vision::Line wristLine;
 	bool foundWrist = false;
 	findWrist(srcBinair, wristLine, foundWrist, palmCenter, palmRadius);
-
-	cv::Line cvWristLine(cv::Point(wristLine.position.x, wristLine.position.y), cv::Point(wristLine.direction.x, wristLine.direction.y));//TEMP!
-
 	if (!foundWrist)
 		return 1;
 
 
 	vision::Point wristCenter = wristLine.position + wristLine.direction / 2;
-	cv::Point cvWristCenter(wristCenter.x, wristCenter.y);				//Temp!
 
 	if (palmCenter == wristCenter)
 		return 1;
@@ -500,14 +491,11 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	// find the orientation of the hand
 	vision::Point2f handOrientation = (vision::Point2f)palmCenter - (vision::Point2f)wristCenter;
 	handOrientation = handOrientation / std::pow(handOrientation.x*handOrientation.x + handOrientation.y*handOrientation.y, 0.5f);
-	cv::Point2f cvHandOrientation(handOrientation.x, handOrientation.y);	//Temp!
 	float handAngle = std::atan2(handOrientation.y, handOrientation.x);
 
 	// find the fingers
-	vision::Mat fingerMask;
 	createFingerMask(srcBinair, fingerMask, palmMask, wristCenter, handOrientation);
-	cvFingerMask = fingerMask; //Temp
-	std::vector<cv::RotatedRect> boundingBoxesFingers = vision::getBoundingBoxes(cvFingerMask);
+	std::vector<cv::RotatedRect> boundingBoxesFingers = vision::getBoundingBoxes(fingerMask);
 
 	//TODO: determen the direction of the thumb
 	ThumbDirection thumbDirection = ThumbDirection::Right;
@@ -530,10 +518,9 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 		palmLine.position = palmLine.lineEnd();
 		palmLine.direction = palmLine.direction * - 1;
 	}
-	cv::Line cvPalmLine(cv::Point(palmLine.position.x, palmLine.position.y), cv::Point(palmLine.direction.x, palmLine.direction.y));	//TEMP!
 
 	// find the 4 other fingers
-	labelFingers(boundingBoxesFingers, fingers, cvWristCenter, cvHandOrientation, cvPalmLine);
+	labelFingers(boundingBoxesFingers, fingers, wristCenter, handOrientation, palmLine);
 
 	bool fingersStretch[5];
 	areFingersStretched(fingers, fingersStretch, palmRadius);
@@ -544,8 +531,11 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	//cv::line(srcBinair, wristLine.lineStart(), wristLine.lineEnd(), cv::Scalar(50));
 	
 	Mat finalImage = srcBGR;
+	cv::Line cvPalmLine(cv::Point(palmLine.position.x, palmLine.position.y), cv::Point(palmLine.direction.x, palmLine.direction.y));	
 	cv::line(finalImage, cvPalmLine.lineStart(), cvPalmLine.lineEnd(), cv::Scalar(150));
+	cv::Line cvWristLine(cv::Point(wristLine.position.x, wristLine.position.y), cv::Point(wristLine.direction.x, wristLine.direction.y));
 	cv::line(finalImage, cvWristLine.lineStart(), cvWristLine.lineEnd(), cv::Scalar(0, 150));
+	cv::Point cvWristCenter(wristCenter.x, wristCenter.y);
 	if (gesture.size() > 0)
 		cv::putText(finalImage, gesture, cv::Point(0.05f*finalImage.cols, 0.95f*finalImage.rows), 2, 0.006f*finalImage.rows, cv::Scalar(255, 255, 255), 8);
 	imshow(windowName, finalImage);
