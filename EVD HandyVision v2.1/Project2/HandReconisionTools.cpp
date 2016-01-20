@@ -205,15 +205,22 @@ bool sortBlobs(std::vector<cv::Point> blob1, std::vector<cv::Point> blob2) {
 }
 
 /**
-	Uses a distance trasformation to find the palm center and palm radius
-	@param src:			binary image of a hand
-	@param palmCenter:
-	@param palmRadius:	
+Uses a distance trasformation to find the palm center and palm radius
+@param src:			binary image of a hand
+@param palmCenter:
+@param palmRadius:
 */
-void getPalmCenter(const Mat& src, cv::Point& palmCenter, float& palmRadius) {
+/**
+Uses a distance trasformation to find the palm center and palm radius
+@param src:			binary image of a hand
+@param palmCenter:
+@param palmRadius:
+*/
+void getPalmCenter(const vision::Mat& _src, vision::Point& palmCenter, float& palmRadius) {
 	//Create a distance transform
-	Mat dst, dstNormalized;
-	cv::distanceTransform(src, dst, CV_DIST_L2, 3, CV_32F);
+	cv::Mat dst, dstNormalized;
+	cv::Mat src = _src;
+	cv::distanceTransform(src, dst, CV_DIST_L2, 3, CV_32FC1);
 
 	//Loop through all pixels in the distance transform to find the pixels with the highest values (= largestance to edge of the objecct)
 	float highestValue = 0;
@@ -228,7 +235,8 @@ void getPalmCenter(const Mat& src, cv::Point& palmCenter, float& palmRadius) {
 					count = 1;
 					xtotal = x;
 					ytotal = y;
-				} else {
+				}
+				else {
 					count++;
 					xtotal += x;
 					ytotal += y;
@@ -240,7 +248,7 @@ void getPalmCenter(const Mat& src, cv::Point& palmCenter, float& palmRadius) {
 	//Take the avarage position of all high values as the palmcenter
 	palmCenter.x = xtotal / count;
 	palmCenter.y = ytotal / count;
-	palmRadius = dst.at<float>(palmCenter);
+	palmRadius = highestValue;
 }
 
 /**
@@ -323,21 +331,17 @@ void findWrist(const Mat& src, cv::Line& wristOut, bool& foundWrist, cv::Point p
 }
 
 /**
-	Create a mask that will cover only the palm of a hand
-	@param src:			A binary image of a hand
-	@param dst:			A output image that contains the mask of the palm with same image type as src
-	@param palmCenter:	The center position of the palm
-	@param palmRadius:	The radius of the palm in pixels
+Create a mask that will cover only the palm of a hand
+@param src:			A binary image of a hand
+@param dst:			A output image that contains the mask of the palm with same image type as src
+@param palmCenter:	The center position of the palm
+@param palmRadius:	The radius of the palm in pixels
 */
-void createPalmMask(const Mat& src, Mat& dst, cv::Point palmCenter, float palmRadius) {
+void createPalmMask(const vision::Mat& src, vision::Mat& dst, vision::Point palmCenter, float palmRadius) {
 	//Create a circle that will cover the palm
-	cv::Mat circleMask = cv::Mat::zeros(src.rows, src.cols, src.type());
-	circle(circleMask, palmCenter, 1.56f * palmRadius, cv::Scalar(255), -1, 8, 0);
+	dst.create(src.rows, src.cols, src.type);
+	createCircle(dst, dst, 1.56f * 2 * palmRadius, 1, palmCenter.x, palmCenter.y);
 
-	//Create a palm mask, by preforming a binary and on the circlemask and the image of the hand
-	dst.create(src.size(), src.type());
-	dst.setTo(cv::Scalar(0));
-	src.copyTo(dst, circleMask);
 }
 
 /**

@@ -512,6 +512,9 @@ namespace vision {
 	}
 
 	void distanceTransform(const Mat& src, Mat& dst) {
+		if (src.type != dst.type || src.cols != dst.cols || src.rows != dst.rows)
+			dst.create(src.rows, src.cols, src.type);
+
 		for (unsigned int i = 0; i < src.rows; ++i) {
 			for (unsigned int j = 0; j < src.cols; ++j) {
 				if (!src.get(i, j).R && (!src.type == IM_8UC3 || (!src.get(i, j).G && !src.get(i, j).B)))
@@ -568,7 +571,7 @@ namespace vision {
 		unsigned char* pDst;
 		int temp;
 
-		if (src.type != dst.type || src.cols != src.cols || src.rows != src.rows)
+		if (src.type != dst.type || src.cols != dst.cols || src.rows != dst.rows)
 			dst.create(src.rows, src.cols, src.type);
 
 		pSrc = (unsigned char*)src.data;
@@ -1503,5 +1506,27 @@ namespace vision {
 			}
 		}
 		dst.copyFrom(temp);
+	}
+	void createCircle(const vision::Mat& src, vision::Mat& dst, const int diameter, const int value, int xCoordinate, int yCoordinate)
+	{
+		unsigned char* pDst = dst.data;
+		dst.create(src.rows, src.cols, src.type);
+
+		int straal = diameter / 2 + 1;
+		int Maskx, Masky = 0;
+		double a, b, c = 0;
+
+		for (Maskx = (xCoordinate - straal); Maskx <= (xCoordinate + straal); Maskx++){
+			for (Masky = (yCoordinate - straal); Masky <= (yCoordinate + straal); Masky++){
+
+				a = pow((xCoordinate - Maskx), 2);
+				b = pow((yCoordinate - Masky), 2);
+				c = sqrt(a + b);
+
+				if (c - straal <= 1){
+					dst.set(Maskx, Masky, value);
+				}
+			}
+		}
 	}
 }

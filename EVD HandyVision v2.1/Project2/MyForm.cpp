@@ -461,7 +461,7 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 
 	// Skin color filter
 	vision::Mat srcBinair;
-	int H_min = 240, H_max = 38, S_min = 33, S_max = 241, V_min = 30, V_max = 222, S_size = 128, V_size = 128;
+	int H_min = 246, H_max = 28, S_min = 33, S_max = 241, V_min = 30, V_max = 222, S_size = 128, V_size = 128;
 	adaptiveHSVSkinColorFilter(srcHSV, srcBinair, H_min, H_max, S_min, S_max, V_min, V_max, S_size, V_size);	
 
 	vision::morphologyEx(srcBinair, srcBinair, vision::CLOSE, 5);
@@ -470,26 +470,31 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	cvSrcBinair = srcBinair;		//TEMP!
 
 	// find palm
-	cv::Point palmCenter;
+	vision::Point palmCenter;
 	float palmRadius;
 	getPalmCenter(cvSrcBinair, palmCenter, palmRadius);
-	createPalmMask(cvSrcBinair, cvPalmMask, palmCenter, palmRadius);
+
+	cv::Point cvPalmCenter(palmCenter.x, palmCenter.y);	//TEMP!
+
+	vision::Mat palmMask;
+	createPalmMask(cvSrcBinair, palmMask, palmCenter, palmRadius);
+	cvPalmMask = palmMask;   //TEMP!
 
 	// find wrist
 	cv::Line wristLine;
 	bool foundWrist = false;
-	findWrist(cvSrcBinair, wristLine, foundWrist, palmCenter, palmRadius);
+	findWrist(cvSrcBinair, wristLine, foundWrist, cvPalmCenter, palmRadius);
 	if (!foundWrist)
 		return 1;
 
 
 	cv::Point wristCenter = wristLine.position + wristLine.direction / 2;
 
-	if (palmCenter == wristCenter)
+	if (cvPalmCenter == wristCenter)
 		return 1;
 
 	// find the orientation of the hand
-	cv::Point2f handOrientation = (cv::Point2f)palmCenter - (cv::Point2f)wristCenter;
+	cv::Point2f handOrientation = (cv::Point2f)cvPalmCenter - (cv::Point2f)wristCenter;
 	handOrientation /= std::pow(handOrientation.x*handOrientation.x + handOrientation.y*handOrientation.y, 0.5f);
 	float handAngle = std::atan2(handOrientation.y, handOrientation.x);
 
@@ -504,7 +509,7 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	cv::RotatedRect* fingers[5];
 	std::fill(fingers, fingers + 5, (cv::RotatedRect*)0);
 
-	int thumbIndex = getFindThumb(boundingBoxesFingers, palmCenter, handAngle, thumbDirection);
+	int thumbIndex = getFindThumb(boundingBoxesFingers, cvPalmCenter, handAngle, thumbDirection);
 	if (thumbIndex >= 0)
 		fingers[0] = &boundingBoxesFingers[thumbIndex];
 
@@ -532,6 +537,7 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	
 	Mat finalImage = srcBGR;
 	cv::line(finalImage, palmLine.lineStart(), palmLine.lineEnd(), cv::Scalar(150));
+	cv::line(finalImage, wristLine.lineStart(), wristLine.lineEnd(), cv::Scalar(0, 150));
 	if (gesture.size() > 0)
 		cv::putText(finalImage, gesture, cv::Point(0.05f*finalImage.cols, 0.95f*finalImage.rows), 2, 0.006f*finalImage.rows, cv::Scalar(255, 255, 255), 8);
 	imshow(windowName, finalImage);
