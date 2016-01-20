@@ -10,6 +10,7 @@
 #include <opencv2/opencv.hpp>
 #include "Line.h"
 #include <map>
+#include "VisionOperators.h"
 
 using cv::Mat;
 
@@ -26,7 +27,7 @@ void initHashTable();
 int GenerateHashKey(bool fingers[5]);
 
 void biggestColorBlob(const Mat& src, Mat& dst, const Mat& mask = Mat());
-void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
+void adaptiveHSVSkinColorFilter(const vision::Mat& src, vision::Mat& dst,
 	int H_min, int H_max,
 	int S_min, int S_max,
 	int V_min, int V_max,

@@ -458,13 +458,11 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 
 	vision::Mat srcHSV;
 	vision::bgrtohsv(srcBGR, srcHSV);
-	cvSrcHSV = srcHSV;		//TEMP!
 
 	// Skin color filter
-	int H_min = 246, H_max = 38, S_min = 33, S_max = 241, V_min = 30, V_max = 222, S_size = 128, V_size = 128;
-	adaptiveHSVSkinColorFilter(cvSrcHSV, cvSrcBinair, H_min, H_max, S_min, S_max, V_min, V_max, S_size, V_size);
-
-	vision::Mat srcBinair = vision::Mat(cvSrcBinair);		//TEMP!
+	vision::Mat srcBinair;
+	int H_min = 240, H_max = 38, S_min = 33, S_max = 241, V_min = 30, V_max = 222, S_size = 128, V_size = 128;
+	adaptiveHSVSkinColorFilter(srcHSV, srcBinair, H_min, H_max, S_min, S_max, V_min, V_max, S_size, V_size);	
 
 	vision::morphologyEx(srcBinair, srcBinair, vision::CLOSE, 5);
 	
@@ -532,8 +530,7 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	//cv::line(srcBinair, palmLine.lineStart(), palmLine.lineEnd(), cv::Scalar(150));
 	//cv::line(srcBinair, wristLine.lineStart(), wristLine.lineEnd(), cv::Scalar(50));
 	
-	vision::setSelectedValue(srcBinair, srcBinair, 1, 255);
-	Mat finalImage = srcBinair;
+	Mat finalImage = srcBGR;
 	cv::line(finalImage, palmLine.lineStart(), palmLine.lineEnd(), cv::Scalar(150));
 	if (gesture.size() > 0)
 		cv::putText(finalImage, gesture, cv::Point(0.05f*finalImage.cols, 0.95f*finalImage.rows), 2, 0.006f*finalImage.rows, cv::Scalar(255, 255, 255), 8);

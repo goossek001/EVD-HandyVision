@@ -61,7 +61,7 @@ namespace vision {
 
 		Mat();
 		Mat(const cv::Mat& cvMat);
-		operator cv::Mat();
+		operator cv::Mat() const;
 		Mat(int rows, int cols, ImageType type);
 		Mat(Point size, ImageType type);
 		Mat::Mat(const Mat& other);
@@ -108,11 +108,12 @@ namespace vision {
 
 	void bgrtohsv(const Mat& src, Mat& dst);
 
-	void minMaxLoc(const Mat& src, int* min, Point* minLoc, int* max, Point* maxLoc);
+	void minMaxLoc(const Mat& src, int* min, int* max, Point* minLoc, Point* maxLoc);
 
 	int labelBlobs(const Mat& src, Mat& dst, ConnectionType connected);
 	void fillHoles(const Mat& src, Mat& dst, ConnectionType connected);
 	void histogram(const Mat& src, unsigned char* hist, int *sum);
+	void histgram2D(const Mat& src, Mat& hist, const int channels[2], const int** ranges);
 
 	struct BlobInfo {
 		int height;

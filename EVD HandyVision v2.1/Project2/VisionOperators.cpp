@@ -103,7 +103,7 @@ namespace vision {
 	memcpy(data, cvMat.data, rows*cols * bytesPerPixel(type));
 	}
 
-	Mat::operator cv::Mat() {
+	Mat::operator cv::Mat() const {
 	cv::Mat cvMat(rows, cols, convertType(type));
 	memcpy(cvMat.data, data, rows*cols * bytesPerPixel(type));
 
@@ -614,7 +614,7 @@ namespace vision {
 		}
 	}
 
-	void minMaxLoc(const Mat& src, int* min, Point* minLoc, int* max, Point* maxLoc) {
+	void minMaxLoc(const Mat& src, int* min, int* max, Point* minLoc, Point* maxLoc) {
 		unsigned int i, j, val;
 
 		*min = src.get(0, 0).R;
@@ -969,7 +969,6 @@ namespace vision {
 	void histogram(const Mat& src, unsigned char* hist, int *sum) {
 		unsigned int i;
 		unsigned char *h, *pSrc;
-		unsigned int val;
 
 		*sum = 0;
 		pSrc = (unsigned char*)src.data;
@@ -979,13 +978,61 @@ namespace vision {
 		while (--i)
 			*h++ = 0;
 
-
-		i = 257;
-		h = h;
 		i = src.cols * src.rows + 1;
 		while (--i) {
 			(*sum) += *pSrc;
 			++(hist[*pSrc++]);
+		}
+
+		return;
+	}
+
+	void histgram2D(const Mat& src, Mat& hist, const int channels[2], const int** ranges) {
+		if (src.type != IM_8UC3)
+			throw "Unexpected image type";
+		if (&src == &hist)
+			throw "The source image cant be used as storage for the histgram";
+
+		unsigned int i, j;
+		unsigned char *pHist, *pSrc;
+		unsigned char color[3];
+		unsigned char loc[2];
+		int size[2];
+		size[0] = ranges[0][1] - ranges[0][0];
+		size[1] = ranges[1][1] - ranges[1][0];
+
+		hist.create(size[1], size[0], IM_32FC1);
+
+		pSrc = (unsigned char*)src.data;
+		pHist = (unsigned char*)hist.data;
+
+		i = size[0] * size[1] + 1;
+		while (--i)
+			*(pHist++) = 0;
+
+
+		i = src.cols * src.rows + 1;
+		while (--i) {
+			color[0] = *(pSrc++);
+			color[1] = *(pSrc++);
+			color[2] = *(pSrc++);
+
+			loc[0] = color[channels[0]] - ranges[0][0];
+			loc[1] = color[channels[1]] - ranges[1][0];
+			if (loc[0] >= 0 && loc[0] < size[0] && loc[1] >= 0 && loc[1] < size[1]) {	//Out of bound check horizontal
+				hist.set(loc[0], loc[1], Color(1 + hist.get(loc[0], loc[1]).R));
+			}
+		}
+		int min, max;
+		vision::Point minLoc, maxLoc;
+		minMaxLoc(hist, &min, &max, &minLoc, &maxLoc);
+
+		vision::Mat temp(hist);
+		for (int x = 0; x < hist.cols; ++x) {
+			for (int y = 0; y < hist.cols; ++y) {
+				Point p(x, y);
+				temp.set(p, Color(temp.get(p).R * 255 / max));
+			}
 		}
 
 		return;

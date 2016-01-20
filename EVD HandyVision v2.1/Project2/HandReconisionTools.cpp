@@ -70,7 +70,7 @@ void biggestColorBlob(const Mat& src, Mat& dst, const Mat& mask) {
 	*/
 }
 
-void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
+void adaptiveHSVSkinColorFilter(const vision::Mat& src, vision::Mat& dst,
 		int H_min, int H_max,
 		int S_min, int S_max,
 		int V_min, int V_max,
@@ -79,39 +79,36 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
 	cv::Point S = cv::Point(0.35 * 255, 0.95*255);
 	cv::Point V = cv::Point(0.15 * 255, 0.75 * 255);*/
 
-	cv::Point H = cv::Point(H_min, H_max);
-	cv::Point S = cv::Point(S_min, S_max);
-	cv::Point V = cv::Point(V_min, V_max);
+	vision::Point H = vision::Point(H_min, H_max);
+	vision::Point S = vision::Point(S_min, S_max);
+	vision::Point V = vision::Point(V_min, V_max);
 
-	cv::Point size = cv::Point(S_size, V_size);
-	cv::Point extend = cv::Point(size.x / 2, size.y / 2);
-	cv::Point center = cv::Point(S.x + (S.y - S.x) / 2,
+	vision::Point size = vision::Point(S_size, V_size);
+	vision::Point extend = vision::Point(size.x / 2, size.y / 2);
+	vision::Point center = vision::Point(S.x + (S.y - S.x) / 2,
 		V.x + (V.y - V.x) / 2);
 
-	float sranges[] = { center.x - extend.x, center.x + extend.x };
-	float vranges[] = { center.y - extend.y, center.y + extend.y };
+	int sranges[] = { center.x - extend.x, center.x + extend.x };
+	int vranges[] = { center.y - extend.y, center.y + extend.y };
 
-	cv::MatND hist;
-	double maxVal;
-	cv::Point maxLoc;
+	vision::Mat hist;
+	int minVal, maxVal;
+	vision::Point minLoc, maxLoc;
 	for (int i = 0; i < 10; ++i) {
 
-		const float* ranges[] = { sranges, vranges };
+		const int* ranges[] = { sranges, vranges };
 		int histSize[] = { size.x, size.x };
 		int channels[] = { 1, 2 };
-		calcHist(&src, 1, channels, Mat(), // do not use mask
-			hist, 2, histSize, ranges,
-			true, // the histogram is uniform
-			false);
-		minMaxLoc(hist, 0, &maxVal, 0, &maxLoc);
+		vision::histgram2D(src, hist, channels, ranges);
+		vision::minMaxLoc(hist, &minVal, &maxVal, &minLoc, &maxLoc);
 
 		cv::Point2d avarage;
 		int count = 0;
 		for (int i = 0; i < hist.rows; ++i) {
 			for (int j = 0; j < hist.cols; ++j) {
-				if (hist.at<float>(i, j) >= maxVal * 0.1) {
-					avarage = (avarage * count + cv::Point2d(i, j)*hist.at<float>(i, j)) / (hist.at<float>(i, j) + count);
-					count += hist.at<float>(i, j);
+				if (hist.get(i,j).R >= maxVal * 0.1) {
+					avarage = (avarage * count + cv::Point2d(i, j)*hist.get(i, j).R) / (hist.get(i, j).R + count);
+					count += hist.get(i, j).R;
 				}
 			}
 		}
@@ -140,12 +137,11 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
 			vranges[0] = V.y - size.y;
 		}
 
+		vision::Point prev = center;
+		center.x = sranges[0] + 0.5f * histSize[0];
+		center.y = vranges[0] + 0.5f * histSize[1];
 
-		cv::Point prev = center;
-		center.x = sranges[1] - sranges[0];
-		center.y = vranges[1] - vranges[0];
-
-		if (length(center - prev) < 1)
+		if (math::length(center - prev) < 1)
 			break;
 	}
 
@@ -164,10 +160,20 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
 				vRanges[1] = i + vranges[0];
 		}
 	}
-	vision::Mat vSrc = vision::Mat(src);
-	vision::Mat vDst;
-	vision::HSVThreshold(vSrc, vDst, H.x, H.y, sRanges[0], sRanges[1], vRanges[0], vRanges[1]);
-	dst = vDst;
+	vision::HSVThreshold(src, dst, H.x, H.y, sRanges[0], sRanges[1], vRanges[0], vRanges[1]);
+
+	//Temp!
+	vision::Mat fullRange;
+	vision::HSVThreshold(src, fullRange, H.x, H.y, S.x, S.y, V.x, V.y);
+	vision::setSelectedValue(fullRange, fullRange, 1, 255);
+	cv::Mat cvFullRange = fullRange;
+	cv::imshow("full range", cvFullRange);
+
+	//Temp!
+	vision::Mat adjusted(dst);
+	vision::setSelectedValue(adjusted, adjusted, 1, 255);
+	cv::Mat cvAdjusted = adjusted;
+	cv::imshow("binair", cvAdjusted);
 
 	//biggestColorBlob(src, dst, dst);
 }

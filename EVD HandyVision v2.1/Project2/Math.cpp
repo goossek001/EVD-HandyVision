@@ -30,6 +30,9 @@ namespace math {
 	float length(const Point& vector) {
 		return pow(vector.x*vector.x + vector.y*vector.y, 0.5f);
 	}
+	float length(const vision::Point& vector) {
+		return pow(vector.x*vector.x + vector.y*vector.y, 0.5f);
+	}
 
 
 	/**

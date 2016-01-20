@@ -6,6 +6,7 @@
 //***************************************************************************************
 
 #include "Line.h"
+#include "VisionOperators.h"
 
 #define PI 3.14159265359
 #define Infinity 9999999
@@ -18,6 +19,7 @@ namespace math {
 	int sign(int val);
 
 	float length(const Point& vector);
+	float length(const vision::Point& vector);
 	float cross(cv::Point v1, cv::Point v2);
 
 	void rotatePoint(const Mat& src, const Point& srcPoint, Point& dstPoint, float angle);
