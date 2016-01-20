@@ -49,12 +49,13 @@ namespace vision {
 	Find a rotated bounding boxes for each blob
 	@param src: a 8 bit binair image
 	*/
-	std::vector<cv::RotatedRect> getBoundingBoxes(const vision::Mat& src) {
+	std::vector<cv::RotatedRect> getBoundingBoxes(const cv::Mat& src) {
 		int minAreaThreshold = 16;
 		std::vector<cv::Vec4i> hierarchy;
 		std::vector<std::vector<cv::Point> > contours;
 
-		cv::Mat srcCopy = src;
+		cv::Mat srcCopy;
+		src.copyTo(srcCopy);
 
 		std::vector<cv::RotatedRect> boundingBoxes;
 		cv::findContours(srcCopy, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);

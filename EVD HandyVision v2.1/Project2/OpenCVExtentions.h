@@ -17,7 +17,7 @@ namespace vision {
 	//vision::Point getCenterOfMass(const Mat& src);
 	void fillHoles(const Mat& src, Mat& dst);
 	//std::vector<vision::Rect_obb> getBoundingBoxes(const Mat& src);
-	std::vector<cv::RotatedRect> getBoundingBoxes(const vision::Mat& src);
+	std::vector<cv::RotatedRect> getBoundingBoxes(const cv::Mat& src);
 	void rotateImage(const cv::Mat& src, cv::Mat& dst, float angle);
 	void rotateImage(const vision::Mat& src, vision::Mat& dst, float angle);
 	void applyRectangleMask(const Mat& src, Mat& dst, vision::Rect_obb boundingRect);

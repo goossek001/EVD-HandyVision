@@ -108,45 +108,45 @@ namespace vision {
 			return 4;
 		}
 	}
-	
+
 	ImageType convertType(int type) {
-	switch (type) {
-	default:
-	throw "Unknown image type";
-	case CV_8UC1:
-	return IM_8UC1;
-	case CV_8UC3:
-	return IM_8UC3;
-	case CV_32FC1:
-	return IM_32FC1;
-	}
+		switch (type) {
+		default:
+			throw "Unknown image type";
+		case CV_8UC1:
+			return IM_8UC1;
+		case CV_8UC3:
+			return IM_8UC3;
+		case CV_32FC1:
+			return IM_32FC1;
+		}
 	}
 
 	int convertType(ImageType type) {
-	switch (type) {
-	default:
-	throw "Unknown image type";
-	case IM_8UC1:
-	return CV_8UC1;
-	case IM_8UC3:
-	return CV_8UC3;
-	case IM_32FC1:
-	return CV_32FC1;
-	}
+		switch (type) {
+		default:
+			throw "Unknown image type";
+		case IM_8UC1:
+			return CV_8UC1;
+		case IM_8UC3:
+			return CV_8UC3;
+		case IM_32FC1:
+			return CV_32FC1;
+		}
 	}
 
 	Mat::Mat(const cv::Mat& cvMat) : Mat(cvMat.rows, cvMat.cols, convertType(cvMat.type())) {
-	//std::cout << rows << ", " << cols << ", " << type << "\n ";
-	memcpy(data, cvMat.data, rows*cols * bytesPerPixel(type));
+		//std::cout << rows << ", " << cols << ", " << type << "\n ";
+		memcpy(data, cvMat.data, rows*cols * bytesPerPixel(type));
 	}
 
 	Mat::operator cv::Mat() const {
-	cv::Mat cvMat(rows, cols, convertType(type));
-	memcpy(cvMat.data, data, rows*cols * bytesPerPixel(type));
+		cv::Mat cvMat(rows, cols, convertType(type));
+		memcpy(cvMat.data, data, rows*cols * bytesPerPixel(type));
 
-	return cvMat;
+		return cvMat;
 	}
-	
+
 	Mat::Mat() : Mat(0, 0, IM_8UC1) {}
 
 	Mat::Mat(const Mat& other) {
@@ -280,7 +280,7 @@ namespace vision {
 		unsigned char* pDst = dst.data;
 
 		int i = src1.rows * src1.cols * bytesPerPixel(src1.type) + 1;
-		while (--i) 
+		while (--i)
 			*(pDst++) = *(pSrc1++) & *(pSrc2++);
 	}
 
@@ -1477,27 +1477,27 @@ namespace vision {
 	}
 
 	/*void split(const Mat& src, Mat dst[]) {
-		switch (src.type)
-		{
-		default:
-			throw "Not implemented type";
-		case IM_8UC3:
-			struct ColorC3 {
-				unsigned char color[3];
-			};
+	switch (src.type)
+	{
+	default:
+	throw "Not implemented type";
+	case IM_8UC3:
+	struct ColorC3 {
+	unsigned char color[3];
+	};
 
-			for (int i = 0; i < 3; ++i) {
-				dst[i].create(src.rows, src.cols, IM_8UC1);
+	for (int i = 0; i < 3; ++i) {
+	dst[i].create(src.rows, src.cols, IM_8UC1);
 
-				const ColorC3 *pSrc = reinterpret_cast<const ColorC3*>(src.data);
-				unsigned char *pDst = dst[i].data;
-				int j = src.rows * src.cols + 1;
-				while (--j) {
-					*pDst++ = (pSrc++)->color[i];
-				}
-				break;
-			}
-		}
+	const ColorC3 *pSrc = reinterpret_cast<const ColorC3*>(src.data);
+	unsigned char *pDst = dst[i].data;
+	int j = src.rows * src.cols + 1;
+	while (--j) {
+	*pDst++ = (pSrc++)->color[i];
+	}
+	break;
+	}
+	}
 	}*/
 
 	void applyRectMask(const Mat& src, Mat& dst, Rect_obb rect) {

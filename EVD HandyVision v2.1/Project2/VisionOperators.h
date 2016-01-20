@@ -154,7 +154,7 @@ namespace vision {
 	int neighbourCount(const Mat& img, const unsigned char blobnr, Point p);
 	void createCircle(const Mat& src, Mat& dst, const int diameter, const int value, int xCoordinate, int yCoordinate);
 	void setSelectedValue(const Mat& src, Mat& dst, int selected, int newVal);
-	void split(const Mat& src, Mat channels[3]); 
+	void split(const Mat& src, Mat channels[3]);
 	Rect_obb findOMBB(const Mat& img, int blobNr);
 	void applyRectMask(const Mat& src, Mat& dst, Rect_obb rect);
 }
