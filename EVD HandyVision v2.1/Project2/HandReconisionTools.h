@@ -40,7 +40,7 @@ void createFingerMask(const vision::Mat& src, vision::Mat& dst, vision::Mat& pal
 int findThumb(const std::vector<cv::RotatedRect>& fingers, vision::Point palmCenter, float handAngle, ThumbDirection thumbDirection);
 void findPalmLine(const vision::Mat& srcBinair, vision::Line& palmLineOut, bool& foundPalm, vision::Line wristLine, float palmRadius, vision::Point2f handOrientation, bool isThumbVisible);
 void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fingersOut)[5], const vision::Point& wristCenter
-	, const vision::Point& handOrientation, cv::Line palmLine);
+	, const vision::Point& handOrientation, const vision::Line palmLine);
 void areFingersStretched(cv::RotatedRect* fingers[5], bool(&out)[5], float palmRadius);
 void displayFingers(const Mat& img, cv::RotatedRect* fingers[5]);
 std::string deteremenGesture(GestureType gestureType, bool fingers[5]);

@@ -533,7 +533,7 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	cv::Line cvPalmLine(cv::Point(palmLine.position.x, palmLine.position.y), cv::Point(palmLine.direction.x, palmLine.direction.y));	//TEMP!
 
 	// find the 4 other fingers
-	labelFingers(boundingBoxesFingers, fingers, wristCenter, handOrientation, cvPalmLine);
+	labelFingers(boundingBoxesFingers, fingers, wristCenter, handOrientation, palmLine);
 
 	bool fingersStretch[5];
 	areFingersStretched(fingers, fingersStretch, palmRadius);
