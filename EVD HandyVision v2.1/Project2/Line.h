@@ -7,25 +7,22 @@
 
 #pragma once
 
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/opencv.hpp>
+#include "VisionOperators.h"
 
-namespace cv {
+
 	class Line {
 	public:
-		Point position;
-		Point direction;
+		vision::Point position;
+		vision::Point direction;
 
 		Line();
-		Line(Point position, Point direction);
+		Line(vision::Point position, vision::Point direction);
 
-		Point lineEnd() const;
+		vision::Point lineEnd() const;
 
-		Point lineStart() const;
+		vision::Point lineStart() const;
 
 		float length() const;
 
-		Point perpendicularDir() const;
+		vision::Point perpendicularDir() const;
 	};
-}

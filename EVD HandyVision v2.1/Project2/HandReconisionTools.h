@@ -10,8 +10,9 @@
 #include <opencv2/opencv.hpp>
 #include "Line.h"
 #include <map>
+#include "VisionOperators.h"
 
-using cv::Mat;
+using vision::Mat;
 
 enum ThumbDirection {
 	Left = 1,
@@ -32,14 +33,14 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
 	int V_min, int V_max,
 	int S_size, int V_size);
 void CannyHandFilter(const Mat& src, Mat& dst);
-void getPalmCenter(const Mat& src, cv::Point& palmCenter, float& palmRadius);
-void createPalmMask(const Mat& src, Mat& dst, cv::Point palmCenter, float palmRadius);
-void findWrist(const Mat& src, cv::Line& wristOut, bool& foundWrist, cv::Point palmCenter, float palmRadius);
-void createFingerMask(const Mat& src, Mat& dst, Mat& palmMask, cv::Point wristCenter, cv::Point2f handOrientation);
-int getFindThumb(const std::vector<cv::RotatedRect>& fingers, cv::Point palmCenter, float handAngle, ThumbDirection thumbDirection);
-void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, cv::Line wristLine, float palmRadius, cv::Point2f handOrientation, bool isThumbVisible);
-void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fingersOut)[5], const cv::Point& wristCenter
-	, const cv::Point& handOrientation, cv::Line palmLine);
+void getPalmCenter(const Mat& src, vision::Point& palmCenter, float& palmRadius);
+void createPalmMask(const Mat& src, Mat& dst, vision::Point palmCenter, float palmRadius);
+void findWrist(const Mat& src, Line& wristOut, bool& foundWrist, vision::Point palmCenter, float palmRadius);
+void createFingerMask(const Mat& src, Mat& dst, Mat& palmMask, vision::Point wristCenter, vision::Point2f handOrientation);
+int getFindThumb(const std::vector<cv::RotatedRect>& fingers, vision::Point palmCenter, float handAngle, ThumbDirection thumbDirection);
+void findPalmLine(const Mat& srcBinair, Line& palmLineOut, bool& foundPalm, Line wristLine, float palmRadius, vision::Point2f handOrientation, bool isThumbVisible);
+void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fingersOut)[5], const vision::Point& wristCenter
+	, const vision::Point& handOrientation, Line palmLine);
 void areFingersStretched(cv::RotatedRect* fingers[5], bool(&out)[5], float palmRadius);
 void displayFingers(const Mat& img, cv::RotatedRect* fingers[5]);
 std::string deteremenGesture(GestureType gestureType, bool fingers[5]);

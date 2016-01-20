@@ -1,7 +1,7 @@
 #include "Line.h"
 #include "Math.h"
 
-namespace cv{
+namespace vision{
 	Line::Line() : position(), direction() {}
 	Line::Line(Point position, Point direction) : position(position), direction(direction) {}
 
@@ -18,6 +18,6 @@ namespace cv{
 	}
 
 	Point Line::perpendicularDir() const {
-		return cv::Point(direction.y, -direction.x);
+		return vision::Point(direction.y, -direction.x);
 	}
 }
