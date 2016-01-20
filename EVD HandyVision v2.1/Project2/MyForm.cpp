@@ -459,7 +459,7 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	vision::Mat srcHSV;
 	vision::bgrtohsv(srcBGR, srcHSV);
 	cvSrcHSV = srcHSV;		//TEMP!
-
+	/*
 	// Skin color filter
 	int H_min = 246, H_max = 38, S_min = 33, S_max = 241, V_min = 30, V_max = 222, S_size = 128, V_size = 128;
 	adaptiveHSVSkinColorFilter(cvSrcHSV, cvSrcBinair, H_min, H_max, S_min, S_max, V_min, V_max, S_size, V_size);
@@ -538,6 +538,11 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	if (gesture.size() > 0)
 		cv::putText(finalImage, gesture, cv::Point(0.05f*finalImage.cols, 0.95f*finalImage.rows), 2, 0.006f*finalImage.rows, cv::Scalar(255, 255, 255), 8);
 	imshow(windowName, finalImage);
+*/
+
+
+
+
 
 	/*String^ str = gcnew System::String(gesture.c_str());
 	if (this->label1->InvokeRequired) {

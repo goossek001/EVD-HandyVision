@@ -72,12 +72,12 @@ namespace vision {
 	@param dst			The output channel for the rotated image. This image will have the same type and parent as the param 'src'
 	@param angle:		The rotation of the image in radians
 	*/
-	void rotateImage(const cv::Mat& src, cv::Mat& dst, float angle) {
+	void rotateImage(const vision::Mat& src, vision::Mat& dst, float angle) {
 		int len = std::max(src.cols, src.rows);
-		cv::Point2f pt(len / 2., len / 2.);
-		cv::Mat r = cv::getRotationMatrix2D(pt, angle / PI * 180, 1.0);
+		vision::Point2f pt(len / 2., len / 2.);
+		vision::Mat r = vision::getRotationMatrix2D(pt, angle / PI * 180);
 
-		cv::warpAffine(src, dst, r, cv::Size(len, len));
+		vision::warpAffine(src, dst, r, vision::Point(len, len));
 	}
 
 	/**

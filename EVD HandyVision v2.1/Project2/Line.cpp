@@ -1,15 +1,14 @@
 #include "Line.h"
 #include "Math.h"
 
-namespace vision{
 	Line::Line() : position(), direction() {}
-	Line::Line(Point position, Point direction) : position(position), direction(direction) {}
+	Line::Line(cv::Point position, cv::Point direction) : position(position), direction(direction) {}
 
-	Point Line::lineEnd() const {
+	cv::Point Line::lineEnd() const {
 		return position + direction;
 	}
 
-	Point Line::lineStart() const {
+	cv::Point Line::lineStart() const {
 		return position;
 	}
 
@@ -17,7 +16,26 @@ namespace vision{
 		return math::length(direction);
 	}
 
-	Point Line::perpendicularDir() const {
-		return vision::Point(direction.y, -direction.x);
+	cv::Point Line::perpendicularDir() const {
+		return cv::Point(direction.y, -direction.x);
 	}
-}
+
+
+	vLine::vLine() : vposition(), vdirection() {}
+	vLine::vLine(vision::Point position, vision::Point direction) : vposition(position), vdirection(direction) {}
+
+	vision::Point vLine::vlineEnd() const {
+		return vposition + vdirection;
+	}
+
+	vision::Point vLine::vlineStart() const {
+		return vposition;
+	}
+
+	float vLine::vlength() const {
+		return math::vlength(vdirection);
+	}
+
+	vision::Point vLine::vperpendicularDir() const {
+		return vision::Point(vdirection.y, -vdirection.x);
+	}

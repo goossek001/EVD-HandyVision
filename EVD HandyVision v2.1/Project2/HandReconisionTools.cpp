@@ -76,7 +76,7 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
 	/*vision::Point H = vision::Point(0.9 * 255, 0.2 * 255);
 	vision::Point S = vision::Point(0.35 * 255, 0.95*255);
 	vision::Point V = vision::Point(0.15 * 255, 0.75 * 255);*/
-
+	/*
 	vision::Point H = vision::Point(H_min, H_max);
 	vision::Point S = vision::Point(S_min, S_max);
 	vision::Point V = vision::Point(V_min, V_max);
@@ -163,7 +163,7 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
 	vision::Mat vDst;
 	vision::HSVThreshold(vSrc, vDst, H.x, H.y, sRanges[0], sRanges[1], vRanges[0], vRanges[1]);
 	dst = vDst;
-
+*/
 	//biggestColorBlob(src, dst, dst);
 }
 
@@ -266,7 +266,7 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
 		@param angleStart:	The start angle of the area that the algoritm will be eximinated by the algoritm
 		@param angleEnd:	The end angle of the area that the algoritm will be eximinated by the algoritm
 		*/
-	void findLargestGap(const vision::Mat& src, Line& out, bool& foundLine, vision::Point center, float maxRadius, float angleStart, float angleEnd) {
+	void findLargestGap(const vision::Mat& src, vLine& out, bool& foundLine, vision::Point center, float maxRadius, float angleStart, float angleEnd) {
 		vision::Point previousPoint;
 		float previousAngle;
 		float largestGap = -1;
@@ -284,8 +284,8 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
 					else if (std::abs(previousAngle - angle) / deltaAngle - 1 > largestGap) {
 						//Found a area that has no holes
 						largestGap = std::abs(previousAngle - angle) / deltaAngle - 1;
-						out.position = previousPoint;
-						out.direction = pixelPos - previousPoint;
+						out.vposition = previousPoint;
+						out.vdirection = pixelPos - previousPoint;
 						foundLine = true;
 					}
 					previousPoint = pixelPos;
@@ -304,14 +304,14 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
 		@param palmCenter:	The center position of the palm
 		@param palmRadius:	The radius of the palm in pixels
 		*/
-	void findWrist(const vision::Mat& src, Line& wristOut, bool& foundWrist, vision::Point palmCenter, float palmRadius) {
+	void findWrist(const vision::Mat& src, vLine& wristOut, bool& foundWrist, vision::Point palmCenter, float palmRadius) {
 		//Look for the rough direction of the wrist by using a large radius. This is done to prefent part of the palm to be miss-inprentended as wrist
 		findLargestGap(src, wristOut, foundWrist, palmCenter, 1.75*palmRadius, 0, 3.0f*PI);
 
 		//Look for a better estimation of the wirst position
 		float nintyDegrees = 0.5f * PI;
-		float minAngle = std::atan2(wristOut.position.y - palmCenter.y, wristOut.position.x - palmCenter.x) - nintyDegrees;
-		float maxAngle = std::atan2(wristOut.lineEnd().y - palmCenter.y, wristOut.lineEnd().x - palmCenter.x) + nintyDegrees;
+		float minAngle = std::atan2(wristOut.vposition.y - palmCenter.y, wristOut.vposition.x - palmCenter.x) - nintyDegrees;
+		float maxAngle = std::atan2(wristOut.vlineEnd().y - palmCenter.y, wristOut.vlineEnd().x - palmCenter.x) + nintyDegrees;
 		findLargestGap(src, wristOut, foundWrist, palmCenter, 1.2*palmRadius, minAngle, maxAngle);
 	}
 
@@ -336,14 +336,15 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
 		@param palmMask:		A mask that covers the palm
 		@param wristCenter:		The center position of the wrist
 		@param handOrientation:	The direction from wrist to fingers
+		// TODO: RotatedRect and FillConvexPoly // BEHOUD OPENCV VERSIE
 		*/
-	void createFingerMask(const vision::Mat& src, vision::Mat& dst, vision::Mat& palmMask, vision::Point wristCenter, vision::Point2f handOrientation) {
-		vision::Point2f rSize(src.rows + src.cols, src.rows + src.cols);
-		vision::Point2f rCenter = (vision::Point2f)wristCenter + 0.5f*rSize.x * handOrientation;
+	void createFingerMask(const cv::Mat& src, cv::Mat& dst, cv::Mat& palmMask, cv::Point wristCenter, cv::Point2f handOrientation) {
+		cv::Point2f rSize(src.rows + src.cols, src.rows + src.cols);
+		cv::Point2f rCenter = (cv::Point2f)wristCenter + 0.5f*rSize.x * handOrientation;
 		float rAngle = std::atan2(handOrientation.y, handOrientation.x) * 180 / PI;
 
 		//Create a finger mask, using the bounding boxes of the fingers
-		Mat rectMask(src.size(), src.type(), cv::Scalar(0));
+		cv::Mat rectMask(src.size(), src.type(), cv::Scalar(0));
 		cv::RotatedRect rRect = cv::RotatedRect(rCenter, rSize, rAngle);
 		cv::Point2f vertices2f[4];
 		rRect.points(vertices2f);
@@ -354,9 +355,9 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
 		cv::fillConvexPoly(rectMask, vertices, 4, cv::Scalar(255));
 
 		//Remove the palm
-		vision::bitwise_xor(src, palmMask, dst);
+		cv::bitwise_xor(src, palmMask, dst);
 		//Apply the finger mask that was made, using the bounding boxes of the fingers
-		vision::bitwise_and(dst, rectMask, dst);
+		cv::bitwise_and(dst, rectMask, dst);
 	}
 
 	/**
@@ -366,7 +367,7 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
 	@param handAngle:				The rotation of the hand
 	@param thumbDirection:			The direction the thumb points, relative to the hand
 	@return:						The index of the thumb in the list boundingBoxesFingers. Return -1 when the is no thumb in the list
-	*/
+	*/// TODO: RotatedRect BEHOUD OPENCV VERSIE
 	int getFindThumb(const std::vector<cv::RotatedRect>& boundingBoxesFingers, cv::Point palmCenter, float handAngle, ThumbDirection thumbDirection) {
 		//Create a rotation matrix
 		float rotationMatrix[2][2] = {
@@ -399,26 +400,28 @@ void adaptiveHSVSkinColorFilter(const Mat& src, Mat& dst,
 	@param handAngle:		The rotation of the hand
 	@param thumbDirection:	The direction the thumb is pointing relative to the hand			
 */
-void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, cv::Line wristLine, float palmRadius, cv::Point2f handOrientation, bool isThumbVisible) {
+void findPalmLine(const Mat& srcBinair, vLine& palmLineOut, bool& foundPalm, vLine wristLine, float palmRadius, vision::Point2f handOrientation, bool isThumbVisible) {
 	//Rotate the image, making the handOrientation (0, -1) 
 	Mat srcRotated;
 	float angle = atan2(handOrientation.y, handOrientation.x) + 0.5*PI;
-	cv::Point temp;
+	vision::Point temp;
 	vision::rotateImage(srcBinair, srcRotated, angle);
-	math::rotatePoint(srcBinair, wristLine.position, temp, angle);
-	cv::Point temp2;
-	math::rotatePoint(srcBinair, wristLine.lineEnd(), temp2, angle);
+	math::rotatePoint(srcBinair, wristLine.vposition, temp, angle);
+	vision::Point temp2;
+	math::rotatePoint(srcBinair, wristLine.vlineEnd(), temp2, angle);
 
 	//Remove small noise
-	Mat kernel = Mat::ones(cv::Point(3, 3), CV_8UC1);
-	kernel.at<uchar>(cv::Point(1, 1)) = 0;
-	cv::morphologyEx(srcRotated, srcRotated, CV_MOP_CLOSE, kernel);
+	Mat kernel;					
+	kernel.create(3, 3, srcBinair.type); 
+	vision::fill(kernel,1);
+	kernel.set(vision::Point(1, 1), 0);	 
+	vision::morphologyEx(srcRotated, srcRotated, vision::CLOSE, 3);
 
 	int height = temp.y - 0.5f*palmRadius;
 
 	//Look in horizontal lines to find the palm line, by counting the edges
 	while (height >= 0 && height < srcRotated.rows) {
-		std::vector<cv::Point> intersections = math::horizontalLineObjectIntersection(srcRotated, height);
+		std::vector<vision::Point> intersections = math::horizontalLineObjectIntersection(srcRotated, height);
 		for (int i = 1; i < intersections.size(); ++i) {
 			if (length(intersections[i - 1] - intersections[i]) < 3){
 				intersections.erase(intersections.begin() + i);
@@ -440,8 +443,8 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, 
 		}
 		if (holes >= 1 || largestWidth < 1.66f*palmRadius) {
 			if (index != -1) {
-				cv::Point v1;
-				cv::Point v2;
+				vision::Point v1;
+				vision::Point v2;
 				if (isThumbVisible) {
 					v1 = intersections[index];
 					v2 = intersections[index + 1];
@@ -449,8 +452,8 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, 
 					v1 = intersections[0];
 					v2 = intersections[intersections.size() - 1];
 				}
-				palmLineOut.position = v1;
-				palmLineOut.direction = v2 - v1;
+				palmLineOut.vposition = v1;
+				palmLineOut.vdirection = v2 - v1;
 
 				math::rotateLine(srcRotated, palmLineOut, palmLineOut, -angle);
 				foundPalm = true;
@@ -472,9 +475,12 @@ void findPalmLine(const Mat& srcBinair, cv::Line& palmLineOut, bool& foundPalm, 
 		@param middleFingerIndexOut:			The index of the middle finger in the list boundingBoxesFingers
 		@param ringFingerIndexOut:				The index of the ring finger in the list boundingBoxesFingers
 		@param pinkyIndexOut:					The index of the pink in the list boundingBoxesFingers
-		*/
-void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fingersOut)[5], const cv::Point& wristCenter, const cv::Point& handOrientation
-	, cv::Line palmLine) {
+		*/	
+		// TODO: RotatedRect BEHOUD OPENCV VERSIE
+void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fingersOut)[5], const cv::Point& wristCenter
+	, const cv::Point& handOrientation
+	, Line palmLine) {
+
 	float palmWidth = math::length(palmLine.direction);
 
 	//Mat img = Mat::zeros(cv::Size(640, 480), CV_8UC3);
@@ -488,7 +494,7 @@ void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fi
 		if (&fingersIn[i] != fingersOut[0]) {
 			//Find the edge , in the bounding box, that lays closest to the wrist
 			float closestDistance = Infinity;
-			cv::Line finger;
+			Line finger;
 			cv::Point2f vertices[4];
 			fingersIn[i].points(vertices);
 			for (int j = 0; j < 4; ++j) {
@@ -504,7 +510,7 @@ void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fi
 			}
 
 			//Determen the finger label by its distance on the palmline
-			cv::Point intersect = math::lineLineIntersection(cv::Line(finger.position, -finger.direction), palmLine);
+			cv::Point intersect = math::lineLineIntersection(Line(finger.position, -finger.direction), palmLine);
 			//cv::line(img, finger.position, finger.position - 2*finger.direction, cv::Scalar(255, 255, 255));
 			int index = 1 + math::length(intersect - palmLine.position) / palmWidth * 4;
 			if (index > 0 && index < 5) {
@@ -516,6 +522,7 @@ void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fi
 	//imshow("fingers", img);
 }
 
+// TODO: RotatedRect BEHOUD OPENCV VERSIE
 void areFingersStretched(cv::RotatedRect* fingers[5], bool(&out)[5], float palmRadius) {
 	for (int i = 0; i < 5; ++i) {
 		float fingerLength;
@@ -585,4 +592,4 @@ void displayFingers(const Mat& img, cv::RotatedRect* fingers[5]) {
 	int GenerateHashKey(bool fingers[5]) {
 		return fingers[0] + 2 * fingers[1] + 4 * fingers[2] + 8 * fingers[3] + 16 * fingers[4];
 	}
-}
+

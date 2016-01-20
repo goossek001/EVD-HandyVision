@@ -12,17 +12,34 @@
 
 	class Line {
 	public:
-		vision::Point position;
-		vision::Point direction;
+		cv::Point position;
+		cv::Point direction;
 
 		Line();
-		Line(vision::Point position, vision::Point direction);
+		Line(cv::Point position, cv::Point direction);
 
-		vision::Point lineEnd() const;
+		cv::Point lineEnd() const;
 
-		vision::Point lineStart() const;
+		cv::Point lineStart() const;
 
 		float length() const;
 
-		vision::Point perpendicularDir() const;
+		cv::Point perpendicularDir() const;
+	};
+
+	class vLine {
+	public:
+		vision::Point vposition;
+		vision::Point vdirection;
+
+		vLine();
+		vLine(vision::Point vposition, vision::Point vdirection);
+
+		vision::Point vlineEnd() const;
+
+		vision::Point vlineStart() const;
+
+		float vlength() const;
+
+		vision::Point vperpendicularDir() const;
 	};
