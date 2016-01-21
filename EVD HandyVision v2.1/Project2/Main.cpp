@@ -1,148 +1,122 @@
-//***************************************************************************************
-// Load a image and find all visible fingers in this image
-// Autors:	Kay Goossen
-// Date:	29 September 2015
-// Version: 1.00
-//***************************************************************************************
 
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/opencv.hpp>
-
-#include "OpenCVExtentions.h"
 #include "HandReconisionTools.h"
 #include "Math.h"
 
-#include <Windows.h>
+int DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR);
+int main_video();
+int main_photo();
 
-int DetermenGesture(std::string windowName, cv::Mat& srcBGR);
-int main_photo(int argc, char** argb);
-int main_video(int argc, char** argb);
-
-int main(int argc, char** argb) {
-	main_video(argc, argb);
+int main() {
+	return main_photo();
 }
 
-int main_photo(int argc, char** argb) {
+int main_photo() {
 	cv::Mat srcBGR;
 	// open image
-	srcBGR = cv::imread("img1.jpg");
+	srcBGR = cv::imread("img11.jpg");
 	if (!srcBGR.data)
 		return -1;
 
-	int asdf = DetermenGesture("MyVideo", srcBGR);
+	int r = DetermenGesture("MyVideo", srcBGR);
 
 	//Wait until a key is pressed to kill the program
 	cv::waitKey(0);
 
-	return asdf;
+	return r;
 }
 
-int main_video(int argc, char** argb) {
+int main_video() {
 	cv::VideoCapture cap(0); // open the video camera no. 0
 
-	if (!cap.isOpened())  // if not success, exit program
-	{
-		MessageBox(0, "Cannot open the video cam", 0, 0);
-		return -1;
-	}
-
-	double dWidth = cap.get(CV_CAP_PROP_FRAME_WIDTH); //get the width of frames of the video
-	double dHeight = cap.get(CV_CAP_PROP_FRAME_HEIGHT); //get the height of frames of the video
+	if (!cap.isOpened()) 
+		throw "Cannot open the video cam";
 
 	cv::namedWindow("MyVideo", CV_WINDOW_AUTOSIZE); //create a window called "MyVideo"
-
-	if (!cap.isOpened())  // if not success, exit program
-	{
-		MessageBox(0, "Cannot open the video cam", 0, 0);
-		return -1;
-	}
 
 	while (1) {
 		cv::Mat frame;
 
 		bool bSuccess = cap.read(frame); // read a new frame from video
 
-		if (!bSuccess) { //if not success, break loop
-			MessageBox(0, "Cannot read a frame from video stream", 0, 0);
-			break;
-		}
+		if (!bSuccess)  //if not success, break loop
+			throw "Cannot read a frame from video stream";
 		//cv::imshow("MyVideo", frame);
 
 		DetermenGesture("MyVideo", frame);
 
 		if (cv::waitKey(30) == 27) //wait for 'esc' key press for 30ms. If 'esc' key is pressed, break loop
-		{
-			MessageBox(0, "esc key is pressed by user", 0, 0);
 			break;
-		}
 	}
 	return 0;
 }
 
-int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
-	cv::Mat srcYUV, srcBinair, palmMask, fingerMask;
-
+int DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
+	vision::Mat srcHSV, srcBinair, palmMask, fingerMask;
+	vision::Mat srcBGR = vision::Mat(cvSrcBGR);
 	initHashTable();
 
-	cv::cvtColor(srcBGR, srcYUV, CV_RGB2YCrCb);
+	//vision::morphologyEx(srcBGR, srcBGR, vision::GAUSSIAN, 11);
+	vision::bgrtohsv(srcBGR, srcHSV);
 	// Skin color filter
-	//YCbCrSkinColorFilter(srcYUV, srcBinair);
-	CannyHandFilter(srcYUV, srcBinair);
-
-	cv::getContour(srcBinair, srcBinair);
-	cv::fillHoles(srcBinair, srcBinair);
+	int H_min = 236, H_max = 40, S_min = 33, S_max = 241, V_min = 30, V_max = 222, S_size = 128, V_size = 128;
+	adaptiveHSVSkinColorFilter(srcHSV, srcBinair, H_min, H_max, S_min, S_max, V_min, V_max, S_size, V_size);	
+	
+	vision::morphologyEx(srcBinair, srcBinair, vision::CLOSE, 5);
+	
+	vision::fillHoles(srcBinair, srcBinair, vision::FOUR);
 
 	// find palm
-	cv::Point palmCenter;
+	vision::Point palmCenter;
 	float palmRadius;
 	getPalmCenter(srcBinair, palmCenter, palmRadius);
+
 	createPalmMask(srcBinair, palmMask, palmCenter, palmRadius);
 
 	// find wrist
-	cv::Line wristLine;
+	vision::Line wristLine;
 	bool foundWrist = false;
 	findWrist(srcBinair, wristLine, foundWrist, palmCenter, palmRadius);
+
 	if (!foundWrist)
 		return 1;
 
-	cv::Point wristCenter = wristLine.position + wristLine.direction / 2;
+
+	vision::Point wristCenter = wristLine.position + wristLine.direction / 2;
 
 	if (palmCenter == wristCenter)
 		return 1;
 
 	// find the orientation of the hand
-	cv::Point2f handOrientation = (cv::Point2f)palmCenter - (cv::Point2f)wristCenter;
-	handOrientation /= std::pow(handOrientation.x*handOrientation.x + handOrientation.y*handOrientation.y, 0.5f);
+	vision::Point2f handOrientation = (vision::Point2f)palmCenter - (vision::Point2f)wristCenter;
+	handOrientation = handOrientation / std::pow(handOrientation.x*handOrientation.x + handOrientation.y*handOrientation.y, 0.5f);
 	float handAngle = std::atan2(handOrientation.y, handOrientation.x);
 
 	// find the fingers
 	createFingerMask(srcBinair, fingerMask, palmMask, wristCenter, handOrientation);
-	std::vector<cv::RotatedRect> boundingBoxesFingers = getBoundingBoxes(fingerMask);
+	std::vector<cv::RotatedRect> boundingBoxesFingers = vision::getBoundingBoxes(fingerMask);
 
 	//TODO: determen the direction of the thumb
-	ThumbDirection thumbDirection = Right;
+	ThumbDirection thumbDirection = ThumbDirection::Right;
 
 	// find the thumb
 	cv::RotatedRect* fingers[5];
-	for (int i = 0; i < 5; ++i) {
-		fingers[i] = 0;
-	}
-	int thumbIndex = getFindThumb(boundingBoxesFingers, palmCenter, handAngle, thumbDirection);
+	std::fill(fingers, fingers + 5, (cv::RotatedRect*)0);
+
+	int thumbIndex = findThumb(boundingBoxesFingers, palmCenter, handAngle, thumbDirection);
 	if (thumbIndex >= 0)
 		fingers[0] = &boundingBoxesFingers[thumbIndex];
 
 	// find the palm line
-	cv::Line palmLine;
+	vision::Line palmLine;
 	bool foundPalm = true;
 	findPalmLine(srcBinair, palmLine, foundPalm, wristLine, palmRadius, handOrientation, thumbIndex >= 0);
 	if (!foundPalm)
 		return 1;
-	if (thumbDirection == Right) {
+	if (thumbDirection == ThumbDirection::Right) {
 		palmLine.position = palmLine.lineEnd();
-		palmLine.direction *= -1;
+		palmLine.direction = palmLine.direction * - 1;
 	}
-
+	
 	// find the 4 other fingers
 	labelFingers(boundingBoxesFingers, fingers, wristCenter, handOrientation, palmLine);
 
@@ -150,14 +124,15 @@ int DetermenGesture(std::string windowName, cv::Mat& srcBGR) {
 	areFingersStretched(fingers, fingersStretch, palmRadius);
 
 	std::string gesture = deteremenGesture(GestureType::DutchCounting, fingersStretch);
-	//cv::putText(srcBinair, gesture, cv::Point(0.05f*srcBGR.cols, 0.95f*srcBGR.rows), 2, 0.01f*srcBGR.rows, cv::Scalar(100, 0, 0), 8);
-	cv::putText(srcBinair, gesture, cv::Point(0.05f*srcBGR.cols, 0.95f*srcBGR.rows), 2, 0.01f*srcBGR.rows, cv::Scalar(100, 0, 0), 8);
-
-	cv::line(srcBinair, wristLine.lineStart(), wristLine.lineEnd(), cv::Scalar(150));
-	cv::line(srcBinair, palmLine.lineStart(), palmLine.lineEnd(),cv::Scalar(150));
-	Mat srcFlipped;
-	cv::flip(srcBinair, srcFlipped, -1);
-	imshow(windowName, srcFlipped);
+	
+	Mat finalImage = srcBGR;
+	cv::Line cvWristLine(cv::Point(wristLine.position.x, wristLine.position.y), cv::Point(wristLine.direction.x, wristLine.direction.y));
+	cv::Line cvPalmLine(cv::Point(palmLine.position.x, palmLine.position.y), cv::Point(palmLine.direction.x, palmLine.direction.y));
+	cv::line(finalImage, cvPalmLine.lineStart(), cvPalmLine.lineEnd(), cv::Scalar(150));
+	cv::line(finalImage, cvWristLine.lineStart(), cvWristLine.lineEnd(), cv::Scalar(0, 150));
+	if (gesture.size() > 0)
+		cv::putText(finalImage, gesture, cv::Point(0.05f*finalImage.cols, 0.95f*finalImage.rows), 2, 0.006f*finalImage.rows, cv::Scalar(255, 255, 255), 8);
+	imshow(windowName, finalImage);
 
 	return 0;
 }

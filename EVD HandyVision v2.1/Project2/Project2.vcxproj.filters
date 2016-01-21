@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MyForm.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="HandReconisionTools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -27,17 +24,14 @@
     <ClCompile Include="Math.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenCVExtentions.cpp">
+    <ClCompile Include="VisionOperators.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VisionOperators.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MyForm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="HandReconisionTools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -45,9 +39,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Math.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OpenCVExtentions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VisionOperators.h">

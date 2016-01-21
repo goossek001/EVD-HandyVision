@@ -42,5 +42,4 @@ void findPalmLine(const vision::Mat& srcBinair, vision::Line& palmLineOut, bool&
 void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fingersOut)[5], const vision::Point& wristCenter
 	, const vision::Point& handOrientation, const vision::Line palmLine);
 void areFingersStretched(cv::RotatedRect* fingers[5], bool(&out)[5], float palmRadius);
-void displayFingers(const Mat& img, cv::RotatedRect* fingers[5]);
 std::string deteremenGesture(GestureType gestureType, bool fingers[5]);

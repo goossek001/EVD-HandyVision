@@ -157,4 +157,14 @@ namespace vision {
 	void split(const Mat& src, Mat channels[3]);
 	Rect_obb findOMBB(const Mat& img, int blobNr);
 	void applyRectMask(const Mat& src, Mat& dst, Rect_obb rect);
+	void HSVThreshold(const Mat& src, Mat& dst,
+		double H_min, double H_max,
+		double S_min, double S_max,
+		double V_min, double V_max);
+	void fillHoles(const Mat& src, Mat& dst);
+	std::vector<cv::RotatedRect> getBoundingBoxes(const cv::Mat& src);
+	void rotateImage(const cv::Mat& src, cv::Mat& dst, float angle);
+	void rotateImage(const vision::Mat& src, vision::Mat& dst, float angle);
+	void applyRectangleMask(const Mat& src, Mat& dst, vision::Rect_obb boundingRect);
+	void getBiggestBlob(const Mat& src, Mat& dst);
 }

@@ -6,8 +6,6 @@
 //***************************************************************************************
 
 #include "HandReconisionTools.h"
-
-#include "OpenCVExtentions.h"
 #include "Math.h"
 
 std::map<int, std::string> gestures[GestureType::COUNT];
@@ -46,39 +44,11 @@ float length(cv::Point p) {
 	return abs(p.x) + abs(p.y);
 }
 
-
-void biggestColorBlob(const Mat& src, Mat& dst, const Mat& mask) {
-	throw "not implemented error";
-	/*
-	//Create histogram
-	float fullRange[2] = { 0, 255 };
-	const float* ranges[] = { fullRange, fullRange, fullRange };
-	int histSize[] = { 255, 255, 255 };
-	int channels[] = { 0, 1, 2 };
-	cv::MatND hist;
-	calcHist(&src, 1, channels, Mat(), // do not use mask
-		hist, 3, histSize, ranges,
-		true, // the histogram is uniform
-	false);
-
-	//Label blobs
-
-	//TODO: Label blobs
-	//TODO: Caclulate distance between blobs (center to center)
-	//TODO: Merge blobs until two blobs are remaining, giving closer blobs prioritiy
-	//TODO: Determen wich blob is skin color, by analyising the blobs and determen wich shape is more likely to be a hand or a head
-	*/
-}
-
 void adaptiveHSVSkinColorFilter(const vision::Mat& src, vision::Mat& dst,
 		int H_min, int H_max,
 		int S_min, int S_max,
 		int V_min, int V_max,
 		int S_size, int V_size) {
-	/*cv::Point H = cv::Point(0.9 * 255, 0.2 * 255);
-	cv::Point S = cv::Point(0.35 * 255, 0.95*255);
-	cv::Point V = cv::Point(0.15 * 255, 0.75 * 255);*/
-
 	vision::Point H = vision::Point(H_min, H_max);
 	vision::Point S = vision::Point(S_min, S_max);
 	vision::Point V = vision::Point(V_min, V_max);
@@ -163,38 +133,6 @@ void adaptiveHSVSkinColorFilter(const vision::Mat& src, vision::Mat& dst,
 	vision::HSVThreshold(src, dst, H.x, H.y, sRanges[0], sRanges[1], vRanges[0], vRanges[1]);
 
 	vision::getBiggestBlob(dst, dst);
-
-	//Temp!
-	vision::Mat fullRange;
-	vision::HSVThreshold(src, fullRange, H.x, H.y, S.x, S.y, V.x, V.y);
-	vision::setSelectedValue(fullRange, fullRange, 1, 255);
-	cv::Mat cvFullRange = fullRange;
-	cv::imshow("full range", cvFullRange);
-
-	//Temp!
-	vision::Mat adjusted(dst);
-	vision::setSelectedValue(adjusted, adjusted, 1, 255);
-	cv::Mat cvAdjusted = adjusted;
-	cv::imshow("binair", cvAdjusted);
-
-	//biggestColorBlob(src, dst, dst);
-}
-
-void CannyHandFilter(const Mat& src, Mat& dst) {
-	throw "Not implemented error";
-	/*Mat channels[3];
-	split(src, channels);
-
-	Mat copy;
-
-	cv::GaussianBlur(src, copy, cv::Size(11, 11), 0, 0);
-
-	cv::Canny(copy, dst, 40, 60);
-	Mat kernel = Mat::ones(cv::Point(5, 5), CV_8UC1);
-	cv::morphologyEx(dst, dst, CV_MOP_DILATE, kernel);
-	cv::line(dst, cv::Point(1, 1), cv::Point(dst.cols - 2, 1), cv::Scalar(255));
-	cv::fillHoles(dst, dst);
-	cv::morphologyEx(dst, dst, CV_MOP_ERODE, kernel);*/
 }
 
 /**
@@ -219,6 +157,7 @@ Uses a distance trasformation to find the palm center and palm radius
 @param palmRadius:
 */
 void getPalmCenter(const vision::Mat& _src, vision::Point& palmCenter, float& palmRadius) {
+	//TODO: Uses the opencv distance transform, because our own distance transform has no option for pythagoras
 	//Create a distance transform
 	cv::Mat dst, dstNormalized;
 	cv::Mat src = _src;
@@ -356,9 +295,10 @@ void createPalmMask(const vision::Mat& src, vision::Mat& dst, vision::Point palm
 	@param handOrientation:	The direction from wrist to fingers
 */
 void createFingerMask(const vision::Mat& _src, vision::Mat& _dst, vision::Mat& _palmMask, vision::Point _wristCenter, vision::Point2f _handOrientation) {
-	cv::Mat src = _src, dst = _dst, palmMask = _palmMask;//TEMP!
-	cv::Point wristCenter(_wristCenter.x, _wristCenter.y);//TEMP!
-	cv::Point2f handOrientation(_handOrientation.x, _handOrientation.y);//TEMP!
+	//TODO: This function still uses opencv, because findOMBB had just minimal testing
+	cv::Mat src = _src, dst = _dst, palmMask = _palmMask;
+	cv::Point wristCenter(_wristCenter.x, _wristCenter.y);
+	cv::Point2f handOrientation(_handOrientation.x, _handOrientation.y);
 
 	cv::Point2f rSize(src.rows + src.cols, src.rows + src.cols);
 	cv::Point2f rCenter = (cv::Point2f)wristCenter + 0.5f*rSize.x * handOrientation;
@@ -380,7 +320,7 @@ void createFingerMask(const vision::Mat& _src, vision::Mat& _dst, vision::Mat& _
 	//Apply the finger mask that was made, using the bounding boxes of the fingers
 	cv::bitwise_and(dst, rectMask, dst);
 
-	_dst.copyFrom(vision::Mat(dst));//TEMP!
+	_dst.copyFrom(vision::Mat(dst));
 }
 
 /**
@@ -426,7 +366,7 @@ int findThumb(const std::vector<cv::RotatedRect>& boundingBoxesFingers, vision::
 	@param thumbDirection:	The direction the thumb is pointing relative to the hand			
 */
 void findPalmLine(const vision::Mat& _srcBinair, vision::Line& _palmLineOut, bool& foundPalm, vision::Line _wristLine, float palmRadius, vision::Point2f _handOrientation, bool isThumbVisible) {
-	//TEMP!
+	//TODO: Function still uses opencv, because of a fault in one of the functions (probely rotate point or image)
 	cv::Mat srcBinair = _srcBinair;
 	cv::Line palmLineOut(cv::Point(_palmLineOut.position.x, _palmLineOut.position.y), cv::Point(_palmLineOut.direction.x, _palmLineOut.direction.y));
 	cv::Line wristLine(cv::Point(_wristLine.position.x, _wristLine.position.y), cv::Point(_wristLine.direction.x, _wristLine.direction.y));
@@ -493,7 +433,6 @@ void findPalmLine(const vision::Mat& _srcBinair, vision::Line& _palmLineOut, boo
 		--height;
 	}
 
-	//TEMP!
 	_palmLineOut.position = vision::Point(palmLineOut.position.x, palmLineOut.position.y);
 	_palmLineOut.direction = vision::Point(palmLineOut.direction.x, palmLineOut.direction.y);
 }
@@ -516,12 +455,6 @@ void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fi
 	const cv::Point handOrientation(_handOrientation.x, _handOrientation.y);
 	const cv::Line palmLine(cv::Point(_palmLine.position.x, _palmLine.position.y), cv::Point(_palmLine.direction.x, _palmLine.direction.y));
 	float palmWidth = math::length(palmLine.direction);
-
-	//Mat img = Mat::zeros(cv::Size(640, 480), CV_8UC3);
-	//cv::line(img, palmLine.position + 0.00f*palmLine.direction, palmLine.position + 0.25f*palmLine.direction, cv::Scalar(255, 0, 0));
-	//cv::line(img, palmLine.position + 0.25f*palmLine.direction, palmLine.position + 0.50f*palmLine.direction, cv::Scalar(0, 0, 255));
-	//cv::line(img, palmLine.position + 0.50f*palmLine.direction, palmLine.position + 0.75f*palmLine.direction, cv::Scalar(0, 255, 0));
-	//cv::line(img, palmLine.position + 0.75f*palmLine.direction, palmLine.position + 1.00f*palmLine.direction, cv::Scalar(255, 0, 0));
 
 	//Loop through all fingers in 'boundingBoxesFingers' and label them
 	for (int i = 0; i < fingersIn.size(); ++i) {
@@ -570,45 +503,6 @@ void areFingersStretched(cv::RotatedRect* fingers[5], bool(&out)[5], float palmR
 			multiplier = 0.68f;
 		out[i] = fingerLength >= multiplier * palmRadius;
 	}
-}
-
-void displayFingers(const Mat& img, cv::RotatedRect* fingers[5]) {
-	throw "Not implemented error";
-	/*
-	//Create a seperate image of each finger
-	Mat thumb, indexFinger, middleFinger, ringFinger, pinky;
-	Mat empty = Mat::zeros(img.size(), img.type());
-	if (fingers[0]) {
-		cv::applyRectangleMask(img, thumb, *fingers[0]);
-		imshow("thumb", thumb);
-	} else {
-		imshow("thumb", empty);
-	}
-	if (fingers[1]){
-		cv::applyRectangleMask(img, indexFinger, *fingers[1]);
-		imshow("indexFinger", indexFinger);
-	} else {
-		imshow("indexFinger", empty);
-	}
-	if (fingers[2]){
-		cv::applyRectangleMask(img, middleFinger, *fingers[2]);
-		imshow("middleFinger", middleFinger);
-	} else {
-		imshow("middleFinger", empty);
-	}
-	if (fingers[3]){
-		cv::applyRectangleMask(img, ringFinger, *fingers[3]);
-		imshow("ringFinger", ringFinger);
-	} else {
-		imshow("ringFinger", empty);
-	}
-	if (fingers[4]) {
-		cv::applyRectangleMask(img, pinky, *fingers[4]);
-		imshow("pinky", pinky);
-	} else {
-		imshow("pinky", empty);
-	}
-	*/
 }
 
 std::string deteremenGesture(GestureType gestureType, bool fingers[5]) {
