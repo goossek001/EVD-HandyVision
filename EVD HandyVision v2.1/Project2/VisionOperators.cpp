@@ -202,14 +202,17 @@ namespace vision {
 	}
 
 	void Mat::create(int rows, int cols, ImageType type) {
-		delete[] data;
+		Mat img(rows, cols, type);
+		copyFrom(img);
+
+		/*delete[] data;
 
 		this->rows = rows;
 		this->cols = cols;
 		this->type = type;
 		int length = bytesPerPixel(type) * rows * rows;
 		data = new unsigned char[length];
-		std::fill(data, data + length, 0);
+		std::fill(data, data + length, 0);*/
 	}
 
 	Color Mat::get(int i, int j) const {
@@ -1546,22 +1549,21 @@ namespace vision {
 	}
 	void createCircle(const vision::Mat& src, vision::Mat& dst, const int diameter, const int value, int xCoordinate, int yCoordinate)
 	{
-		unsigned char* pDst = dst.data;
 		dst.create(src.rows, src.cols, src.type);
 
 		int straal = diameter / 2 + 1;
-		int Maskx, Masky = 0;
+		int x, y = 0;
 		double a, b, c = 0;
 
-		for (Maskx = (xCoordinate - straal); Maskx <= (xCoordinate + straal); Maskx++){
-			for (Masky = (yCoordinate - straal); Masky <= (yCoordinate + straal); Masky++){
+		for (x = (xCoordinate - straal); x <= (xCoordinate + straal); x++){
+			for (y = (yCoordinate - straal); y <= (yCoordinate + straal); y++){
 
-				a = pow((xCoordinate - Maskx), 2);
-				b = pow((yCoordinate - Masky), 2);
+				a = pow((xCoordinate - x), 2);
+				b = pow((yCoordinate - y), 2);
 				c = sqrt(a + b);
 
-				if (c - straal <= 1){
-					dst.set(Maskx, Masky, value);
+				if (c - straal <= 1 && x >= 0 && y >= 0 && x < dst.cols && y < dst.rows){
+					dst.set(y, x, value);
 				}
 			}
 		}

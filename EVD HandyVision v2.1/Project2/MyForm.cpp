@@ -10,7 +10,6 @@ using namespace System;
 using namespace System::Windows::Forms;
 using namespace ASDF;
 
-/*
 void MyForm::DoWork(Object^ sender, DoWorkEventArgs^ e) {
 	main_video();
 }
@@ -395,16 +394,14 @@ MyForm::~MyForm() {
 	}
 	delete backgroundWorker;
 }
-[STAThread]*/
+[STAThread]
 
 int main() {
-	/*Application::EnableVisualStyles();
+	Application::EnableVisualStyles();
 	Application::SetCompatibleTextRenderingDefault(false);
 
 	MyForm form;
-	Application::Run(%form); */
-	MyForm form;
-	form.main_photo();
+	Application::Run(%form); 
 
 	return 0;
 }
@@ -455,9 +452,7 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	initHashTable();
 
 	vision::morphologyEx(srcBGR, srcBGR, vision::GAUSSIAN, 11);
-
 	vision::bgrtohsv(srcBGR, srcHSV);
-
 	// Skin color filter
 	int H_min = 246, H_max = 28, S_min = 33, S_max = 241, V_min = 30, V_max = 222, S_size = 128, V_size = 128;
 	adaptiveHSVSkinColorFilter(srcHSV, srcBinair, H_min, H_max, S_min, S_max, V_min, V_max, S_size, V_size);	
@@ -520,7 +515,7 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 		palmLine.direction = palmLine.direction * - 1;
 	}
 	cv::Line cvPalmLine(cv::Point(palmLine.position.x, palmLine.position.y), cv::Point(palmLine.direction.x, palmLine.direction.y));	//TEMP!
-
+	
 	// find the 4 other fingers
 	labelFingers(boundingBoxesFingers, fingers, wristCenter, handOrientation, palmLine);
 
@@ -528,7 +523,6 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	areFingersStretched(fingers, fingersStretch, palmRadius);
 
 	std::string gesture = deteremenGesture(GestureType::DutchCounting, fingersStretch);
-
 	//cv::line(srcBinair, palmLine.lineStart(), palmLine.lineEnd(), cv::Scalar(150));
 	//cv::line(srcBinair, wristLine.lineStart(), wristLine.lineEnd(), cv::Scalar(50));
 	
@@ -539,7 +533,8 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 		cv::putText(finalImage, gesture, cv::Point(0.05f*finalImage.cols, 0.95f*finalImage.rows), 2, 0.006f*finalImage.rows, cv::Scalar(255, 255, 255), 8);
 	imshow(windowName, finalImage);
 
-	/*String^ str = gcnew System::String(gesture.c_str());
+	/*
+	String^ str = gcnew System::String(gesture.c_str());
 	if (this->label1->InvokeRequired) {
 		SetTextDelegate^ d = gcnew SetTextDelegate(this, &MyForm::SetText);
 		this->Invoke(d, gcnew array<Object^> { str });
@@ -547,9 +542,9 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 		SetText(str);
 	}
 	
-	Bitmap^ img = gcnew System::Drawing::Bitmap(srcBGR.size().width,
-		srcBGR.size().height,
-		srcBGR.step,
+	Bitmap^ img = gcnew System::Drawing::Bitmap(cvSrcBGR.size().width,
+		cvSrcBGR.size().height,
+		cvSrcBGR.step,
 		Drawing::Imaging::PixelFormat::Format24bppRgb,
 		(IntPtr)srcBGR.data
 	);
