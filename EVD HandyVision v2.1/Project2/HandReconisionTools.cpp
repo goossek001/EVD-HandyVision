@@ -162,6 +162,8 @@ void adaptiveHSVSkinColorFilter(const vision::Mat& src, vision::Mat& dst,
 	}
 	vision::HSVThreshold(src, dst, H.x, H.y, sRanges[0], sRanges[1], vRanges[0], vRanges[1]);
 
+	vision::getBiggestBlob(dst, dst);
+
 	//Temp!
 	vision::Mat fullRange;
 	vision::HSVThreshold(src, fullRange, H.x, H.y, S.x, S.y, V.x, V.y);
