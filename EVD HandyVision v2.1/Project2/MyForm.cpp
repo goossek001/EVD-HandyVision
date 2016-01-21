@@ -450,35 +450,28 @@ int MyForm::main_video() {
 }
 
 int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
-	cv::Mat cvSrcHSV, cvSrcBinair, cvPalmMask, cvFingerMask;
+	vision::Mat srcHSV, srcBinair, palmMask, fingerMask;
+	vision::Mat srcBGR = vision::Mat(cvSrcBGR);
 	initHashTable();
 
-	vision::Mat srcBGR = vision::Mat(cvSrcBGR);
 	vision::morphologyEx(srcBGR, srcBGR, vision::GAUSSIAN, 11);
 
-	vision::Mat srcHSV;
 	vision::bgrtohsv(srcBGR, srcHSV);
 
 	// Skin color filter
-	vision::Mat srcBinair;
 	int H_min = 246, H_max = 28, S_min = 33, S_max = 241, V_min = 30, V_max = 222, S_size = 128, V_size = 128;
 	adaptiveHSVSkinColorFilter(srcHSV, srcBinair, H_min, H_max, S_min, S_max, V_min, V_max, S_size, V_size);	
 
 	vision::morphologyEx(srcBinair, srcBinair, vision::CLOSE, 5);
 	
 	vision::fillHoles(srcBinair, srcBinair, vision::FOUR);
-	cvSrcBinair = srcBinair;		//TEMP!
 
 	// find palm
 	vision::Point palmCenter;
 	float palmRadius;
-	getPalmCenter(cvSrcBinair, palmCenter, palmRadius);
+	getPalmCenter(srcBinair, palmCenter, palmRadius);
 
-	cv::Point cvPalmCenter(palmCenter.x, palmCenter.y);	//TEMP!
-
-	vision::Mat palmMask;
-	createPalmMask(cvSrcBinair, palmMask, palmCenter, palmRadius);
-	cvPalmMask = palmMask;   //TEMP!
+	createPalmMask(srcBinair, palmMask, palmCenter, palmRadius);
 
 	// find wrist
 	vision::Line wristLine;
@@ -492,7 +485,6 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 
 
 	vision::Point wristCenter = wristLine.position + wristLine.direction / 2;
-	cv::Point cvWristCenter(wristCenter.x, wristCenter.y);				//Temp!
 
 	if (palmCenter == wristCenter)
 		return 1;
@@ -500,14 +492,11 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	// find the orientation of the hand
 	vision::Point2f handOrientation = (vision::Point2f)palmCenter - (vision::Point2f)wristCenter;
 	handOrientation = handOrientation / std::pow(handOrientation.x*handOrientation.x + handOrientation.y*handOrientation.y, 0.5f);
-	cv::Point2f cvHandOrientation(handOrientation.x, handOrientation.y);	//Temp!
 	float handAngle = std::atan2(handOrientation.y, handOrientation.x);
 
 	// find the fingers
-	vision::Mat fingerMask;
 	createFingerMask(srcBinair, fingerMask, palmMask, wristCenter, handOrientation);
-	cvFingerMask = fingerMask; //Temp
-	std::vector<cv::RotatedRect> boundingBoxesFingers = vision::getBoundingBoxes(cvFingerMask);
+	std::vector<cv::RotatedRect> boundingBoxesFingers = vision::getBoundingBoxes(fingerMask);
 
 	//TODO: determen the direction of the thumb
 	ThumbDirection thumbDirection = ThumbDirection::Right;
