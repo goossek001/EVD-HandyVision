@@ -112,10 +112,11 @@ namespace vision {
 		for (int i = 0; i < nrOfBlobs; ++i) {
 			if (blobInfo[i].perimeter > biggestBlob_perimeter) {
 				biggestBlob_perimeter = blobInfo[i].perimeter;
-				biggestBlob_id = i+1;
+				biggestBlob_id = i + 1;
 			}
 		}
-		threshold(src, dst, biggestBlob_id, biggestBlob_id);
+		threshold(temp, temp, biggestBlob_id, biggestBlob_id);
+		dst.copyFrom(temp);
 
 		delete[] blobInfo;
 	}
