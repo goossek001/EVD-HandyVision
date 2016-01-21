@@ -451,12 +451,60 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	vision::Mat srcBGR = vision::Mat(cvSrcBGR);
 	initHashTable();
 
-	vision::morphologyEx(srcBGR, srcBGR, vision::GAUSSIAN, 5);
+	//vision::morphologyEx(srcBGR, srcBGR, vision::GAUSSIAN, 11);
 	vision::bgrtohsv(srcBGR, srcHSV);
 	// Skin color filter
 	int H_min = 236, H_max = 40, S_min = 33, S_max = 241, V_min = 30, V_max = 222, S_size = 128, V_size = 128;
+	if (this->trackBar1->InvokeRequired) {
+		GetBarDelegate^ d = gcnew GetBarDelegate(this, &MyForm::GetBar1);
+		H_min = (int) this->Invoke(d, gcnew array<Object^> { });
+	}
+	else
+		H_min = GetBar1();
+	if (this->trackBar2->InvokeRequired) {
+		GetBarDelegate^ d = gcnew GetBarDelegate(this, &MyForm::GetBar2);
+		H_max = (int) this->Invoke(d, gcnew array<Object^> { });
+	}
+	else
+		H_max = GetBar2();
+	if (this->trackBar3->InvokeRequired) {
+		GetBarDelegate^ d = gcnew GetBarDelegate(this, &MyForm::GetBar3);
+		S_min = (int) this->Invoke(d, gcnew array<Object^> { });
+	}
+	else
+		S_min = GetBar3();
+	if (this->trackBar4->InvokeRequired) {
+		GetBarDelegate^ d = gcnew GetBarDelegate(this, &MyForm::GetBar4);
+		S_max = (int) this->Invoke(d, gcnew array<Object^> { });
+	}
+	else
+		S_max = GetBar4();
+	if (this->trackBar5->InvokeRequired) {
+		GetBarDelegate^ d = gcnew GetBarDelegate(this, &MyForm::GetBar5);
+		V_min = (int) this->Invoke(d, gcnew array<Object^> { });
+	}
+	else
+		V_min = GetBar5();
+	if (this->trackBar6->InvokeRequired) {
+		GetBarDelegate^ d = gcnew GetBarDelegate(this, &MyForm::GetBar6);
+		V_max = (int) this->Invoke(d, gcnew array<Object^> { });
+	}
+	else
+		V_max = GetBar6();
+	if (this->trackBar7->InvokeRequired) {
+		GetBarDelegate^ d = gcnew GetBarDelegate(this, &MyForm::GetBar7);
+		S_size = (int) this->Invoke(d, gcnew array<Object^> { });
+	}
+	else
+		S_size = GetBar7();
+	if (this->trackBar8->InvokeRequired) {
+		GetBarDelegate^ d = gcnew GetBarDelegate(this, &MyForm::GetBar8);
+		V_size = (int) this->Invoke(d, gcnew array<Object^> { });
+	}
+	else
+		V_size = GetBar8();
 	adaptiveHSVSkinColorFilter(srcHSV, srcBinair, H_min, H_max, S_min, S_max, V_min, V_max, S_size, V_size);	
-
+	/*
 	vision::morphologyEx(srcBinair, srcBinair, vision::CLOSE, 5);
 	
 	vision::fillHoles(srcBinair, srcBinair, vision::FOUR);
@@ -531,7 +579,7 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	cv::line(finalImage, cvWristLine.lineStart(), cvWristLine.lineEnd(), cv::Scalar(0, 150));
 	if (gesture.size() > 0)
 		cv::putText(finalImage, gesture, cv::Point(0.05f*finalImage.cols, 0.95f*finalImage.rows), 2, 0.006f*finalImage.rows, cv::Scalar(255, 255, 255), 8);
-	imshow(windowName, finalImage);
+	imshow(windowName, finalImage);*/
 
 	/*
 	String^ str = gcnew System::String(gesture.c_str());
