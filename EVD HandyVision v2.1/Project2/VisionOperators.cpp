@@ -202,8 +202,20 @@ namespace vision {
 	}
 
 	void Mat::create(int rows, int cols, ImageType type) {
-		Mat img(rows, cols, type);
-		copyFrom(img);
+		delete[] data;
+
+		this->rows = rows;
+		this->cols = cols;
+		this->type = type;
+
+		int length = bytesPerPixel(type) * rows * cols;
+		data = new unsigned char[length];
+
+		unsigned char* pDst = this->data;
+
+		++length;
+		while (--length)
+			*(pDst++) = 0;
 
 		/*delete[] data;
 

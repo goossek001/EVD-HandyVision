@@ -451,10 +451,10 @@ int MyForm::DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	vision::Mat srcBGR = vision::Mat(cvSrcBGR);
 	initHashTable();
 
-	vision::morphologyEx(srcBGR, srcBGR, vision::GAUSSIAN, 11);
+	vision::morphologyEx(srcBGR, srcBGR, vision::GAUSSIAN, 5);
 	vision::bgrtohsv(srcBGR, srcHSV);
 	// Skin color filter
-	int H_min = 246, H_max = 28, S_min = 33, S_max = 241, V_min = 30, V_max = 222, S_size = 128, V_size = 128;
+	int H_min = 236, H_max = 40, S_min = 33, S_max = 241, V_min = 30, V_max = 222, S_size = 128, V_size = 128;
 	adaptiveHSVSkinColorFilter(srcHSV, srcBinair, H_min, H_max, S_min, S_max, V_min, V_max, S_size, V_size);	
 
 	vision::morphologyEx(srcBinair, srcBinair, vision::CLOSE, 5);

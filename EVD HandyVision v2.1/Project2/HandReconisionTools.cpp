@@ -450,7 +450,7 @@ void findPalmLine(const vision::Mat& _srcBinair, vision::Line& _palmLineOut, boo
 	while (height >= 0 && height < srcRotated.rows) {
 		std::vector<cv::Point> intersections = math::horizontalLineObjectIntersection(srcRotated, height);
 		for (int i = 1; i < intersections.size(); ++i) {
-			if (length(intersections[i - 1] - intersections[i]) < 3){
+			if (length(intersections[i - 1] - intersections[i]) < 5){
 				intersections.erase(intersections.begin() + i);
 				intersections.erase(intersections.begin() + i - 1);
 				i = 1;
