@@ -1257,8 +1257,181 @@ namespace vision {
 		return -1;
 	}
 
+	void setSelectedValue(const Mat& src, Mat& dst, int selected, int newVal) {
+		unsigned int i;
+		unsigned char *pSrc;
+		unsigned char *pDst;
+
+		dst.rows = src.rows;
+		dst.cols = src.cols;
+
+		i = src.cols * src.rows + 1;
+		pSrc = (unsigned char*)src.data;
+		pDst = (unsigned char*)dst.data;
+
+		while (--i) {
+			*pDst = *pSrc == selected ? newVal : *pSrc;
+			++pSrc; ++pDst;
+		}
+
+		return;
+	}
+
+	void split(const Mat& src, Mat channels[3]) {
+		if (src.type != IM_8UC3)
+			throw "image type is not supported";
+
+		channels[0].create(src.rows, src.cols, IM_8UC1);
+		channels[1].create(src.rows, src.cols, IM_8UC1);
+		channels[2].create(src.rows, src.cols, IM_8UC1);
+
+		unsigned char* pSrc = src.data;
+		unsigned char* pChan1 = channels[0].data;
+		unsigned char* pChan2 = channels[1].data;
+		unsigned char* pChan3 = channels[2].data;
+
+		unsigned int i = src.rows * src.cols + 1;
+		while (--i) {
+			*(pChan1++) = *(pSrc++);
+			*(pChan2++) = *(pSrc++);
+			*(pChan3++) = *(pSrc++);
+		}
+	}
+
+	/*void split(const Mat& src, Mat dst[]) {
+	switch (src.type)
+	{
+	default:
+	throw "Not implemented type";
+	case IM_8UC3:
+	struct ColorC3 {
+	unsigned char color[3];
+	};
+
+	for (int i = 0; i < 3; ++i) {
+	dst[i].create(src.rows, src.cols, IM_8UC1);
+
+	const ColorC3 *pSrc = reinterpret_cast<const ColorC3*>(src.data);
+	unsigned char *pDst = dst[i].data;
+	int j = src.rows * src.cols + 1;
+	while (--j) {
+	*pDst++ = (pSrc++)->color[i];
+	}
+	break;
+	}
+	}
+	}*/
+
+
+	void createCircle(const vision::Mat& src, vision::Mat& dst, const int diameter, const int value, int xCoordinate, int yCoordinate)
+	{
+		dst.create(src.rows, src.cols, src.type);
+
+		int straal = diameter / 2 + 1;
+		int x, y = 0;
+		double a, b, c = 0;
+
+		for (x = (xCoordinate - straal); x <= (xCoordinate + straal); x++){
+			for (y = (yCoordinate - straal); y <= (yCoordinate + straal); y++){
+
+				a = pow((xCoordinate - x), 2);
+				b = pow((yCoordinate - y), 2);
+				c = sqrt(a + b);
+
+				if (c - straal <= 1 && x >= 0 && y >= 0 && x < dst.cols && y < dst.rows){
+					dst.set(y, x, value);
+				}
+			}
+		}
+	}
+	void HSVThreshold(const Mat& src, Mat& dst,
+		double H_min, double H_max,
+		double S_min, double S_max,
+		double V_min, double V_max) {
+		//Split into channels
+		Mat channels[3];
+		split(src, channels);
+
+		//Apply thresholds
+		threshold(channels[0], channels[0], H_min, H_max);
+		threshold(channels[1], channels[1], S_min, S_max);
+		threshold(channels[2], channels[2], V_min, V_max);
+
+		fill(channels[1], Color(1));
+
+		//Combine threshold images
+		bitwise_and(channels[0], channels[1], dst);
+		bitwise_and(dst, channels[2], dst);
+	}
+
+	/**
+	Find a rotated bounding boxes for each blob
+	@param src: a 8 bit binair image
+	*/
+	std::vector<cv::RotatedRect> cvGetBoundingBoxes(const cv::Mat& src) {
+		int minAreaThreshold = 16;
+		std::vector<cv::Vec4i> hierarchy;
+		std::vector<std::vector<cv::Point> > contours;
+
+		cv::Mat srcCopy;
+		src.copyTo(srcCopy);
+
+		std::vector<cv::RotatedRect> boundingBoxes;
+		cv::findContours(srcCopy, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+		for (int i = 0; i < contours.size(); ++i)
+		if (contourArea(contours[i]) >= minAreaThreshold)
+			boundingBoxes.push_back(cv::minAreaRect(contours[i]));
+
+		return boundingBoxes;
+	}
+
+	/**
+	Rotate a image around its center
+	@param src:			A image with no type restrictions
+	@param dst			The output channel for the rotated image. This image will have the same type and parent as the param 'src'
+	@param angle:		The rotation of the image in radians
+	*/
+	void rotateImage(const cv::Mat& src, cv::Mat& dst, float angle) {
+		int len = std::max(src.cols, src.rows);
+		cv::Point2f pt(len / 2., len / 2.);
+		cv::Mat r = cv::getRotationMatrix2D(pt, angle / PI * 180, 1.0);
+
+		cv::warpAffine(src, dst, r, cv::Size(len, len));
+	}void rotateImage(const vision::Mat& src, vision::Mat& dst, float angle) {
+		int len = std::max(src.cols, src.rows);
+		vision::Point2f pt(len / 2., len / 2.);
+		vision::Mat r = vision::getRotationMatrix2D(pt, angle / PI * 180);
+
+		vision::warpAffine(src, dst, r, vision::Point(len, len));
+	}
+
+	/**
+	Only keep the biggest contour suposeingly its the hand
+	@param src:			An binairy image
+	@param dst			The binairy src image after applying the mask and give only the biggest contour.
+	*/
+	void getBiggestBlob(const Mat& src, Mat& dst){
+		BlobInfo* blobInfo;
+		Mat temp;
+		int nrOfBlobs = labelBlobs(src, temp, FOUR);
+		blobInfo = new BlobInfo[nrOfBlobs];
+		blobAnalyse(temp, nrOfBlobs, blobInfo);
+		int biggestBlob_id = 1;
+		int biggestBlob_perimeter = 0;
+		for (int i = 0; i < nrOfBlobs; ++i) {
+			if (blobInfo[i].perimeter > biggestBlob_perimeter) {
+				biggestBlob_perimeter = blobInfo[i].perimeter;
+				biggestBlob_id = i + 1;
+			}
+		}
+		threshold(temp, temp, biggestBlob_id, biggestBlob_id);
+		dst.copyFrom(temp);
+
+		delete[] blobInfo;
+	}
+
 	std::vector<Point> findContour(const Mat& img, const unsigned char blobnr) {
-		std::vector<Point> convexHull;
+		std::vector<Point> contour;
 		int i, j;
 		Point p, p2;
 		bool l;
@@ -1271,14 +1444,14 @@ namespace vision {
 			j = img.cols;
 			while (j--) {
 				if (img.get(i, j).R == blobnr) {
-					convexHull.push_back(Point(j + 1, i));
+					contour.push_back(Point(j + 1, i));
 					i = 0; j = 0;
 				}
 			}
 		}
 
-		if (!convexHull.size())
-			return convexHull;
+		if (!contour.size())
+			return contour;
 
 		//Loop through the edge of the blob
 		l = true;
@@ -1299,10 +1472,10 @@ namespace vision {
 					p = Point(0, -1);
 					break;
 				}
-				p.x += convexHull[convexHull.size() - 1].x;
-				p.y += convexHull[convexHull.size() - 1].y;
+				p.x += contour[contour.size() - 1].x;
+				p.y += contour[contour.size() - 1].y;
 
-				if ((!inBound(img, p) || img.get(p).R != blobnr) && (convexHull.size() <= 1 || (p.x != convexHull[convexHull.size() - 2].x || p.y != convexHull[convexHull.size() - 2].y))) {
+				if ((!inBound(img, p) || img.get(p).R != blobnr) && (contour.size() <= 1 || (p.x != contour[contour.size() - 2].x || p.y != contour[contour.size() - 2].y))) {
 					// Check if the pixel has a neigbour
 					neighbours = 0;
 					j = 8;
@@ -1349,17 +1522,17 @@ namespace vision {
 						}
 					}
 					if (neighbours && !((neighbours & 1) && (neighbours & 2)) && !((neighbours & 4) && (neighbours & 8))) {
-						if (p.x == convexHull[0].x && p.y == convexHull[0].y) {
+						if (p.x == contour[0].x && p.y == contour[0].y) {
 							l = false;
 						}
 						else
-							convexHull.push_back(p);
+							contour.push_back(p);
 						i = 0;
 					}
 				}
 			}
 		}
-		return convexHull;
+		return contour;
 	}
 
 	void convertToConvexHull(std::vector<Point>& contour) {
@@ -1459,91 +1632,62 @@ namespace vision {
 		return findOMBB(contour);
 	}
 
-	void setSelectedValue(const Mat& src, Mat& dst, int selected, int newVal) {
-		unsigned int i;
-		unsigned char *pSrc;
-		unsigned char *pDst;
-
-		dst.rows = src.rows;
-		dst.cols = src.cols;
-
-		i = src.cols * src.rows + 1;
-		pSrc = (unsigned char*)src.data;
-		pDst = (unsigned char*)dst.data;
-
-		while (--i) {
-			*pDst = *pSrc == selected ? newVal : *pSrc;
-			++pSrc; ++pDst;
+	void displayOMBB(const Mat& img, int blobNr) {
+		vision::Mat temp = vision::Mat(img);
+		vision::Rect_obb rect = vision::findOMBB(temp, 1);
+		vision::setSelectedValue(temp, temp, 1, 255);
+		vision::Point vertices[4];
+		rect.vertices(vertices);
+		cv::Mat cvImg = temp;
+		for (int i = 0; i < 4; ++i) {
+			line(cvImg, cv::Point(vertices[i].x, vertices[i].y), cv::Point(vertices[(i + 1) % 4].x, vertices[(i + 1) % 4].y), cv::Scalar(150), 2);
 		}
-
-		return;
+		line(cvImg, cv::Point(vertices[2].x, vertices[2].y), cv::Point(vertices[3].x, vertices[3].y), cv::Scalar(125), 2);
 	}
 
-	void split(const Mat& src, Mat channels[3]) {
-		if (src.type != IM_8UC3)
-			throw "image type is not supported";
-
-		channels[0].create(src.rows, src.cols, IM_8UC1);
-		channels[1].create(src.rows, src.cols, IM_8UC1);
-		channels[2].create(src.rows, src.cols, IM_8UC1);
-
-		unsigned char* pSrc = src.data;
-		unsigned char* pChan1 = channels[0].data;
-		unsigned char* pChan2 = channels[1].data;
-		unsigned char* pChan3 = channels[2].data;
-
-		unsigned int i = src.rows * src.cols + 1;
-		while (--i) {
-			*(pChan1++) = *(pSrc++);
-			*(pChan2++) = *(pSrc++);
-			*(pChan3++) = *(pSrc++);
+	///**
+	//Find a rotated bounding boxes for each blob
+	//@param src: a 8 bit binair image
+	//*/
+	std::vector<Rect_obb> getBoundingBoxes(const Mat& src) {
+		std::vector<Rect_obb> boundingRects;
+		Mat temp;
+		int nrOfBlobs = labelBlobs(src, temp, FOUR);
+		for (int i = 1; i <= nrOfBlobs; ++i) {
+			boundingRects.push_back(findOMBB(temp, i));
 		}
+		return boundingRects;
 	}
 
-	/*void split(const Mat& src, Mat dst[]) {
-	switch (src.type)
-	{
-	default:
-	throw "Not implemented type";
-	case IM_8UC3:
-	struct ColorC3 {
-	unsigned char color[3];
-	};
-
-	for (int i = 0; i < 3; ++i) {
-	dst[i].create(src.rows, src.cols, IM_8UC1);
-
-	const ColorC3 *pSrc = reinterpret_cast<const ColorC3*>(src.data);
-	unsigned char *pDst = dst[i].data;
-	int j = src.rows * src.cols + 1;
-	while (--j) {
-	*pDst++ = (pSrc++)->color[i];
-	}
-	break;
-	}
-	}
-	}*/
-
+	/**
+	Only keep the pixels of a image that lay inside a bounding rect
+	@param src:			A image with no type restrictions
+	@param dst			The src image after applying the mask
+	@param boundingRect: The shape of the mask
+	*/
 	void applyRectMask(const Mat& src, Mat& dst, Rect_obb rect) {
 		Mat temp(src.rows, src.cols, src.type);
+		Point vertices[4];
+		rect.vertices(vertices);
 
 		//find aabb
 		int min_x, max_x, min_y, max_y;
-		if (rect.bottomLeft.x > rect.topRight.x) {
-			min_x = rect.topRight.x;
-			max_x = rect.bottomLeft.x;
-		}
-		else {
-			min_x = rect.bottomLeft.x;
-			max_x = rect.topRight.x;
-		}
-		if (rect.bottomLeft.y > rect.topRight.y) {
-			min_y = rect.topRight.y;
-			max_y = rect.bottomLeft.y;
-		}
-		else {
-			min_y = rect.bottomLeft.y;
-			max_y = rect.topRight.y;
+		min_x = vertices[0].x;
+		max_x = vertices[0].x;
+		min_y = vertices[0].y;
+		max_y = vertices[0].y;
+		for (int i = 1; i < 4; ++i) {
+			if (vertices[i].x < min_x) {
+				min_x = vertices[i].x;
+			} else if(vertices[i].x > max_x) {
+				max_x = vertices[i].x;
+			}
+			if (vertices[i].y < min_y) {
+				min_y = vertices[i].y;
+			}
+			else if (vertices[i].y > max_y) {
+				max_y = vertices[i].y;
+			}
 		}
 
 		//draw rect
@@ -1567,148 +1711,5 @@ namespace vision {
 			}
 		}
 		dst.copyFrom(temp);
-	}
-	void createCircle(const vision::Mat& src, vision::Mat& dst, const int diameter, const int value, int xCoordinate, int yCoordinate)
-	{
-		dst.create(src.rows, src.cols, src.type);
-
-		int straal = diameter / 2 + 1;
-		int x, y = 0;
-		double a, b, c = 0;
-
-		for (x = (xCoordinate - straal); x <= (xCoordinate + straal); x++){
-			for (y = (yCoordinate - straal); y <= (yCoordinate + straal); y++){
-
-				a = pow((xCoordinate - x), 2);
-				b = pow((yCoordinate - y), 2);
-				c = sqrt(a + b);
-
-				if (c - straal <= 1 && x >= 0 && y >= 0 && x < dst.cols && y < dst.rows){
-					dst.set(y, x, value);
-				}
-			}
-		}
-	}
-	void HSVThreshold(const Mat& src, Mat& dst,
-		double H_min, double H_max,
-		double S_min, double S_max,
-		double V_min, double V_max) {
-		//Split into channels
-		Mat channels[3];
-		split(src, channels);
-
-		//Apply thresholds
-		threshold(channels[0], channels[0], H_min, H_max);
-		threshold(channels[1], channels[1], S_min, S_max);
-		threshold(channels[2], channels[2], V_min, V_max);
-
-		fill(channels[1], Color(1));
-
-		//Combine threshold images
-		bitwise_and(channels[0], channels[1], dst);
-		bitwise_and(dst, channels[2], dst);
-	}
-
-	///**
-	//Find a rotated bounding boxes for each blob
-	//@param src: a 8 bit binair image
-	//*/
-	std::vector<Rect_obb> getBoundingBoxes(const Mat& src) {
-		std::vector<Rect_obb> boundingRects;
-		Mat temp;
-		int nrOfBlobs = labelBlobs(src, temp, FOUR);
-		for (int i = 1; i <= nrOfBlobs; ++i) {
-			boundingRects.push_back(findOMBB(temp, i));
-		}
-		return boundingRects;
-	}
-
-	/**
-	Find a rotated bounding boxes for each blob
-	@param src: a 8 bit binair image
-	*/
-	std::vector<cv::RotatedRect> cvGetBoundingBoxes(const cv::Mat& src) {
-		int minAreaThreshold = 16;
-		std::vector<cv::Vec4i> hierarchy;
-		std::vector<std::vector<cv::Point> > contours;
-
-		cv::Mat srcCopy;
-		src.copyTo(srcCopy);
-
-		std::vector<cv::RotatedRect> boundingBoxes;
-		cv::findContours(srcCopy, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
-		for (int i = 0; i < contours.size(); ++i)
-		if (contourArea(contours[i]) >= minAreaThreshold)
-			boundingBoxes.push_back(cv::minAreaRect(contours[i]));
-
-		return boundingBoxes;
-	}
-
-	/**
-	Rotate a image around its center
-	@param src:			A image with no type restrictions
-	@param dst			The output channel for the rotated image. This image will have the same type and parent as the param 'src'
-	@param angle:		The rotation of the image in radians
-	*/
-	void rotateImage(const cv::Mat& src, cv::Mat& dst, float angle) {
-		int len = std::max(src.cols, src.rows);
-		cv::Point2f pt(len / 2., len / 2.);
-		cv::Mat r = cv::getRotationMatrix2D(pt, angle / PI * 180, 1.0);
-
-		cv::warpAffine(src, dst, r, cv::Size(len, len));
-	}void rotateImage(const vision::Mat& src, vision::Mat& dst, float angle) {
-		int len = std::max(src.cols, src.rows);
-		vision::Point2f pt(len / 2., len / 2.);
-		vision::Mat r = vision::getRotationMatrix2D(pt, angle / PI * 180);
-
-		vision::warpAffine(src, dst, r, vision::Point(len, len));
-	}
-
-	/**
-	Only keep the pixels of a image that lay inside a bounding rect
-	@param src:			A image with no type restrictions
-	@param dst			The src image after applying the mask
-	@param boundingRect: The shape of the mask
-	*/
-	void applyRectangleMask(const Mat& src, Mat& dst, Rect_obb boundingRect) {
-		applyRectMask(src, dst, boundingRect);
-	}
-
-	/**
-	Only keep the biggest contour suposeingly its the hand
-	@param src:			An binairy image
-	@param dst			The binairy src image after applying the mask and give only the biggest contour.
-	*/
-	void getBiggestBlob(const Mat& src, Mat& dst){
-		BlobInfo* blobInfo;
-		Mat temp;
-		int nrOfBlobs = labelBlobs(src, temp, FOUR);
-		blobInfo = new BlobInfo[nrOfBlobs];
-		blobAnalyse(temp, nrOfBlobs, blobInfo);
-		int biggestBlob_id = 1;
-		int biggestBlob_perimeter = 0;
-		for (int i = 0; i < nrOfBlobs; ++i) {
-			if (blobInfo[i].perimeter > biggestBlob_perimeter) {
-				biggestBlob_perimeter = blobInfo[i].perimeter;
-				biggestBlob_id = i + 1;
-			}
-		}
-		threshold(temp, temp, biggestBlob_id, biggestBlob_id);
-		dst.copyFrom(temp);
-
-		delete[] blobInfo;
-	}
-
-	void displayOMBB(const Mat& img, int blobNr) {
-		vision::Mat temp = vision::Mat(img);
-		vision::Rect_obb rect = vision::findOMBB(temp, 1);
-		vision::setSelectedValue(temp, temp, 1, 255);
-		vision::Point vertices[4];
-		rect.vertices(vertices);
-		cv::Mat cvImg = temp;
-		for (int i = 0; i < 4; ++i) {
-			line(cvImg, cv::Point(vertices[i].x, vertices[i].y), cv::Point(vertices[(i + 1) % 4].x, vertices[(i + 1) % 4].y), cv::Scalar(150), 2);
-		}
-		line(cvImg, cv::Point(vertices[2].x, vertices[2].y), cv::Point(vertices[3].x, vertices[3].y), cv::Scalar(125), 2);
 	}
 }

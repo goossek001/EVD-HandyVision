@@ -161,8 +161,6 @@ namespace vision {
 	void createCircle(const Mat& src, Mat& dst, const int diameter, const int value, int xCoordinate, int yCoordinate);
 	void setSelectedValue(const Mat& src, Mat& dst, int selected, int newVal);
 	void split(const Mat& src, Mat channels[3]);
-	Rect_obb findOMBB(const Mat& img, int blobNr);
-	void applyRectMask(const Mat& src, Mat& dst, Rect_obb rect);
 	void HSVThreshold(const Mat& src, Mat& dst,
 		double H_min, double H_max,
 		double S_min, double S_max,
@@ -172,7 +170,8 @@ namespace vision {
 	std::vector<cv::RotatedRect> cvGetBoundingBoxes(const cv::Mat& src);
 	void rotateImage(const cv::Mat& src, cv::Mat& dst, float angle);
 	void rotateImage(const vision::Mat& src, vision::Mat& dst, float angle);
-	void applyRectangleMask(const Mat& src, Mat& dst, vision::Rect_obb boundingRect);
+	Rect_obb findOMBB(const Mat& img, int blobNr);
+	void applyRectMask(const Mat& src, Mat& dst, Rect_obb rect);
 	void getBiggestBlob(const Mat& src, Mat& dst);
 	void displayOMBB(const Mat& img, int blobNr);
 }
