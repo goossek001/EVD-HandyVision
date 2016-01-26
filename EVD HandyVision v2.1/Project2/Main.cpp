@@ -10,17 +10,23 @@ int main() {
 	return main_photo();
 }
 
+std::vector<char*> imageLocations;
 int main_photo() {
-	cv::Mat srcBGR;
-	// open image
-	srcBGR = cv::imread("img8.jpg");
-	if (!srcBGR.data)
-		return -1;
+	imageLocations.push_back("img1.jpg");
+	imageLocations.push_back("img2.jpg");
 
-	int r = DetermenGesture("MyVideo", srcBGR);
+	int r = 0;
+	int i = 0;
+	while (!r) {
+		cv::Mat srcBGR;
+		// open image
+		srcBGR = cv::imread(imageLocations[i++%imageLocations.size()]);
+		if (!srcBGR.data)
+			return -1;
 
-	//Wait until a key is pressed to kill the program
-	cv::waitKey(0);
+		r = DetermenGesture("MyVideo", srcBGR);
+		cv::waitKey(0);
+	}
 
 	return r;
 }
