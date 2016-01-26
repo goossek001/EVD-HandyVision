@@ -1200,8 +1200,8 @@ namespace vision {
 		Point2f p = Point2f(cos(radians), sin(radians));
 		int i = dotProd(bottomLeft - topRight, p);
 
-		arr[1] = bottomLeft + p;
-		arr[3] = topRight - p;
+		arr[1] = bottomLeft - p * i;
+		arr[3] = topRight + p * i;
 	}
 
 	int neighbourCount(const Mat& img, const unsigned char blobnr, int i, int j) {
@@ -1688,5 +1688,18 @@ namespace vision {
 		dst.copyFrom(temp);
 
 		delete[] blobInfo;
+	}
+
+	void displayOMBB(const Mat& img, int blobNr) {
+		vision::Mat temp = vision::Mat(img);
+		vision::Rect_obb rect = vision::findOMBB(temp, 1);
+		vision::setSelectedValue(temp, temp, 1, 255);
+		vision::Point vertices[4];
+		rect.vertices(vertices);
+		cv::Mat cvImg = temp;
+		for (int i = 0; i < 4; ++i) {
+			line(cvImg, cv::Point(vertices[i].x, vertices[i].y), cv::Point(vertices[(i + 1) % 4].x, vertices[(i + 1) % 4].y), cv::Scalar(150), 2);
+		}
+		line(cvImg, cv::Point(vertices[2].x, vertices[2].y), cv::Point(vertices[3].x, vertices[3].y), cv::Scalar(125), 2);
 	}
 }

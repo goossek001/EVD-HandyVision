@@ -63,11 +63,6 @@ int DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	vision::morphologyEx(srcBinair, srcBinair, vision::CLOSE, 5);
 	
 	vision::fillHoles(srcBinair, srcBinair, vision::FOUR);
-	vision::Mat temp = vision::Mat(srcBinair);
-	vision::setSelectedValue(temp, temp, 1, 255);
-	cv::Mat cvFingerMask = temp;
-	cv::imshow("asdffa", cvFingerMask);
-	cv::waitKey(0);
 
 	// find palm
 	vision::Point palmCenter;

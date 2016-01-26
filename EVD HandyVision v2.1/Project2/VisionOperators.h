@@ -167,4 +167,5 @@ namespace vision {
 	void rotateImage(const vision::Mat& src, vision::Mat& dst, float angle);
 	void applyRectangleMask(const Mat& src, Mat& dst, vision::Rect_obb boundingRect);
 	void getBiggestBlob(const Mat& src, Mat& dst);
+	void displayOMBB(const Mat& img, int blobNr);
 }
