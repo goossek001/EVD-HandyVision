@@ -283,7 +283,7 @@ void createPalmMask(const vision::Mat& src, vision::Mat& dst, vision::Point palm
 	//Create a circle that will cover the palm
 	dst.create(src.rows, src.cols, src.type);
 	createCircle(dst, dst, 1.56f * 2 * palmRadius, 1, palmCenter.x, palmCenter.y);
-
+	vision::bitwise_and(src, dst, dst);
 }
 
 /**
@@ -296,7 +296,8 @@ void createPalmMask(const vision::Mat& src, vision::Mat& dst, vision::Point palm
 */
 void createFingerMask(const vision::Mat& _src, vision::Mat& _dst, vision::Mat& _palmMask, vision::Point _wristCenter, vision::Point2f _handOrientation) {
 	//TODO: This function still uses opencv, because findOMBB had just minimal testing
-	cv::Mat src = _src, dst = _dst, palmMask = _palmMask;
+	cv::Mat src = _src; 
+	cv::Mat palmMask = _palmMask;
 	cv::Point wristCenter(_wristCenter.x, _wristCenter.y);
 	cv::Point2f handOrientation(_handOrientation.x, _handOrientation.y);
 
@@ -316,11 +317,11 @@ void createFingerMask(const vision::Mat& _src, vision::Mat& _dst, vision::Mat& _
 	cv::fillConvexPoly(rectMask, vertices, 4, cv::Scalar(255));
 
 	//Remove the palm
-	cv::bitwise_xor(src, palmMask, dst);
+	cv::bitwise_xor(src, palmMask, src);
 	//Apply the finger mask that was made, using the bounding boxes of the fingers
-	cv::bitwise_and(dst, rectMask, dst);
+	cv::bitwise_and(src, rectMask, src);
 
-	_dst.copyFrom(vision::Mat(dst));
+	_dst.copyFrom(vision::Mat(src));
 }
 
 /**
@@ -486,7 +487,6 @@ void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fi
 			}
 		}
 	}
-	//imshow("fingers", img);
 }
 
 void areFingersStretched(cv::RotatedRect* fingers[5], bool(&out)[5], float palmRadius) {

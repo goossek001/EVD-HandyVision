@@ -966,7 +966,7 @@ namespace vision {
 					needIteration = 1;
 			}
 			if (!dst.get(i, dst.cols - 1).R) {
-				dst.set(i, dst.rows - 1, Color(2));
+				dst.set(i, dst.cols - 1, Color(2));
 				v.x = dst.cols - 1;
 				v.y = i;
 				vMarkConnectedEmptySpace(dst, connectionCount, v, queue, &queStart, &queEnd, queSize, &needIterationTemp);
