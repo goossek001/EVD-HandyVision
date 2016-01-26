@@ -94,7 +94,6 @@ int DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	createFingerMask(srcBinair, fingerMask, palmMask, wristCenter, handOrientation);
 
 	std::vector<vision::Rect_obb> boundingBoxesFingers = vision::getBoundingBoxes(fingerMask);
-	std::cout << boundingBoxesFingers[1].bottomLeft.x << "\n";
 
 	//TODO: determen the direction of the thumb
 	ThumbDirection thumbDirection = ThumbDirection::Right;
@@ -128,9 +127,17 @@ int DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	
 	Mat finalImage = srcBGR;
 	cv::Line cvWristLine(cv::Point(wristLine.position.x, wristLine.position.y), cv::Point(wristLine.direction.x, wristLine.direction.y));
-	cv::Line cvPalmLine(cv::Point(palmLine.position.x, palmLine.position.y), cv::Point(palmLine.direction.x, palmLine.direction.y));
-	cv::line(finalImage, cvPalmLine.lineStart(), cvPalmLine.lineEnd(), cv::Scalar(150));
-	cv::line(finalImage, cvWristLine.lineStart(), cvWristLine.lineEnd(), cv::Scalar(0, 150));
+	cv::Line cvPalmLine[4];
+	cvPalmLine[0] = cv::Line(cv::Point(palmLine.position.x, palmLine.position.y), 0.25*cv::Point(palmLine.direction.x, palmLine.direction.y));
+	cvPalmLine[1] = cv::Line(cvPalmLine[0].lineEnd(), cvPalmLine[0].direction);
+	cvPalmLine[2] = cv::Line(cvPalmLine[1].lineEnd(), cvPalmLine[0].direction);
+	cvPalmLine[3] = cv::Line(cvPalmLine[2].lineEnd(), cvPalmLine[0].direction);
+	cv::line(finalImage, cvPalmLine[0].lineStart(), cvPalmLine[0].lineEnd(), cv::Scalar(255));
+	cv::line(finalImage, cvPalmLine[3].lineStart(), cvPalmLine[3].lineEnd(), cv::Scalar(0, 255));
+	cv::line(finalImage, cvPalmLine[1].lineStart(), cvPalmLine[1].lineEnd(), cv::Scalar(0,0, 255));
+	cv::line(finalImage, cvPalmLine[2].lineStart(), cvPalmLine[2].lineEnd(), cv::Scalar(0,255,255));
+	cv::line(finalImage, cvWristLine.lineStart(), cvWristLine.lineEnd(), cv::Scalar(128, 128, 128));
+	drawFingers(finalImage, finalImage, boundingBoxesFingers, palmLine, wristCenter);
 	if (gesture.size() > 0)
 		cv::putText(finalImage, gesture, cv::Point(0.05f*finalImage.cols, 0.95f*finalImage.rows), 2, 0.006f*finalImage.rows, cv::Scalar(255, 255, 255), 8);
 	imshow(windowName, finalImage);

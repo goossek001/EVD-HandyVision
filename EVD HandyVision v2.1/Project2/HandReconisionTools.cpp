@@ -306,10 +306,9 @@ void createFingerMask(const vision::Mat& src, vision::Mat& dst, vision::Mat& pal
 	vision::Rect_obb rRect = vision::Rect_obb{ bottomLeft, topRight, rAngle };
 	vision::Point vertices[4];
 	rRect.vertices(vertices);
-	vision::applyRectMask(src, dst, rRect);
 
-	//Remove the palm
-	vision::bitwise_xor(dst, palmMask, dst);
+	vision::bitwise_xor(src, palmMask, dst);
+	vision::applyRectMask(dst, dst, rRect);
 }
 
 /**
@@ -500,4 +499,32 @@ std::string deteremenGesture(GestureType gestureType, bool fingers[5]) {
 
 int GenerateHashKey(bool fingers[5]) {
 	return fingers[0] + 2 * fingers[1] + 4 * fingers[2] + 8 * fingers[3] + 16 * fingers[4];
+}
+
+void drawFingers(const cv::Mat& src, cv::Mat& dst, const std::vector<vision::Rect_obb>& fingers, vision::Line palmLine, vision::Point wristCenter) {
+	for (int i = 0; i < fingers.size(); ++i) {
+		//Find the edge , in the bounding box, that lays closest to the wrist
+		float closestDistance = Infinity;
+		vision::Line finger;
+		vision::Point vertices[4];
+		fingers[i].vertices(vertices);
+		for (int j = 0; j < 4; ++j) {
+			vision::Point v1 = vertices[j];
+			vision::Point v2 = vertices[(j + 1) % 4];
+			vision::Point center = (vision::Point)(v1 + v2) / 2;
+			float distance = math::length(center - wristCenter);
+			if (distance < closestDistance) {
+				finger.position = center;
+				finger.direction = vision::Point(v1.y - v2.y, v2.x - v1.x);
+				closestDistance = distance;
+			}
+		}
+
+		//Determen the finger label by its distance on the palmline
+		vision::Point intersect = math::lineLineIntersection(vision::Line(finger.position, finger.direction*-1), palmLine);
+		if (&dst != &src)
+			dst = vision::Mat(src);
+
+		cv::line(dst, finger.position + finger.direction*2, intersect, cv::Scalar(255, 255, 255));
+	}
 }

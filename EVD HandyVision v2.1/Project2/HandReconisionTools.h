@@ -43,3 +43,5 @@ void labelFingers(std::vector<vision::Rect_obb>& fingersIn, vision::Rect_obb* (&
 	, const vision::Point& handOrientation, const vision::Line palmLine);
 void areFingersStretched(vision::Rect_obb* fingers[5], bool(&out)[5], float palmRadius);
 std::string deteremenGesture(GestureType gestureType, bool fingers[5]);
+
+void drawFingers(const cv::Mat& src, cv::Mat& dst, const std::vector<vision::Rect_obb>& fingers, vision::Line palmLine, vision::Point wristCenter);

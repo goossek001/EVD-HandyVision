@@ -10,6 +10,7 @@ namespace vision {
 		Point();
 		Point(const Point2f& p);
 		Point(int x, int y);
+		operator cv::Point() { return cv::Point(x, y); }
 		Point operator*(const float& i) const;
 		Point operator/(const float& i) const;
 		Point operator+(const Point& other) const;
