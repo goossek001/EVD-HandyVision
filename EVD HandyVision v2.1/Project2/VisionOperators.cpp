@@ -1193,7 +1193,7 @@ namespace vision {
 		return inBound(img, point.y, point.x);
 	}
 
-	void Rect_obb::vertices(Point arr[4]) {
+	void Rect_obb::vertices(Point arr[4]) const {
 		arr[0] = bottomLeft;
 		arr[2] = topRight;
 
@@ -1276,6 +1276,9 @@ namespace vision {
 				}
 			}
 		}
+
+		if (!convexHull.size())
+			return convexHull;
 
 		//Loop through the edge of the blob
 		l = true;
@@ -1406,6 +1409,12 @@ namespace vision {
 		smallestSurface = INT_MAX;
 
 		i = convexHull.size();
+		if (!i) {
+			OMBB.bottomLeft = Point(0, 0);
+			OMBB.topRight = Point(0, 0);
+			OMBB.radians = 0;
+			return OMBB;
+		}
 		while (--i) {
 			radians = atan2(convexHull[i - 1].y - convexHull[i].y, convexHull[i - 1].x - convexHull[i].x);
 
@@ -1604,15 +1613,15 @@ namespace vision {
 	//Find a rotated bounding boxes for each blob
 	//@param src: a 8 bit binair image
 	//*/
-	//std::vector<Rect_obb> getBoundingBoxes(const Mat& src) {
-	//	std::vector<Rect_obb> boundingRects;
-	//	Mat temp;
-	//	int nrOfBlobs = labelBlobs(src, temp, FOUR);
-	//	for (int i = 1; i <= nrOfBlobs; ++i) {
-	//		boundingRects.push_back(findOMBB(src, i));
-	//	}
-	//	return boundingRects;
-	//}
+	std::vector<Rect_obb> getBoundingBoxes(const Mat& src) {
+		std::vector<Rect_obb> boundingRects;
+		Mat temp;
+		int nrOfBlobs = labelBlobs(src, temp, FOUR);
+		for (int i = 1; i <= nrOfBlobs; ++i) {
+			boundingRects.push_back(findOMBB(temp, i));
+		}
+		return boundingRects;
+	}
 
 	/**
 	Find a rotated bounding boxes for each blob

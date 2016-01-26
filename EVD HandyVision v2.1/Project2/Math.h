@@ -21,6 +21,7 @@ namespace math {
 	float length(const Point& vector);
 	float length(const vision::Point& vector);
 	float cross(cv::Point v1, cv::Point v2);
+	float cross(vision::Point v1, vision::Point v2);
 
 	void rotatePoint(const Mat& src, const Point& srcPoint, Point& dstPoint, float angle);
 	void rotatePoint(const vision::Mat& src, const vision::Point& srcPoint, vision::Point& dstPoint, float angle);
@@ -29,4 +30,5 @@ namespace math {
 	std::vector<Point> horizontalLineObjectIntersection(const Mat& src, int height);
 	std::vector<vision::Point> horizontalLineObjectIntersection(const vision::Mat& src, int height);
 	Point lineLineIntersection(Line l1, Line l2);
+	vision::Point lineLineIntersection(vision::Line l1, vision::Line l2);
 }

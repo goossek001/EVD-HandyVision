@@ -37,9 +37,9 @@ void getPalmCenter(const vision::Mat& src, vision::Point& palmCenter, float& pal
 void createPalmMask(const vision::Mat& src, vision::Mat& dst, vision::Point palmCenter, float palmRadius);
 void findWrist(const vision::Mat& src, vision::Line& wristOut, bool& foundWrist, vision::Point palmCenter, float palmRadius);
 void createFingerMask(const vision::Mat& src, vision::Mat& dst, vision::Mat& palmMask, vision::Point wristCenter, vision::Point2f handOrientation);
-int findThumb(const std::vector<cv::RotatedRect>& fingers, vision::Point palmCenter, float handAngle, ThumbDirection thumbDirection);
+int findThumb(const std::vector<vision::Rect_obb>& fingers, vision::Point palmCenter, float handAngle, ThumbDirection thumbDirection);
 void findPalmLine(const vision::Mat& srcBinair, vision::Line& palmLineOut, bool& foundPalm, vision::Line wristLine, float palmRadius, vision::Point2f handOrientation, bool isThumbVisible);
-void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fingersOut)[5], const vision::Point& wristCenter
+void labelFingers(std::vector<vision::Rect_obb>& fingersIn, vision::Rect_obb* (&fingersOut)[5], const vision::Point& wristCenter
 	, const vision::Point& handOrientation, const vision::Line palmLine);
-void areFingersStretched(cv::RotatedRect* fingers[5], bool(&out)[5], float palmRadius);
+void areFingersStretched(vision::Rect_obb* fingers[5], bool(&out)[5], float palmRadius);
 std::string deteremenGesture(GestureType gestureType, bool fingers[5]);

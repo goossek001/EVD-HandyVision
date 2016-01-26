@@ -320,7 +320,7 @@ void createFingerMask(const vision::Mat& src, vision::Mat& dst, vision::Mat& pal
 	@param thumbDirection:			The direction the thumb points, relative to the hand
 	@return:						The index of the thumb in the list boundingBoxesFingers. Return -1 when the is no thumb in the list
 */
-int findThumb(const std::vector<cv::RotatedRect>& boundingBoxesFingers, vision::Point palmCenter, float handAngle, ThumbDirection thumbDirection) {
+int findThumb(const std::vector<vision::Rect_obb>& boundingBoxesFingers, vision::Point palmCenter, float handAngle, ThumbDirection thumbDirection) {
 	//Create a rotation matrix
 	float rotationMatrix[2][2] = {
 		{ cos(handAngle), -sin(handAngle) },
@@ -330,7 +330,7 @@ int findThumb(const std::vector<cv::RotatedRect>& boundingBoxesFingers, vision::
 	//Loop through all fingers and determen if the finger is a thumb by look at its position the palm 
 	bool containsThumb = false;
 	for (int i = 0; i < boundingBoxesFingers.size(); ++i) {
-		vision::Point2f center(boundingBoxesFingers[i].center.x, boundingBoxesFingers[i].center.y);
+		vision::Point2f center(boundingBoxesFingers[i].center().x, boundingBoxesFingers[i].center().y);
 		vision::Point direction = center - (vision::Point2f)palmCenter;
 		direction = vision::Point(
 			direction.x * rotationMatrix[0][0] + direction.y * rotationMatrix[1][0],
@@ -438,11 +438,8 @@ void findPalmLine(const vision::Mat& _srcBinair, vision::Line& _palmLineOut, boo
 	@param ringFingerIndexOut:				The index of the ring finger in the list boundingBoxesFingers
 	@param pinkyIndexOut:					The index of the pink in the list boundingBoxesFingers
 */
-void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fingersOut)[5], const vision::Point& _wristCenter, const vision::Point& _handOrientation
-	, vision::Line _palmLine) {
-	const cv::Point wristCenter(_wristCenter.x, _wristCenter.y);
-	const cv::Point handOrientation(_handOrientation.x, _handOrientation.y);
-	const cv::Line palmLine(cv::Point(_palmLine.position.x, _palmLine.position.y), cv::Point(_palmLine.direction.x, _palmLine.direction.y));
+void labelFingers(std::vector<vision::Rect_obb>& fingersIn, vision::Rect_obb* (&fingersOut)[5], const vision::Point& wristCenter, const vision::Point& handOrientation
+	, vision::Line palmLine) {
 	float palmWidth = math::length(palmLine.direction);
 
 	//Loop through all fingers in 'boundingBoxesFingers' and label them
@@ -450,38 +447,38 @@ void labelFingers(std::vector<cv::RotatedRect>& fingersIn, cv::RotatedRect* (&fi
 		if (&fingersIn[i] != fingersOut[0]) {
 			//Find the edge , in the bounding box, that lays closest to the wrist
 			float closestDistance = Infinity;
-			cv::Line finger;
-			cv::Point2f vertices[4];
-			fingersIn[i].points(vertices);
+			vision::Line finger;
+			vision::Point vertices[4];
+			fingersIn[i].vertices(vertices);
 			for (int j = 0; j < 4; ++j) {
-				cv::Point v1 = vertices[j];
-				cv::Point v2 = vertices[(j + 1) % 4];
-				cv::Point center = (cv::Point)(v1 + v2) / 2;
+				vision::Point v1 = vertices[j];
+				vision::Point v2 = vertices[(j + 1) % 4];
+				vision::Point center = (vision::Point)(v1 + v2) / 2;
 				float distance = math::length(center - wristCenter);
 				if (distance < closestDistance) {
 					finger.position = center;
-					finger.direction = cv::Point(v1.y - v2.y, v2.x - v1.x);
+					finger.direction = vision::Point(v1.y - v2.y, v2.x - v1.x);
 					closestDistance = distance;
 				}
 			}
 
 			//Determen the finger label by its distance on the palmline
-			cv::Point intersect = math::lineLineIntersection(cv::Line(finger.position, -finger.direction), palmLine);
+			vision::Point intersect = math::lineLineIntersection(vision::Line(finger.position, finger.direction*-1), palmLine);
 			//cv::line(img, finger.position, finger.position - 2*finger.direction, cv::Scalar(255, 255, 255));
-			int index = 1 + math::length(intersect - palmLine.position) / palmWidth * 4;
+			int index = 1 + math::length(intersect - palmLine.position) * 4 / palmWidth;
 			if (index > 0 && index < 5) {
-				if (!fingersOut[index] || fingersOut[index]->size.area() <= fingersIn[i].size.area())
+				if (!fingersOut[index] || fingersOut[index]->area() <= fingersIn[i].area())
 					fingersOut[index] = &fingersIn[i];
 			}
 		}
 	}
 }
 
-void areFingersStretched(cv::RotatedRect* fingers[5], bool(&out)[5], float palmRadius) {
+void areFingersStretched(vision::Rect_obb* fingers[5], bool(&out)[5], float palmRadius) {
 	for (int i = 0; i < 5; ++i) {
 		float fingerLength;
 		if (fingers[i])
-			fingerLength = std::max(fingers[i]->size.width, fingers[i]->size.height);
+			fingerLength = std::max(fingers[i]->width(), fingers[i]->height());
 		else
 			fingerLength = 0;
 		float multiplier;

@@ -44,6 +44,9 @@ namespace math {
 	float cross(cv::Point v1, cv::Point v2) {
 		return (v1.x*v2.y) - (v1.y*v2.x);
 	}
+	float cross(vision::Point v1, vision::Point v2) {
+		return (v1.x*v2.y) - (v1.y*v2.x);
+	}
 
 	cv::Point operator*(const cv::Point& p, cv::Mat M) {
 		cv::Mat_<double> src(3/*rows*/, 1 /* cols */);
@@ -103,6 +106,10 @@ namespace math {
 	cv::Point lineLineIntersection(Line l1, Line l2) {
 		float u = cross(l2.position - l1.position, l1.direction) / cross(l1.direction, l2.direction);
 		return l2.position + u * l2.direction;
+	}
+	vision::Point lineLineIntersection(vision::Line l1, vision::Line l2) {
+		float u = cross(l2.position - l1.position, l1.direction) / cross(l1.direction, l2.direction);
+		return l2.position + l2.direction * u;
 	}
 
 	/**

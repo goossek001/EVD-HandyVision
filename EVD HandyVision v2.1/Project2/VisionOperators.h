@@ -145,7 +145,12 @@ namespace vision {
 		Point topRight;
 		float radians;
 
-		void vertices(Point arr[4]);
+		void vertices(Point arr[4]) const;
+
+		inline Point center() const { return (bottomLeft + topRight) / 2; }
+		inline int width() const { return abs(bottomLeft.x - topRight.y); }
+		inline int height() const { return abs(bottomLeft.y - topRight.y); }
+		inline int area() const { return width()*height(); }
 	};
 	void blobAnalyse(const Mat& img, const int blobcount, BlobInfo* blobInfo);
 	bool inBound(const Mat& img, int i, int j);
@@ -162,6 +167,7 @@ namespace vision {
 		double S_min, double S_max,
 		double V_min, double V_max);
 	void fillHoles(const Mat& src, Mat& dst);
+	std::vector<vision::Rect_obb> getBoundingBoxes(const vision::Mat& src);
 	std::vector<cv::RotatedRect> cvGetBoundingBoxes(const cv::Mat& src);
 	void rotateImage(const cv::Mat& src, cv::Mat& dst, float angle);
 	void rotateImage(const vision::Mat& src, vision::Mat& dst, float angle);
