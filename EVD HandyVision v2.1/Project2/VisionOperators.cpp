@@ -1547,10 +1547,10 @@ namespace vision {
 					d = Point2f(cos(rect.radians), sin(rect.radians));
 					p1 = Point(x, y) - rect.bottomLeft;
 					p2 = Point(x, y) - rect.topRight;
-					v1 = dotProd(p1, d) >= 0 && dotProd(p2, d) <= 0;
+					v1 = !dotProd(p1, d) || !dotProd(p2, d) || (dotProd(p1, d) < 0) != (dotProd(p2, d) < 0);
 
 					d = Point2f(-d.y, d.x);
-					v2 = dotProd(p1, d) >= 0 && dotProd(p2, d) <= 0;
+					v2 = !dotProd(p1, d) || !dotProd(p2, d) || (dotProd(p1, d) < 0) != (dotProd(p2, d) < 0);
 
 					if (v1 && v2)
 						temp.set(y, x, src.get(y, x));
@@ -1618,7 +1618,7 @@ namespace vision {
 	Find a rotated bounding boxes for each blob
 	@param src: a 8 bit binair image
 	*/
-	std::vector<cv::RotatedRect> getBoundingBoxes(const cv::Mat& src) {
+	std::vector<cv::RotatedRect> cvGetBoundingBoxes(const cv::Mat& src) {
 		int minAreaThreshold = 16;
 		std::vector<cv::Vec4i> hierarchy;
 		std::vector<std::vector<cv::Point> > contours;

@@ -294,34 +294,22 @@ void createPalmMask(const vision::Mat& src, vision::Mat& dst, vision::Point palm
 	@param wristCenter:		The center position of the wrist
 	@param handOrientation:	The direction from wrist to fingers
 */
-void createFingerMask(const vision::Mat& _src, vision::Mat& _dst, vision::Mat& _palmMask, vision::Point _wristCenter, vision::Point2f _handOrientation) {
+void createFingerMask(const vision::Mat& src, vision::Mat& dst, vision::Mat& palmMask, vision::Point wristCenter, vision::Point2f handOrientation) {
 	//TODO: This function still uses opencv, because findOMBB had just minimal testing
-	cv::Mat src = _src; 
-	cv::Mat palmMask = _palmMask;
-	cv::Point wristCenter(_wristCenter.x, _wristCenter.y);
-	cv::Point2f handOrientation(_handOrientation.x, _handOrientation.y);
 
-	cv::Point2f rSize(src.rows + src.cols, src.rows + src.cols);
-	cv::Point2f rCenter = (cv::Point2f)wristCenter + 0.5f*rSize.x * handOrientation;
-	float rAngle = std::atan2(handOrientation.y, handOrientation.x) * 180 / PI;
+	float size =src.rows + src.cols;
+	vision::Point2f bottomLeft = (vision::Point2f)wristCenter + vision::Point2f(-handOrientation.y, handOrientation.x) * 0.5f*size;
+	vision::Point2f topRight = (vision::Point2f)wristCenter - vision::Point2f(-handOrientation.y, handOrientation.x) * size + handOrientation * size;
+	float rAngle = std::atan2(handOrientation.y, handOrientation.x);
 
 	//Create a finger mask, using the bounding boxes of the fingers
-	Mat rectMask(src.size(), src.type(), cv::Scalar(0));
-	cv::RotatedRect rRect = cv::RotatedRect(rCenter, rSize, rAngle);
-	cv::Point2f vertices2f[4];
-	rRect.points(vertices2f);
-	cv::Point vertices[4];
-	for (int i = 0; i < 4; ++i){
-		vertices[i] = vertices2f[i];
-	}
-	cv::fillConvexPoly(rectMask, vertices, 4, cv::Scalar(255));
+	vision::Rect_obb rRect = vision::Rect_obb{ bottomLeft, topRight, rAngle };
+	vision::Point vertices[4];
+	rRect.vertices(vertices);
+	vision::applyRectMask(src, dst, rRect);
 
 	//Remove the palm
-	cv::bitwise_xor(src, palmMask, src);
-	//Apply the finger mask that was made, using the bounding boxes of the fingers
-	cv::bitwise_and(src, rectMask, src);
-
-	_dst.copyFrom(vision::Mat(src));
+	vision::bitwise_xor(dst, palmMask, dst);
 }
 
 /**

@@ -92,7 +92,8 @@ int DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 
 	// find the fingers
 	createFingerMask(srcBinair, fingerMask, palmMask, wristCenter, handOrientation);
-	std::vector<cv::RotatedRect> boundingBoxesFingers = vision::getBoundingBoxes(fingerMask);
+
+	std::vector<cv::RotatedRect> cvBoundingBoxesFingers = vision::cvGetBoundingBoxes(fingerMask);
 
 	//TODO: determen the direction of the thumb
 	ThumbDirection thumbDirection = ThumbDirection::Right;
@@ -101,9 +102,9 @@ int DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	cv::RotatedRect* fingers[5];
 	std::fill(fingers, fingers + 5, (cv::RotatedRect*)0);
 
-	int thumbIndex = findThumb(boundingBoxesFingers, palmCenter, handAngle, thumbDirection);
+	int thumbIndex = findThumb(cvBoundingBoxesFingers, palmCenter, handAngle, thumbDirection);
 	if (thumbIndex >= 0)
-		fingers[0] = &boundingBoxesFingers[thumbIndex];
+		fingers[0] = &cvBoundingBoxesFingers[thumbIndex];
 
 	// find the palm line
 	vision::Line palmLine;
@@ -117,7 +118,7 @@ int DetermenGesture(std::string windowName, cv::Mat& cvSrcBGR) {
 	}
 	
 	// find the 4 other fingers
-	labelFingers(boundingBoxesFingers, fingers, wristCenter, handOrientation, palmLine);
+	labelFingers(cvBoundingBoxesFingers, fingers, wristCenter, handOrientation, palmLine);
 
 	bool fingersStretch[5];
 	areFingersStretched(fingers, fingersStretch, palmRadius);
